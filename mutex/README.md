@@ -42,7 +42,7 @@ on the same mutex instance.
 
 [Linux man page](http://linux.die.net/man/3/pthread_mutex_lock)
 
-References describing mutex and semaphore objects
-[geeksforgeeks](http://www.geeksforgeeks.org/mutex-vs-semaphore/)
-[stackoverflow](http://stackoverflow.com/questions/62814/difference-between-binary-semaphore-and-mutex)
+References describing mutex and semaphore objects  
+[geeksforgeeks](http://www.geeksforgeeks.org/mutex-vs-semaphore/)  
+[stackoverflow](http://stackoverflow.com/questions/62814/difference-between-binary-semaphore-and-mutex)  
 [differencebetween](http://www.differencebetween.net/language/difference-between-mutex-and-semaphore/)
