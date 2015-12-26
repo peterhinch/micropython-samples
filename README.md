@@ -4,6 +4,12 @@ A place for assorted code ideas for MicroPython.
 mutex: A class providing mutal exclusion enabling interrupt handlers and the main program to
 access shared data in a manner which ensures data integrity.
 
+watchdog: How to access the simpler of the Pyboard's watchdog timers.
+
+radio: A trivial class simplifying the use of the nRF24L01 radio for the case where a wireless
+link between two devices is required.
+
+Buildcheck: Raise an exception if a firmware build is earlier than a given date.
 
 Any code placed here is released under the MIT License (MIT).  
 The MIT License (MIT)  
