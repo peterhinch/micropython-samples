@@ -99,6 +99,7 @@ class DS3231:
 # to store the calibration factor on disk and issue rtc.calibration(factor) on boot.
 
     def getcal(self, seconds):
+        rtc.calibration(0)                      # Clear existing cal
         self.save_time()                        # Set DS3231 from RTC
         self.await_transition()
         rtcstart = now()
