@@ -13,7 +13,7 @@ rtc = pyb.RTC()
 
 def now():  # Return the current time from the RTC in secs and millisecs from year 2000
     secs = utime.time()
-    ms = 1000*(255 -rtc.datetime()[7]) >> 8
+    ms = 1000 * (255 -rtc.datetime()[7]) >> 8
     if ms < 50:                                 # Might have just rolled over
         secs = utime.time()
     return secs, ms
@@ -21,7 +21,7 @@ def now():  # Return the current time from the RTC in secs and millisecs from ye
 # Driver for DS3231 accurate RTC module (+- 1 min/yr) needs adapting for Pyboard
 # source https://github.com/scudderfish/uDS3231
 def bcd2dec(bcd):
-    return (((bcd & 0b11110000)>>4)*10 + (bcd & 0b00001111))
+    return (((bcd & 0xf0) >> 4) * 10 + (bcd & 0x0f))
 
 def dec2bcd(dec):
     t = dec // 10
@@ -42,11 +42,14 @@ class DS3231:
             raise DS3231Exception("DS3231 not found on I2C bus at %d" % DS3231_I2C_ADDR)
 
     def get_time(self, set_rtc = False):
-        data = self.ds3231.mem_read(7, DS3231_I2C_ADDR, 0)
-        ss=bcd2dec(data[0])
-        mm=bcd2dec(data[1])
+        if set_rtc:
+            data = self.await_transition() # For accuracy set RTC immediately after a seconds transition
+        else:
+            data = self.ds3231.mem_read(7, DS3231_I2C_ADDR, 0) # don't wait
+        ss = bcd2dec(data[0])
+        mm = bcd2dec(data[1])
         if data[2] & 0x40:
-            hh=bcd2dec(data[2] & 0x1f)
+            hh = bcd2dec(data[2] & 0x1f)
             if data[2] & 0x20:
                 hh += 12
         else:
@@ -82,9 +85,10 @@ class DS3231:
 
     def await_transition(self):
         data = self.ds3231.mem_read(7, DS3231_I2C_ADDR, 0)
-        ss= data[0]
+        ss = data[0]
         while ss == data[0]:
-            data = self.ds3231.mem_read(7, DS3231_I2C_ADDR, 0)      # Aawait a seconds transition
+            data = self.ds3231.mem_read(7, DS3231_I2C_ADDR, 0)      # Await a seconds transition
+        return data
 
 # Get calibration factor for Pyboard RTC. Note that the DS3231 doesn't have millisecond resolution so we
 # wait for a seconds transition to emulate it.
