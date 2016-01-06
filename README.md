@@ -6,6 +6,9 @@ access shared data in a manner which ensures data integrity.
 
 watchdog: How to access the simpler of the Pyboard's watchdog timers.
 
+ds3231_pb: Driver for the DS3231 low cost precison RTC, including a facility to calibrate the
+Pyboard's RTC from the DS3231
+
 radio: A trivial class simplifying the use of the nRF24L01 radio for the case where a wireless
 link between two devices is required.
 
