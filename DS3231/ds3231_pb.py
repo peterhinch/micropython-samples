@@ -2,6 +2,7 @@
 # Adapted from WiPy driver at https://github.com/scudderfish/uDS3231
 # Includes routine to calibrate the Pyboard's RTC from the DS3231
 # delta method now operates to 1mS precision
+# precison of calibration further improved by timing Pyboard RTC transition
 # Adapted by Peter Hinch, Jan 2016
 
 import utime, pyb
@@ -12,12 +13,15 @@ class DS3231Exception(OSError):
 
 rtc = pyb.RTC()
 
-def now():  # Return the current time from the RTC in secs and millisecs from year 2000
+def now():  # Return the current time from the RTC in millisecs from year 2000
     secs = utime.time()
     ms = 1000 * (255 -rtc.datetime()[7]) >> 8
     if ms < 50:                                 # Might have just rolled over
         secs = utime.time()
-    return secs, ms
+    return 1000 * secs + ms
+
+def nownr():  # Return the current time from the RTC: caller ensures transition has occurred
+     return 1000 * utime.time() + (1000 * (255 -rtc.datetime()[7]) >> 8)
 
 # Driver for DS3231 accurate RTC module (+- 1 min/yr) needs adapting for Pyboard
 # source https://github.com/scudderfish/uDS3231
@@ -82,8 +86,7 @@ class DS3231:
 
     def delta(self):                            # Return no. of mS RTC leads DS3231
         self.await_transition()
-        rtc_time = now()
-        rtc_ms = rtc_time[0] * 1000 + rtc_time[1]
+        rtc_ms = now()
         t_ds3231 = utime.mktime(self.get_time())  # To second precision, still in same sec as transition
         return rtc_ms - 1000 * t_ds3231
 
@@ -98,22 +101,36 @@ class DS3231:
 # wait for a seconds transition to emulate it.
 # This function returns the required calibration factor for the RTC (approximately the no. of ppm the
 # RTC lags the DS3231).
-# For accurate results the delay should be at least two minutes. Longer is better.
+# Delay(min) Outcome (successive runs). Note 1min/yr ~= 2ppm
+#   5 173 169 173 173 173
+#  10 171 173 171
+#  20 172 172 174
+#  40 173 172 173 Mean: 172.3 
 # Note calibration factor is not saved on power down unless an RTC backup battery is used. An option is
 # to store the calibration factor on disk and issue rtc.calibration(factor) on boot.
 
     def getcal(self, minutes=5):
         rtc.calibration(0)                      # Clear existing cal
         self.save_time()                        # Set DS3231 from RTC
-        self.await_transition()
-        rtcstart = now()
-        dsstart = utime.mktime(self.get_time())
+        self.await_transition()                 # Wait for DS3231 to change: on a 1 second boundary
+        tus = pyb.micros()
+        st = rtc.datetime()[7]
+        while rtc.datetime()[7] == st:          # Wait for RTC to change
+            pass
+        t1 = pyb.elapsed_micros(tus)            # t1 is duration (uS) between DS and RTC change (start)
+        rtcstart = nownr()                      # RTC start time in mS
+        dsstart = utime.mktime(self.get_time()) # DS start time in secs
         pyb.delay(minutes * 60000)
-        self.await_transition()
-        rtcend = now()
+        self.await_transition()                 # DS second boundary
+        tus = pyb.micros()
+        st = rtc.datetime()[7]
+        while rtc.datetime()[7] == st:
+            pass
+        t2 = pyb.elapsed_micros(tus)            # t2 is duration (uS) between DS and RTC change (end)
+        rtcend = nownr()
         dsend = utime.mktime(self.get_time())
-        dsdelta = (dsend - dsstart) *1000
-        rtcdelta = rtcend[0] * 1000 + rtcend[1] - rtcstart[0] * 1000 - rtcstart[1]
+        dsdelta = (dsend - dsstart) * 1000000   # Duration (uS) between DS edges as measured by DS3231
+        rtcdelta = (rtcend - rtcstart) * 1000 + t1 -t2 # Duration (uS) between DS edges as measured by RTC and corrected
         ppm = (1000000* (rtcdelta - dsdelta))/dsdelta
         return int(-ppm/0.954)
 
