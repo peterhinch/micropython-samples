@@ -42,6 +42,7 @@ class DS3231:
         else:
             raise ValueError('Side must be "X" or "Y"')
         self.ds3231 = pyb.I2C(bus, mode=pyb.I2C.MASTER, baudrate=400000)
+        self.timebuf = bytearray(7)
         if DS3231_I2C_ADDR not in self.ds3231.scan():
             raise DS3231Exception("DS3231 not found on I2C bus at %d" % DS3231_I2C_ADDR)
 
@@ -49,7 +50,7 @@ class DS3231:
         if set_rtc:
             data = self.await_transition()      # For accuracy set RTC immediately after a seconds transition
         else:
-            data = self.ds3231.mem_read(7, DS3231_I2C_ADDR, 0) # don't wait
+            data = self.ds3231.mem_read(self.timebuf, DS3231_I2C_ADDR, 0) # don't wait
         ss = bcd2dec(data[0])
         mm = bcd2dec(data[1])
         if data[2] & 0x40:
@@ -91,10 +92,10 @@ class DS3231:
         return rtc_ms - 1000 * t_ds3231
 
     def await_transition(self):                 # Wait until DS3231 seconds value changes
-        data = self.ds3231.mem_read(7, DS3231_I2C_ADDR, 0)
+        data = self.ds3231.mem_read(self.timebuf, DS3231_I2C_ADDR, 0)
         ss = data[0]
         while ss == data[0]:
-            data = self.ds3231.mem_read(7, DS3231_I2C_ADDR, 0)
+            data = self.ds3231.mem_read(self.timebuf, DS3231_I2C_ADDR, 0)
         return data
 
 # Get calibration factor for Pyboard RTC. Note that the DS3231 doesn't have millisecond resolution so we
