@@ -1,6 +1,6 @@
 # Program to test/demonstrate consistency of results from getcal()
 from array import array
-from ds2321_pb import DS3231
+from ds3231_pb import DS3231
 
 # This takes 12.5 hours to run: to sve you the trouble here are results from one sample of Pyboard.
 
