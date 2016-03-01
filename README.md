@@ -6,6 +6,10 @@ access shared data in a manner which ensures data integrity.
 
 watchdog: How to access the simpler of the Pyboard's watchdog timers.
 
+reverse: Fast reverse a bytearray.
+
+font: Convert a C file produced by GLCD Font Creator to Python for storage as persistent byte code.
+
 ds3231_pb: Driver for the DS3231 low cost precison RTC, including a facility to calibrate the
 Pyboard's RTC from the DS3231
 
