@@ -28,3 +28,16 @@ copied to the scripts directory and used to build firmware with the file as a fr
 
 This assumes Linux but CfontToBinary.py is plain Python3 and should run on other platforms. 
 
+# The font matrix
+
+In the C file each character is stored as a fixed size array of bytes, the first byte being
+the character width. When rendering a font to a device, fonts designed as variable pitch
+should use this byte as the width. Monospaced fonts should be rendered using the font's
+width (see pyfont.py).
+
+# Note
+
+If anyone knows a Python way of converting a font file (a.g. ttf) to a bitmap, please let me
+know. My own efforts were not good enough hence my reluctant advocacy of the above closed source
+program.
+
