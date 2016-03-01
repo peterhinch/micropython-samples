@@ -35,6 +35,26 @@ the character width. When rendering a font to a device, fonts designed as variab
 should use this byte as the width. Monospaced fonts should be rendered using the font's
 width (see pyfont.py).
 
+## Organisation
+
+This describes the layout of the data in the C file and the Python bytes object, for a font
+with characters of X by Y pixels. Individual pixels are denoted by x and y. Displays usually
+use a cordinate system where (0, 0) represents the top left hand corner, with points on the
+screen represented by positive values of (x, y). These notes assume this organisation.
+
+For a font of X by Y pixels, each column uses (Y % 8) +1 bytes. Thus a 5 x 10 font will use
+2 bytes per column by 5 columns = 10 bytes. An additional byte at the start signifies the
+width of the individual character giving 11 bytes per character.
+
+The first byte after the width holds the vertical data for pixels (0, 0) to (0, 7), with (0, 0)
+in the LSB. For a 5 x 10 font the second byte will hold vertical data for pixels (0, 8) and
+(0, 9) in its LSB's, with the next byte holding (1, 0) to (1, 7) and so on, through to
+(4, 8) and (4, 9).
+
+Thus, if in our 5 x 10 font we have a character consisting of a one pixel horizontal line at
+y == 0 the bytes will be  
+05 01 00 01 00 01 00 01 00 01 00
+
 # Note
 
 If anyone knows a Python way of converting a font file (a.g. ttf) to a bitmap, please let me
