@@ -15,7 +15,8 @@ Select the microC tab and press Save, following the usual file creation routine.
 
 On a PC with Python 3 installed issue (to convert a file Ubuntu_Medium17x19.c to Python ubuntu.py)
 ```
-python3 CfontToPython.py -i Ubuntu_Medium17x19.c -o ubuntu.py```
+python3 CfontToPython.py -i Ubuntu_Medium17x19.c -o ubuntu.py
+```
 To test issue
 ```python
 import ubuntu
