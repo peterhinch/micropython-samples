@@ -45,7 +45,7 @@ class PyFont(object):
         mv = self.mv
         for bit_vert in range(bv):   # for each vertical line
             bytenum, bitnum = divmod(bit_vert, 8)
-            bit = 1 << bitnum
+            bit =  1 << (7 - bitnum) # bits are reversed 1 << bitnum
             for bit_horiz in range(bh): #  horizontal line
                 fontbyte = self.mv[self.bytes_vert * bit_horiz + bytenum]
                 print('*' if fontbyte & bit else ' ', end = '')

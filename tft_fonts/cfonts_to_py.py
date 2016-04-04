@@ -16,7 +16,10 @@
 # with a dictionary 'fonts.fonts' indexed by name and the value being a PyFont instance.
 # The name index is the font filename less path and extension
 
-# TODO decide whether to bit reverse the font data or not
+# TODO check that new format below works for all cases of character line length as per inded
+# terminal7hex = b'\x08\x0C\x20\x80\x01'\
+# b'\x08\x00\x00\x3F\x00\x40\x80\x3F\x00\x00\x00\x0F\x80\x10\x40\x0F\x80'\
+# b'\x08\x00\x00\x3F\x00\x40\x80\x3F\x00\x00\x00\x08\x40\x1F\xC0\x00\x40'\
 
 import argparse, os
 
@@ -38,19 +41,26 @@ def rbits(n): # reverse bits in a byte
 # Given a string 0f form '0x23' representing a byte, return a string of same form but with the bits
 # comprising the byte reversed
 def rbits_text(string):
-    return hex(rbits(int(string, 16)))
+    return 'x{:02x}'.format(rbits(int(string, 16)))
 
 def writestart(outfile, name):
     print('{}: header found'.format(name))
-    outfile.write('_')
-    outfile.write(name) # _fontname = b'
-    outfile.write(" = b'")
+    outfile.write('_{} = '.format(name))
 
 def write_index(outfile, name, index):
-    outfile.write("_{:}_index = b'".format(name))
+    outfile.write("_{:}_index = ".format(name))
+    count = 0
     for val in index:
+        if count == 0:
+            outfile.write("b'")
         outfile.write(halfword_to_str(val))
-    outfile.write("'\n")
+        count += 1
+        count %= 8
+        if count == 0:
+            outfile.write("'\\\n")
+    if count > 0:
+        outfile.write("'")
+    outfile.write("\n\n")
 
 def process(infile, outfile, sourcefile):
     chars_processed = 0
@@ -102,33 +112,34 @@ def process(infile, outfile, sourcefile):
                         break                   # No header data
         if phase == 3:                          # Process data until '}'
             bytes_vert = (vert + 7)//8
+            comment = line.find('//')
+            if comment > 0 :
+                line = line[:comment]
             end = line.find('}')
             if end > 0 :
                 line = line[:end]
                 phase = 4
-            comment = line.find('//')
-            if comment > 0 :
-                line = line[:comment]
             hexnums = line.split(',')
             if hexnums[0] != '':
                 width = int(''.join(('0',hexnums[0].strip()[1:4])), 16) # in horizontal bits
                 hbit_bytes = width * bytes_vert # Bytes per horiz bit
                 offset += hbit_bytes
                 index.append(offset)
-                for hexnum in [x for x in hexnums[1:] if not x.isspace()]:
-                    outfile.write('\\')
-                    hex_txt = hexnum.strip()[1:4]
-                    if True:
-                        outfile.write(hex_txt) # Don't reverse bits TODO which do we want?
-                    else:
-                        outfile.write(rbits_text(hex_txt)) # reverse bits
-                    hbit_bytes -= 1
-                    if hbit_bytes == 0:
-                        break
-                chars_processed += 1
-            outfile.write("\\\n")
+                nums = [x for x in hexnums[1:] if not x.isspace()]
+                if nums:
+                    outfile.write("b'")
+                    for hexnum in nums:
+                        outfile.write('\\')
+    #                   outfile.write(hexnum.strip()[1:4]) # Don't reverse bits
+                        outfile.write(rbits_text(hexnum.strip()[0:4])) # reverse bits
+                        hbit_bytes -= 1
+                        if hbit_bytes == 0:
+                            break
+                    outfile.write("'")
+                    chars_processed += 1
+                    outfile.write("\\\n") # each char line ends with \
     if phase == 4 :
-        outfile.write("'\n")
+        outfile.write("\n")
         write_index(outfile, name, index)
         outfile.write('{:} = pyfont.PyFont(_{:}, _{:}_index, {}, {}, {})\n\n'.format(name, name, name, vert, horiz, chars_processed))
         print('{}: Characters in font: {} width: {} height: {}'.format(name, chars_processed, horiz, vert))
@@ -143,12 +154,7 @@ def write_trailer(sourcefiles, outfile):
     outfile.write('fonts = {')
     for sourcefile in sourcefiles:
         name = getname(sourcefile)
-        outfile.write('"')
-        outfile.write(name)
-        outfile.write('"')
-        outfile.write(':')
-        outfile.write(name)
-        outfile.write(',\n')
+        outfile.write('"{}":{},\n'.format(name, name))
     outfile.write('}\n\n')
 
 def load_c(sourcefiles, destfile):
