@@ -174,5 +174,17 @@ if __name__ == "__main__":
         print('Font filenames must be valid Python variable names:')
         for f in errlist:
             print(f)
-    else:
+    if len(errlist) == 0:
+        errlist = [f for f in args.infiles if not os.path.isfile(f)]
+        if len(errlist):
+            print("These font filenames don't exist:")
+            for f in errlist:
+                print(f)
+    if len(errlist) == 0:
+        errlist = [f for f in args.infiles if os.path.splitext(f)[1].upper() != '.C']
+        if len(errlist):
+            print("These font filenames don't appear to be C files:")
+            for f in errlist:
+                print(f)
+    if len(errlist) == 0:
         load_c(args.infiles, args.outfile)
