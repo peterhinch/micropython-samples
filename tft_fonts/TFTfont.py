@@ -1,5 +1,5 @@
 
-class PyFont(object):
+class TFTFont(object):
     def __init__(self, font, index, vert, horiz, nchars):
         self.firstchar = 32         # ord(first_character) Future use: absent from C file.
         self.nchars = nchars        # No. of chars in font
@@ -21,9 +21,32 @@ class PyFont(object):
         return self._index[offset] + (self._index[offset + 1] << 8)
 
     def get_ch(self, ch):
-        relch = max(0, ch - self.firstchar) # This is the behaviour you requested. In my view it should throw a ValueError.
-        if relch > self.nchars:
-            relch = 0
+        from uctypes import addrssof
+        relch = ch - self.firstchar
+        if relch > self.nchars or relch < 0:
+            raise ValueError('Character value {:} is unsupported.'.format(ch))
+        offset = self.get_idx(relch)
+        delta = self.get_idx(relch + 1) - offset
+        bv = self.bits_vert
+        mv = self.mv
+        if self.monospaced:
+            mv[: delta] = self._font[offset : offset + delta]
+            mv[delta : self.bytes_per_ch] = self._mvzero[delta : self.bytes_per_ch]
+            return addressof(self.char), self.bits_vert, delta, self.bits_horiz
+        else:
+            return addressof(self._font) + offset, self.bits_vert, delta, delta // self.bytes_vert
+
+# *************** TEST CODE ***************
+# This runs on a PC and allows font creation and cfonts_to_py.py to be tested without hardware
+# It can be deleted. Usage:
+# import fonts
+# fonts.fonts['freesans23x25'].render(0x41)
+# dict allows access to multiple fonts in fonts file
+
+    def get_ch_test(self, ch):
+        relch = ch - self.firstchar
+        if relch > self.nchars or relch < 0:
+            raise ValueError('Character value {:} is unsupported.'.format(ch))
         offset = self.get_idx(relch)
         delta = self.get_idx(relch + 1) - offset
         bv = self.bits_vert
@@ -32,15 +55,13 @@ class PyFont(object):
             bh = self.bits_horiz # Char width in bits
             mv[: delta] = self._font[offset : offset + delta]
             mv[delta : self.bytes_per_ch] = self._mvzero[delta : self.bytes_per_ch]
-            bh = self.bits_horiz
         else:
             mv[: delta] = self._font[offset : offset + delta]
             bh = delta // self.bytes_vert
         return bh # horizontal increment for character location
 
-# Demo/test of rendering to the REPL
     def render(self, ch): # enter with ord(ch)
-        bh = self.get_ch(ch)
+        bh = self.get_ch_test(ch)
         bv = self.bits_vert # Cache for speed
         mv = self.mv
         for bit_vert in range(bv):   # for each vertical line
