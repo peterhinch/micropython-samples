@@ -8,31 +8,23 @@ class TFTFont(object):
         self.bytes_vert = (self.bits_vert + 7) // 8     # Height in bytes
         self.bytes_per_ch = self.bytes_vert * horiz     # Total bytes per monospaced character
         self.monospaced = False
-        self.char = bytearray(self.bytes_per_ch)
-        self.mv = memoryview(self.char)
 
         self._index = index
         self._font = font
-        self._zero = bytearray(self.bytes_per_ch)
-        self._mvzero = memoryview(self._zero)
 
     def get_idx(self, relch):
         offset = relch * 2            # index is 2 bytes/char
         return self._index[offset] + (self._index[offset + 1] << 8)
 
     def get_ch(self, ch):
-        from uctypes import addrssof
+        from uctypes import addressof
         relch = ch - self.firstchar
         if relch > self.nchars or relch < 0:
             raise ValueError('Character value {:} is unsupported.'.format(ch))
         offset = self.get_idx(relch)
         delta = self.get_idx(relch + 1) - offset
-        bv = self.bits_vert
-        mv = self.mv
         if self.monospaced:
-            mv[: delta] = self._font[offset : offset + delta]
-            mv[delta : self.bytes_per_ch] = self._mvzero[delta : self.bytes_per_ch]
-            return addressof(self.char), self.bits_vert, delta, self.bits_horiz
+            return addressof(self._font) + offse, self.bits_vert, delta, self.bits_horiz
         else:
             return addressof(self._font) + offset, self.bits_vert, delta, delta // self.bytes_vert
 
@@ -44,6 +36,10 @@ class TFTFont(object):
 # dict allows access to multiple fonts in fonts file
 
     def get_ch_test(self, ch):
+        self.char = bytearray(self.bytes_per_ch)
+        self.mv = memoryview(self.char)
+        self._zero = bytearray(self.bytes_per_ch)
+        self._mvzero = memoryview(self._zero)
         relch = ch - self.firstchar
         if relch > self.nchars or relch < 0:
             raise ValueError('Character value {:} is unsupported.'.format(ch))
