@@ -3,7 +3,7 @@ import gc
 from font10 import font10
 from tft import TFT, LANDSCAPE
 from usched import Sched
-from asynctouch import TOUCH
+from touch import TOUCH
 from slider import Slider
 from button import Button
 from ui import CLIPPED_RECT
@@ -84,7 +84,7 @@ def test(duration = 0):
     print('Test TFT panel...')
     objsched = Sched()                                      # Instantiate the scheduler
     mytft = TFT("SSD1963", "LB04301", LANDSCAPE)
-    mytouch = TOUCH(objsched, "XPT2046")
+    mytouch = TOUCH("XPT2046", objsched)
     mytft.backlight(100) # light on
     Button(objsched, mytft, mytouch, (400, 240), font = font10, callback = doquit, fgcolor = (255, 0, 0),
            height = 30, text = 'Quit', shape = CLIPPED_RECT)

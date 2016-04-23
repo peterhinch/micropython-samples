@@ -1,8 +1,7 @@
-# asynctouch.py Asynchronous version of XPT2046 touchscreen controller.
-
+#
 # The MIT License (MIT)
 # 
-# Copyright (c) 2016 Robert Hammelrath, Peter Hinch
+# Copyright (c) 2016 Robert Hammelrath
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -58,9 +57,14 @@ Y_HIGH = const(4090)   ## highest reasonable Y value
 class TOUCH:
 #
 # Init just sets the PIN's to In / out as required
-#    
-    def __init__(self, objsched, controller = "XPT2046", calibration = None, raw = False):
-        self.raw = raw
+# objsched: scheduler if asynchronous operation intended
+# confidence: confidence level - number of consecutive touches with a margin smaller than the given level
+#       which the function will sample until it accepts it as a valid touch
+# margin: Difference from mean centre at which touches are considered at the same position 
+# delay: Delay between samples in ms. (n/a if asynchronous)
+#
+    DEFAULT_CAL = (-3917, -0.127, -3923, -0.1267, -3799, -0.07572, -3738,  -0.07814)
+    def __init__(self, controller = "XPT2046", objsched = None, *, confidence = 5, margin = 50, delay = 10, calibration = None):
         if PCB_VERSION == 1:
             self.pin_clock = pyb.Pin("Y8", pyb.Pin.OUT_PP)
             self.pin_clock.value(0)
@@ -74,37 +78,38 @@ class TOUCH:
             self.pin_d_in  = pyb.Pin("Y1", pyb.Pin.IN)
             self.pin_irq   = pyb.Pin("Y2", pyb.Pin.IN)
 # set default values
-        self.margin = 50 * 50 # tolerance margin: standard deviation of distance of touch from mean; store square
-        self.buff = [[-self.margin, -self.margin] for x in range(5)] # confidence == 5. Impossible coords
-        if calibration:
-            self.calibration = calibration
-        else: # default values for my tft
-            self.calibration = (-3917,-0.127,-3923,-0.1267,-3799,-0.07572,-3738,-0.07814)
-        self.position = [0, 0]
         self.ready = False
         self.touched = False
-        objsched.add_thread(self.main_thread())
+        self.x = 0
+        self.y = 0
+        self.buf_length = 0
+        cal = TOUCH.DEFAULT_CAL if calibration is None else calibration
+        self.asynchronous = False
+        self.touch_parameter(confidence, margin, delay, cal)
+        if objsched is not None:
+            self.asynchronous = True
+            objsched.add_thread(self._main_thread())
 
-#
-# Now I'm up to get my touches
-#
-#
 # set parameters for get_touch()
+# res: Resolution in bits of the returned values, default = 10
 # confidence: confidence level - number of consecutive touches with a margin smaller than the given level
 #       which the function will sample until it accepts it as a valid touch
 # margin: Difference from mean centre at which touches are considered at the same position 
+# delay: Delay between samples in ms.
 #
-    def touch_parameter(self, confidence = 5, margin = 50, calibration = None):
-        confidence = max(min(confidence, 25), 5)
-        margin = max(min(margin, 100), 1)
-        m = margin * margin
-        if confidence != len(self.buff):
-            self.buff = [[-m, -m] for x in range(confidence)] # impossible values
-        self.margin = margin * margin # store the square value
-        if calibration:
-            self.calibration = calibration
-#
-# get_touch(): get a touch value; Parameters:
+    def touch_parameter(self, confidence = 5, margin = 50, delay = 10, calibration = None):
+        if not self.asynchronous: # Ignore attempts to change on the fly.
+            confidence = max(min(confidence, 25), 5)
+            if confidence != self.buf_length:
+                self.buff = [[0,0] for x in range(confidence)]
+                self.buf_length = confidence
+            self.delay = max(min(delay, 100), 5)
+            margin = max(min(margin, 100), 1)
+            self.margin = margin * margin # store the square value
+            if calibration:
+                self.calibration = calibration
+
+# get_touch(): Synchronous use. get a touch value; Parameters:
 #
 # initital: Wait for a non-touch state before getting a sample. 
 #           True = Initial wait for a non-touch state
@@ -114,11 +119,57 @@ class TOUCH:
 #       True: Wait until a touch is pressed. 
 # raw: Setting whether raw touch coordinates (True) or normalized ones (False) are returned
 #      setting the calibration vector to (0, 1, 0, 1, 0, 1, 0, 1) result in a identity mapping
-
-# updates self.position
-    def main_thread(self):
+# timeout: Longest time (ms, or None = 1 hr) to wait for a touch or release
+#
+# Return (x,y) or None
+#
+    def get_touch(self, initial = True, wait = True, raw = False, timeout = None):
+        if self.asynchronous:
+            return None # Should only be called in synhronous mode
+        if timeout == None: 
+            timeout = 3600000 # set timeout to 1 hour
+# 
+        if initial:  ## wait for a non-touch state
+            sample = True
+            while sample and timeout > 0:
+                sample = self.raw_touch()
+                pyb.delay(self.delay)
+                timeout -= self.delay
+            if timeout <= 0: # after timeout, return None
+                return None
+#
         buff = self.buff
-        buf_length = len(buff)
+        buf_length = self.buf_length
+        buffptr = 0
+        nsamples = 0
+        while timeout > 0:
+            if nsamples == buf_length:
+                meanx = sum([c[0] for c in buff]) // buf_length
+                meany = sum([c[1] for c in buff]) // buf_length
+                dev = sum([(c[0] - meanx)**2 + (c[1] - meany)**2 for c in buff]) / buf_length
+                if dev <= self.margin: # got one; compare against the square value
+                    if raw:
+                        return (meanx, meany)
+                    else: 
+                        return self.do_normalize((meanx, meany))
+# get a new value 
+            sample = self.raw_touch()  # get a touch
+            if sample == None:
+                if not wait:
+                    return None
+                nsamples = 0    # Invalidate buff
+            else:
+                buff[buffptr] = sample # put in buff
+                buffptr = (buffptr + 1) % buf_length
+                nsamples = min(nsamples +1, buf_length)
+            pyb.delay(self.delay)
+            timeout -= self.delay
+        return None
+
+# Asynchronous use: this thread maintains self.x and self.y
+    def _main_thread(self):
+        buff = self.buff
+        buf_length = self.buf_length
         buffptr = 0
         nsamples = 0
         yield # Initialisation complete, wait for scheduler to start
@@ -129,11 +180,7 @@ class TOUCH:
                 dev = sum([(c[0] - meanx)**2 + (c[1] - meany)**2 for c in buff]) / buf_length
                 if dev <= self.margin: # got one; compare against the square value
                     self.ready = True
-                    if self.raw:
-                        self.position[0] = meanx
-                        self.position[1] = meany
-                    else: 
-                        self.do_normalize((meanx, meany))
+                    self.x, self.y = self.do_normalize((meanx, meany))
             sample = self.raw_touch()  # get a touch
             if sample == None:
                 self.touched = False
@@ -143,13 +190,14 @@ class TOUCH:
                 self.touched = True
                 buff[buffptr] = sample # put in buff
                 buffptr = (buffptr + 1) % buf_length
-                nsamples = min(nsamples +1, buf_length)
+                nsamples = min(nsamples + 1, buf_length)
             yield
 
-    def get_touch(self):
+# Asynchronous get_touch
+    def get_touch_async(self):
         if self.ready:
             self.ready = False
-            return self.position
+            return self.x, self.y
         return None
 # 
 # do_normalize(touch)
@@ -161,9 +209,9 @@ class TOUCH:
         xadd = self.calibration[2] + (self.calibration[0] - self.calibration[2]) * (touch[1] / 4096)
         ymul = self.calibration[7] + (self.calibration[5] - self.calibration[7]) * (touch[0] / 4096)
         yadd = self.calibration[6] + (self.calibration[4] - self.calibration[6]) * (touch[0] / 4096)
-        self.position[0] = int((touch[0] + xadd) * xmul)
-        self.position[1] = int((touch[1] + yadd) * ymul)
-
+        x = int((touch[0] + xadd) * xmul)
+        y = int((touch[1] + yadd) * ymul)
+        return (x, y)
 #
 # raw_touch(tuple)
 # raw read touch. Returns (x,y) or None

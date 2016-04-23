@@ -28,7 +28,7 @@ class touchable(object):
         while True:
             yield
             if mytouch.ready:
-                x, y = mytouch.get_touch()
+                x, y = mytouch.get_touch_async()
                 for obj in cls.touchlist:
                     if obj.enabled:
                         obj.touched(x, y)

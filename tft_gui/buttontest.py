@@ -3,7 +3,7 @@ import gc
 from font14 import font14
 from tft import TFT, LANDSCAPE
 from usched import Sched
-from asynctouch import TOUCH
+from touch import TOUCH
 from button import Button, Buttonset, RadioButtons
 from ui import CIRCLE, RECTANGLE, CLIPPED_RECT
 #gc.collect()
@@ -66,7 +66,7 @@ def test(duration = 0):
         print('Testing TFT...')
     objsched = Sched()                                      # Instantiate the scheduler
     mytft = TFT("SSD1963", "LB04301", LANDSCAPE)
-    mytouch = TOUCH(objsched, "XPT2046")
+    mytouch = TOUCH("XPT2046", objsched)
     mytft.backlight(100) # light on
 
 # Button assortment
