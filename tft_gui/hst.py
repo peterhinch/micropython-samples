@@ -1,4 +1,4 @@
-# slidetest.py Demo/test program for vertical slider class for Pyboard TFT GUI
+# hst.py Demo/test for Horizontal Slider class for Pyboard TFT GUI
 
 # The MIT License (MIT)
 #
@@ -26,12 +26,11 @@ from font10 import font10
 from tft import TFT, LANDSCAPE
 from usched import Sched
 from touch import TOUCH
-from slider import Slider
+from slider import HorizSlider
 from button import Button
-from displays import Dial, Label
-from ui import CLIPPED_RECT, WHITE, BLACK, RED, GREEN, BLUE, YELLOW, GREY
-from math import pi
-
+from displays import Dial, Label, LED, Meter
+from ui import CLIPPED_RECT, GREEN, RED, YELLOW, WHITE, BLUE
+import pyb
 # CALLBACKS
 # cb_end occurs when user stops touching the control
 def callback(slider, args):
@@ -48,30 +47,26 @@ def master_moved(slider, args):
     slave2.value(val)
     label = args[2]
     label.show(to_string(val))
+    led = args[3]
+    if val > 0.8:
+        led.on()
+    else:
+        led.off()
 
 # Either slave has had its slider moved (by user or by having value altered)
 def slave_moved(slider, args):
     val = slider.value()
-    dial = args[0]
-    dial.delta = val
-    label = args[1]
+    if val > 0.8:
+        slider.fgcolor = RED
+    else:
+        slider.fgcolor = GREEN
+    label = args[0]
     label.show(to_string(val))
 
 def doquit(button, args):
     button.objsched.stop()
 
-# THREADS
-def mainthread(slider, dial):
-    angle = 0
-    yield
-    while True:
-        yield 0.1
-        delta = slider.value()
-        angle += pi * 2 * delta / 10
-        dial.show(angle)
-        dial.show(angle /10, 1)
-
-# DATA
+# USER TEST FUNCTION
 # Common args for the labels
 labels = { 'width' : 70,
           'fontcolor' : WHITE,
@@ -88,28 +83,42 @@ table = {'fontcolor' : WHITE,
          }
 #          'border' : 2,
 
+def testmeter(meter):
+    oldvalue = 0
+    yield
+    while True:
+        val = pyb.rng()/2**30
+        steps = 20
+        delta = (val - oldvalue) / steps
+        for _ in range(steps):
+            oldvalue += delta
+            meter.value(oldvalue)
+            yield 0.05
+
 def test(duration = 0):
     print('Test TFT panel...')
     objsched = Sched()                                      # Instantiate the scheduler
     mytft = TFT("SSD1963", "LB04301", LANDSCAPE)
-    mytouch = TOUCH("XPT2046", objsched, confidence=50)
+    mytouch = TOUCH("XPT2046", objsched, confidence = 50) #, calibration = (-3886,-0.1287,-3812,-0.132,-3797,-0.07685,-3798,-0.07681))
     mytft.backlight(100) # light on
-    Button(objsched, mytft, mytouch, (400, 240), font = font10, callback = doquit, fgcolor = RED,
+    led = LED(mytft, (420, 0), border = 2)
+    meter1 = Meter(mytft, (320, 0), font=font10, legends=('0','5','10'), pointercolor = YELLOW, fgcolor = GREEN)
+    meter2 = Meter(mytft, (360, 0), font=font10, legends=('0','5','10'), pointercolor = YELLOW)
+    Button(objsched, mytft, mytouch, (420, 240), font = font10, callback = doquit, fgcolor = RED,
            height = 30, text = 'Quit', shape = CLIPPED_RECT)
-    dial1 = Dial(mytft, (350, 10), fgcolor = YELLOW, border = 2, pointers = (0.9, 0.7))
-    dial2 = Dial(mytft, (350, 120), fgcolor = YELLOW, bgcolor = GREY, border = 2,  pointers = (0.9, 0.7))
+    x = 230
     lstlbl = []
     for n in range(3):
-        lstlbl.append(Label(mytft, (80 * n, 240), font = font10, **labels))
-    y = 5
-    slave1 = Slider(objsched, mytft, mytouch, (80, y), font10,
-           fgcolor = (0, 255, 0), cbe_args = ('Slave1',), cb_move = slave_moved, cbm_args = (dial1, lstlbl[1]), **table)
-    slave2 = Slider(objsched, mytft, mytouch, (160, y), font10,
-           fgcolor = (0, 255, 0), cbe_args = ('Slave2',), cb_move = slave_moved, cbm_args = (dial2, lstlbl[2]), **table)
-    master = Slider(objsched, mytft, mytouch, (0, y), font10,
-           fgcolor = (255, 255, 0), cbe_args = ('Master',), cb_move = master_moved, cbm_args = (slave1, slave2, lstlbl[0]), value=0.5, **table)
-    objsched.add_thread(mainthread(slave1, dial1))
-    objsched.add_thread(mainthread(slave2, dial2))
+        lstlbl.append(Label(mytft, (x, 40 + 60 * n), font = font10, **labels))
+    x = 0
+    slave1 = HorizSlider(objsched, mytft, mytouch, (x, 100), font10,
+           fgcolor = GREEN, cbe_args = ('Slave1',), cb_move = slave_moved, cbm_args = (lstlbl[1],), **table)
+    slave2 = HorizSlider(objsched, mytft, mytouch, (x, 160), font10,
+           fgcolor = GREEN, cbe_args = ('Slave2',), cb_move = slave_moved, cbm_args = (lstlbl[2],), **table)
+    master = HorizSlider(objsched, mytft, mytouch, (x, 40), font10,
+           fgcolor = YELLOW, cbe_args = ('Master',), cb_move = master_moved, slidecolor=RED, cbm_args = (slave1, slave2, lstlbl[0], led), value=0.5, **table)
+    objsched.add_thread(testmeter(meter1))
+    objsched.add_thread(testmeter(meter2))
     objsched.run()                                          # Run it!
 
 test()
