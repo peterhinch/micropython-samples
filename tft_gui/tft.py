@@ -21,23 +21,25 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-# Class supporting TFT LC-displays with a parallel Interface
-# First example: Controller SSD1963
-# It uses X1..X8 for data and Y3, Y9, Y10, Y11 and Y12 for control signals.
-# The minimal connection just for writes is X1..X8 for data, Y9 for /Reset. Y11 for /WR and Y12 for /RS
-# Then LED and /CS must be hard tied to Vcc and GND, and /RD is not used.
-#
-#  Some parts of the software are a port of code provided by Rinky-Dink Electronics, Henning Karlsen,
-#  with the following copyright notice:
+# Some parts of the software are a port of code provided by Rinky-Dink Electronics, Henning Karlsen,
+# with the following copyright notice:
+# 
 ## Copyright (C)2015 Rinky-Dink Electronics, Henning Karlsen. All right reserved
-##  This library is free software; you can redistribute it and/or
-##  modify it under the terms of the CC BY-NC-SA 3.0 license.
-##  Please see the included documents for further information.
+## This library is free software; you can redistribute it and/or
+## modify it under the terms of the CC BY-NC-SA 3.0 license.
+## Please see the included documents for further information.
+#
+# Class supporting TFT LC-displays with a parallel Interface
+# First example: Controller SSD1963 with a 4.3" or 7" display
+#
+# The minimal connection is:
+# X1..X8 for data, Y9 for /Reset, Y10 for /RD, Y11 for /WR and Y12 for /RS
+# Then LED must be hard tied to Vcc and /CS to GND.
 #
 
 import pyb, stm
 from uctypes import addressof
-from TFT_io import TFT_io
+import TFT_io
 
 # define constants
 #
@@ -73,7 +75,7 @@ class TFT:
         self.v_flip = v_flip # flip vertical
         self.h_flip = h_flip # flip horizontal
         self.c_flip = 0 # flip blue/red
-        self.rc_flip = 0 # flip row/column (does not seem to work)
+        self.rc_flip = 0 # flip row/column
         
         self.setColor((255, 255, 255)) # set FG color to white as can be.
         self.setBGColor((0, 0, 0))     # set BG to black
@@ -90,9 +92,13 @@ class TFT:
 # this may have to be moved to the controller specific section
         if orientation == PORTRAIT:
             self.setXY = TFT_io.setXY_P
+            self.drawPixel = TFT_io.drawPixel_P
         else:
             self.setXY = TFT_io.setXY_L
-# ----------        
+            self.drawPixel = TFT_io.drawPixel_L
+        self.swapbytes = TFT_io.swapbytes
+        self.swapcolors = TFT_io.swapcolors
+#  ----------        
         for pin_name in ["X1", "X2", "X3", "X4", "X5", "X6", "X7", "X8", 
                    "Y10", "Y11", "Y12"]:
             pin = pyb.Pin(pin_name, pyb.Pin.OUT_PP) # set as output
@@ -251,13 +257,12 @@ class TFT:
 #
 # Set character printing defaults
 #
-        self.setTextPos(0,0)
-        self.setScrollArea(0, self.disp_y_size + 1, 0)
         self.text_font = None
-        self.setTextStyle(None, None, 0, None, 0)
+        self.setTextStyle(self.color, self.BGcolor, 0, None, 0)
 #
 # Init done. clear Screen and switch BG LED on
 #
+        self.text_x = self.text_y = self.text_yabs = 0
         self.clrSCR()           # clear the display
 #        self.backlight(100)  ## switch BG LED on
 #
@@ -311,6 +316,9 @@ class TFT:
     def setBGColor(self, bgcolor):
         self.BGcolor = bgcolor
         self.BGcolorvect = bytearray(self.BGcolor)  # prepare byte array
+        self.BMPcolortable = bytearray([self.BGcolorvect[2], # create colortable
+            self.BGcolorvect[1], self.BGcolorvect[0],0,
+            self.colorvect[2], self.colorvect[1], self.colorvect[0],0])
 #
 # get the color used for the draw commands
 #            
@@ -322,20 +330,25 @@ class TFT:
     def getBGColor(self):
         return self.BGcolor
 #
-# Draw a single pixel at location x, y
+# Draw a single pixel at location x, y with color 
 # Rather slow at 40µs/Pixel
 #        
-    def drawPixel(self, x, y):
+    def drawPixel_py(self, x, y, color):
         self.setXY(x, y, x, y)
-        TFT_io.displaySCR_AS(self.colorvect, 1)  # 
+        TFT_io.displaySCR_AS(color, 1)  # 
 #
 # clear screen, set it to BG color.
 #             
-    def clrSCR(self):
+    def clrSCR(self, color = None):
+        if color is None:
+            colorvect = self.BGcolorvect
+        else:
+            colorvect = bytearray(color)
         self.clrXY()
-        TFT_io.fillSCR_AS(self.BGcolorvect, (self.disp_x_size + 1) * (self.disp_y_size + 1))
-        self.text_x = self.text_y = self.scroll_start = 0
+        TFT_io.fillSCR_AS(colorvect, (self.disp_x_size + 1) * (self.disp_y_size + 1))
+        self.setScrollArea(0, self.disp_y_size + 1, 0)
         self.setScrollStart(0)
+        self.setTextPos(0,0)
 #
 # reset the address range to fullscreen
 #       
@@ -348,19 +361,23 @@ class TFT:
 # Draw a line from x1, y1 to x2, y2 with the color set by setColor()
 # Straight port from the UTFT Library at Rinky-Dink Electronics
 # 
-    def drawLine(self, x1, y1, x2, y2): 
+    def drawLine(self, x1, y1, x2, y2, color = None): 
         if y1 == y2:
-            self.drawHLine(x1, y1, x2 - x1 + 1)
+            self.drawHLine(x1, y1, x2 - x1 + 1, color)
         elif x1 == x2:
-            self.drawVLine(x1, y1, y2 - y1 + 1)
+            self.drawVLine(x1, y1, y2 - y1 + 1, color)
         else:
+            if color is None:
+                colorvect = self.colorvect
+            else:
+                colorvect = bytearray(color)
             dx, xstep  = (x2 - x1, 1) if x2 > x1 else (x1 - x2, -1)
             dy, ystep  = (y2 - y1, 1) if y2 > y1 else (y1 - y2, -1)
             col, row = x1, y1
             if dx < dy:
                 t = - (dy >> 1)
                 while True:
-                    self.drawPixel(col, row)
+                    self.drawPixel(col, row, colorvect)
                     if row == y2:
                         return
                     row += ystep
@@ -371,7 +388,7 @@ class TFT:
             else:
                 t = - (dx >> 1)
                 while True:
-                    self.drawPixel(col, row)
+                    self.drawPixel(col, row, colorvect)
                     if col == x2:
                         return
                     col += xstep
@@ -383,44 +400,52 @@ class TFT:
 # Draw a horizontal line with 1 Pixel width, from x,y to x + l - 1, y
 # Straight port from the UTFT Library at Rinky-Dink Electronics
 # 
-    def drawHLine(self, x, y, l): # draw horiontal Line
+    def drawHLine(self, x, y, l, color = None): # draw horiontal Line
+        if color is None:
+            colorvect = self.colorvect
+        else:
+            colorvect = bytearray(color)
         if l < 0:  # negative length, swap parameters
             l = -l
             x -= l
         self.setXY(x, y, x + l - 1, y) # set display window
-        TFT_io.fillSCR_AS(self.colorvect, l)
+        TFT_io.fillSCR_AS(colorvect, l)
 #
 # Draw a vertical line with 1 Pixel width, from x,y to x, y + l - 1
 # Straight port from the UTFT Library at Rinky-Dink Electronics
 # 
-    def drawVLine(self, x, y, l): # draw horiontal Line
+    def drawVLine(self, x, y, l, color = None): # draw horiontal Line
+        if color is None:
+            colorvect = self.colorvect
+        else:
+            colorvect = bytearray(color)
         if l < 0:  # negative length, swap parameters
             l = -l
             y -= l
         self.setXY(x, y, x, y + l - 1) # set display window
-        TFT_io.fillSCR_AS(self.colorvect, l)
+        TFT_io.fillSCR_AS(colorvect, l)
 #
 # Draw rectangle from x1, y1, to x2, y2
 # Straight port from the UTFT Library at Rinky-Dink Electronics
 #
-    def drawRectangle(self, x1, y1, x2, y2):
+    def drawRectangle(self, x1, y1, x2, y2, color = None):
         if x1 > x2:
-            t = x1; x1 = x2; x2 = t
+            x1, x2 = x2, x1
         if y1 > y2:
-            t = y1; y1 = y2; y2 = t
-    	self.drawHLine(x1, y1, x2 - x1 + 1)
-        self.drawHLine(x1, y2, x2 - x1 + 1)
-        self.drawVLine(x1, y1, y2 - y1 + 1)
-        self.drawVLine(x2, y1, y2 - y1 + 1)
+            y1, y2 = y2, y1
+    	self.drawHLine(x1, y1, x2 - x1 + 1, color)
+        self.drawHLine(x1, y2, x2 - x1 + 1, color)
+        self.drawVLine(x1, y1, y2 - y1 + 1, color)
+        self.drawVLine(x2, y1, y2 - y1 + 1, color)
 #
 # Fill rectangle
 # Almost straight port from the UTFT Library at Rinky-Dink Electronics
 #
-    def fillRectangle(self, x1, y1, x2, y2, color = None):
+    def fillRectangle(self, x1, y1, x2, y2, color=None):
         if x1 > x2:
-            t = x1; x1 = x2; x2 = t
+            x1, x2 = x2, x1
         if y1 > y2:
-            t = y1; y1 = y2; y2 = t
+            y1, y2 = y2, y1
         self.setXY(x1, y1, x2, y2) # set display window
         if color:
             TFT_io.fillSCR_AS(bytearray(color), (x2 - x1 + 1) * (y2 - y1 + 1))
@@ -431,29 +456,33 @@ class TFT:
 # Draw smooth rectangle from x1, y1, to x2, y2
 # Straight port from the UTFT Library at Rinky-Dink Electronics
 #
-    def drawClippedRectangle(self, x1, y1, x2, y2):
+    def drawClippedRectangle(self, x1, y1, x2, y2, color = None):
         if x1 > x2:
-            t = x1; x1 = x2; x2 = t
+            x1, x2 = x2, x1
         if y1 > y2:
-            t = y1; y1 = y2; y2 = t
+            y1, y2 = y2, y1
         if (x2-x1) > 4 and (y2-y1) > 4:
-            self.drawPixel(x1 + 2,y1 + 1)
-            self.drawPixel(x1 + 1,y1 + 2)
-            self.drawPixel(x2 - 2,y1 + 1)
-            self.drawPixel(x2 - 1,y1 + 2)
-            self.drawPixel(x1 + 2,y2 - 1)
-            self.drawPixel(x1 + 1,y2 - 2)
-            self.drawPixel(x2 - 2,y2 - 1)
-            self.drawPixel(x2 - 1,y2 - 2)
-            self.drawHLine(x1 + 3, y1, x2 - x1 - 5)
-            self.drawHLine(x1 + 3, y2, x2 - x1 - 5)
-            self.drawVLine(x1, y1 + 3, y2 - y1 - 5)
-            self.drawVLine(x2, y1 + 3, y2 - y1 - 5)
+            if color is None:
+                colorvect = self.colorvect
+            else:
+                colorvect = bytearray(color)
+            self.drawPixel(x1 + 2,y1 + 1, colorvect)
+            self.drawPixel(x1 + 1,y1 + 2, colorvect)
+            self.drawPixel(x2 - 2,y1 + 1, colorvect)
+            self.drawPixel(x2 - 1,y1 + 2, colorvect)
+            self.drawPixel(x1 + 2,y2 - 1, colorvect)
+            self.drawPixel(x1 + 1,y2 - 2, colorvect)
+            self.drawPixel(x2 - 2,y2 - 1, colorvect)
+            self.drawPixel(x2 - 1,y2 - 2, colorvect)
+            self.drawHLine(x1 + 3, y1, x2 - x1 - 5, colorvect)
+            self.drawHLine(x1 + 3, y2, x2 - x1 - 5, colorvect)
+            self.drawVLine(x1, y1 + 3, y2 - y1 - 5, colorvect)
+            self.drawVLine(x2, y1 + 3, y2 - y1 - 5, colorvect)
 #
 # Fill smooth rectangle from x1, y1, to x2, y2
 # Straight port from the UTFT Library at Rinky-Dink Electronics
 #
-    def fillClippedRectangle(self, x1, y1, x2, y2):
+    def fillClippedRectangle(self, x1, y1, x2, y2, color = None):
         if x1 > x2:
             t = x1; x1 = x2; x2 = t
         if y1 > y2:
@@ -461,22 +490,27 @@ class TFT:
         if (x2-x1) > 4 and (y2-y1) > 4:
             for i in range(((y2 - y1) // 2) + 1):
                 if i == 0:
-                    self.drawHLine(x1 + 3, y1 + i, x2 - x1 - 5)
-                    self.drawHLine(x1 + 3, y2 - i, x2 - x1 - 5)
+                    self.drawHLine(x1 + 3, y1 + i, x2 - x1 - 5, color)
+                    self.drawHLine(x1 + 3, y2 - i, x2 - x1 - 5, color)
                 elif i == 1:
-                    self.drawHLine(x1 + 2, y1 + i, x2 - x1 - 3)
-                    self.drawHLine(x1 + 2, y2 - i, x2 - x1 - 3)
+                    self.drawHLine(x1 + 2, y1 + i, x2 - x1 - 3, color)
+                    self.drawHLine(x1 + 2, y2 - i, x2 - x1 - 3, color)
                 elif i == 2:
-                    self.drawHLine(x1 + 1, y1 + i, x2 - x1 - 1)
-                    self.drawHLine(x1 + 1, y2 - i, x2 - x1 - 1)
+                    self.drawHLine(x1 + 1, y1 + i, x2 - x1 - 1, color)
+                    self.drawHLine(x1 + 1, y2 - i, x2 - x1 - 1, color)
                 else:
-                    self.drawHLine(x1, y1 + i, x2 - x1 + 1)
-                    self.drawHLine(x1, y2 - i, x2 - x1 + 1)
+                    self.drawHLine(x1, y1 + i, x2 - x1 + 1, color)
+                    self.drawHLine(x1, y2 - i, x2 - x1 + 1, color)
 #
 # draw a circle at x, y with radius
 # Straight port from the UTFT Library at Rinky-Dink Electronics
 #
-    def drawCircle(self, x, y, radius):
+    def drawCircle(self, x, y, radius, color = None):
+
+        if color is None:
+            colorvect = self.colorvect
+        else:
+            colorvect = bytearray(color)
     
         f = 1 - radius
         ddF_x = 1
@@ -484,10 +518,10 @@ class TFT:
         x1 = 0
         y1 = radius
 
-        self.drawPixel(x, y + radius)
-        self.drawPixel(x, y - radius)
-        self.drawPixel(x + radius, y)
-        self.drawPixel(x - radius, y)
+        self.drawPixel(x, y + radius, colorvect)
+        self.drawPixel(x, y - radius, colorvect)
+        self.drawPixel(x + radius, y, colorvect)
+        self.drawPixel(x - radius, y, colorvect)
 
         while x1 < y1:
             if f >= 0:
@@ -497,47 +531,67 @@ class TFT:
             x1 += 1
             ddF_x += 2
             f += ddF_x
-            self.drawPixel(x + x1, y + y1)
-            self.drawPixel(x - x1, y + y1)
-            self.drawPixel(x + x1, y - y1)
-            self.drawPixel(x - x1, y - y1)
-            self.drawPixel(x + y1, y + x1)
-            self.drawPixel(x - y1, y + x1)
-            self.drawPixel(x + y1, y - x1)
-            self.drawPixel(x - y1, y - x1)
+            self.drawPixel(x + x1, y + y1, colorvect)
+            self.drawPixel(x - x1, y + y1, colorvect)
+            self.drawPixel(x + x1, y - y1, colorvect)
+            self.drawPixel(x - x1, y - y1, colorvect)
+            self.drawPixel(x + y1, y + x1, colorvect)
+            self.drawPixel(x - y1, y + x1, colorvect)
+            self.drawPixel(x + y1, y - x1, colorvect)
+            self.drawPixel(x - y1, y - x1, colorvect)
 #
 # fill a circle at x, y with radius
 # Straight port from the UTFT Library at Rinky-Dink Electronics
-# Instead of caluclating x = sqrt(r*r - y*y), it searches the x
+# Instead of calculating x = sqrt(r*r - y*y), it searches the x
 # for r*r = x*x + x*x
 #
-    def fillCircle(self, x, y, radius):
+    def fillCircle(self, x, y, radius, color = None):
         r_square = radius * radius * 4
         for y1 in range (-(radius * 2), 1): 
             y_square = y1 * y1
             for x1 in range (-(radius * 2), 1):
                 if x1*x1+y_square <= r_square: 
-                    x1i = x1//2
-                    y1i = y1//2
-                    self.drawHLine(x + x1i, y + y1i, 2 * (-x1i))
-                    self.drawHLine(x + x1i, y - y1i, 2 * (-x1i))
+                    x1i = x1 // 2
+                    y1i = y1 // 2
+                    self.drawHLine(x + x1i, y + y1i, 2 * (-x1i), color)
+                    self.drawHLine(x + x1i, y - y1i, 2 * (-x1i), color)
                     break;
 #
 # Draw a bitmap at x,y with size sx, sy
 # mode determines the type of expected data
-# mode = 0: The data must contain 3 bytes/pixel red/green/blue
-# mode = 1: The data must contain 2 packed bytes/pixel blue/green/red in 565 format
-# mode = 2: The data contains 1 bit per pixel, mapped to fg/bg color
+# mode = 1: The data contains 1 bit per pixel, mapped to fg/bg color 
+#           unless a colortable is provided
+# mode = 2: The data contains 2 bit per pixel; a colortable with 4 entries must be provided
+# mode = 4: The data contains 4 bit per pixel; 
+#           a colortable with 16 entries must be provided
+# mode = 8: The data contains 8 bit per pixel; 
+#           a colortable with 256 entries must be provided
+# mode = 16: The data must contain 2 packed bytes/pixel red/green/blue in 565 format
+# mode = 24: The data must contain 3 bytes/pixel red/green/blue
 #
-    def drawBitmap(self, x, y, sx, sy, data, mode = 0):
+    def drawBitmap(self, x, y, sx, sy, data, mode = 24, colortable = None):
         self.setXY(x, y, x + sx - 1, y + sy - 1)
-        if mode == 0:
+        if mode == 24:
             TFT_io.displaySCR_AS(data, sx * sy)
-        elif mode == 1:
+        elif mode == 16:
             TFT_io.displaySCR565_AS(data, sx * sy)
+        elif mode == 1:
+            if colortable is None:
+                colortable = self.BMPcolortable # create colortable
+            TFT_io.displaySCR_bmp(data, sx*sy, 1, colortable)
         elif mode == 2:
-            control = bytearray(self.BGcolorvect + self.colorvect + chr(self.transparency))
-            TFT_io.displaySCR_bitmap(data, sx*sy, control, 0)
+            if colortable is None:
+                return 
+            TFT_io.displaySCR_bmp(data, sx*sy, 2, colortable)
+        elif mode == 4:
+            if colortable is None:
+                return 
+            TFT_io.displaySCR_bmp(data, sx*sy, 4, colortable)
+        elif mode == 8:
+            if colortable is None:
+                return 
+            TFT_io.displaySCR_bmp(data, sx*sy, 8, colortable)
+
 #
 # set scroll area to the region between the first and last line
 #
@@ -546,22 +600,51 @@ class TFT:
                     [(tfa >> 8) & 0xff, tfa & 0xff, 
                      (vsa >> 8) & 0xff, vsa & 0xff,
                      (bfa >> 8) & 0xff, bfa & 0xff]), 6)
-        self.scroll_fta = tfa
+        self.scroll_tfa = tfa
         self.scroll_vsa = vsa
         self.scroll_bfa = bfa
+        self.setScrollStart(self.scroll_tfa)
+        x, y = self.getTextPos()
+        self.setTextPos(x, y) # realign pointers
+#
+# get scroll area of the region between the first and last line
+#
+    def getScrollArea(self):
+        return self.scroll_tfa, self.scroll_vsa, self.scroll_bfa
 #
 # set the line which is displayed first
 #
     def setScrollStart(self, lline):
-        TFT_io.tft_cmd_data_AS(0x37, bytearray([(lline >> 8) & 0xff, lline & 0xff]), 2)
         self.scroll_start = lline # store the logical first line
+        TFT_io.tft_cmd_data_AS(0x37, bytearray([(lline >> 8) & 0xff, lline & 0xff]), 2)
+#
+# get the line which is displayed first
+#
+    def getScrollStart(self):
+        return self.scroll_start # get the logical first line
+
+#
+# Scroll vsa up/down by a number of pixels
+#
+    def scroll(self, pixels):
+        line = ((self.scroll_start - self.scroll_tfa + pixels) % self.scroll_vsa
+                + self.scroll_tfa)
+        self.setScrollStart(line) # set the new line
 #
 # Set text position
 #
     def setTextPos(self, x, y, clip = False, scroll = True):
-        self.text_width, self.text_height = self.getScreensize()
+        self.text_width, self.text_height = self.getScreensize()  ## height possibly wrong
         self.text_x = x
-        self.text_y = y
+        if self.scroll_tfa <= y < (self.scroll_tfa + self.scroll_vsa):  # in scroll area ? check later for < or <=
+        # correct position relative to scroll start
+            self.text_y = (y + self.scroll_start - self.scroll_tfa)
+            if self.text_y >= (self.scroll_tfa + self.scroll_vsa):
+                self.text_y -= self.scroll_vsa
+        else: # absolute
+            self.text_y = y
+        self.text_yabs = y
+        # Hint: self.text_yabs = self.text_y - self.scroll_start) % self.scroll_vsa + self.scroll_tfa)
         if clip and (self.text_x + clip) < self.text_width:
             self.text_width = self.text_x + clip
         self.text_scroll = scroll
@@ -569,62 +652,84 @@ class TFT:
 # Get text position
 #
     def getTextPos(self):
-        return (self.text_x, self.text_y)
+        return (self.text_x, self.text_yabs)
 #
 # Set Text Style
 #
-    def setTextStyle(self, fgcolor = None, bgcolor = None, transparency = None, font = None, gap = None):
-        if font != None:
+    def setTextStyle(self, fgcolor=None, bgcolor=None, transparency=None, font=None, gap=None):
+        if font is not None:
             self.text_font = font 
-        if font:
             self.text_rows, self.text_cols, nchar, first = font.get_properties() # 
-        if transparency != None:
+        if transparency is not None:
             self.transparency = transparency
-        if gap != None:
+        if gap is not None:
             self.text_gap = gap
         self.text_color = bytearray(0)
-        if bgcolor != None:
-            self.text_color += bytearray(bgcolor)
-        else:
-            self.text_color += self.BGcolorvect
-        if fgcolor != None:
-            self.text_color += bytearray(fgcolor)
-        else: 
-            self.text_color += self.colorvect
-        if transparency != None:
+        if bgcolor is not None:
+            self.text_bgcolor = bgcolor
+        if fgcolor is not None:
+            self.text_fgcolor = fgcolor
+        if transparency is not None:
             self.transparency = transparency
-        self.text_color  += bytearray([self.transparency])
-        if gap != None:
+        self.text_color = (bytearray(self.text_bgcolor) 
+                           + bytearray(self.text_fgcolor) 
+                           + bytearray([self.transparency]))
+        if gap is not None:
             self.text_gap = gap
+#
+# Get Text Style: return (color, bgcolor, font, transpareny, gap)
+#
+    def getTextStyle(self):
+        return (self.text_color[3:6], self.text_color[0:3], 
+                self.transparency, self.text_font, self.text_gap)
+        
 #
 # Check, if a new line is to be opened
 # if yes, advance, including scrolling, and clear line, if flags is set
+# Obsolete?
 #
-    def printNewline(self):
-        self.text_y += self.text_rows
-        if (self.text_y + self.text_rows) > self.scroll_vsa: # does the line fit?
-            self.text_y = 0
-            newline = self.text_rows
-            self.setScrollStart(newline)
-        elif self.scroll_start > 0: # Scrolling has started
-            newline = (self.scroll_start + self.text_rows) % self.scroll_vsa
-            self.setScrollStart(newline)
+    def printNewline(self, clear = False):
+        if  (self.text_yabs + self.text_rows) >= (self.scroll_tfa + self.scroll_vsa): # does the line fit?
+            self.scroll(self.text_rows) # no. scroll
+        else: # Yes, just advance pointers
+            self.text_yabs += self.text_rows
+        self.setTextPos(self.text_x, self.text_yabs)
+        if clear: 
+            self.printClrLine(2) # clear actual line
 #
 # Carriage Return
 #
     def printCR(self): # clear to end of line
         self.text_x = 0
 #
-# clear to end-of-line
+# clear line modes
 #
-    def printClrEOL(self): # clear to end of line
-        self.setXY(self.text_x, self.text_y, 
-                   self.text_width - self.text_x - 1, self.text_y + self.text_rows - 1) # set display window
-        TFT_io.fillSCR_AS(self.text_color, self.text_width * self.text_rows)
+    def printClrLine(self, mode = 0): # clear to end of line/bol/line
+        if mode == 0:
+            self.setXY(self.text_x, self.text_y, 
+                       self.text_width - 1, self.text_y + self.text_rows - 1) # set display window
+            TFT_io.fillSCR_AS(self.text_color, (self.text_width - self.text_x + 1) * self.text_rows)
+        elif mode == 1 and self.text_x > 0:
+            self.setXY(0, self.text_y, 
+                    self.text_x - 1, self.text_y + self.text_rows - 1) # set display window
+            TFT_io.fillSCR_AS(self.text_color, (self.text_x - 1) * self.text_rows)
+        elif mode == 2:
+            self.setXY(0, self.text_y, 
+                    self.text_width - 1, self.text_y + self.text_rows - 1) # set display window
+            TFT_io.fillSCR_AS(self.text_color, self.text_width * self.text_rows)
+#
+# clear sreen modes
+#
+    def printClrSCR(self): # clear Area set by setScrollArea
+        self.setXY(0, self.scroll_tfa, 
+            self.text_width - 1, self.scroll_tfa + self.scroll_vsa) # set display window
+        TFT_io.fillSCR_AS(self.text_color, self.text_width * self.scroll_vsa)
+        self.setScrollStart(self.scroll_tfa)
+        self.setTextPos(0, self.scroll_tfa)
 #
 # Print string s, returning the length of the printed string in pixels
 # 
-    def printString(self, s, bg_buf = None):
+    def printString(self, s, bg_buf=None):
         len = 0
         for c in s:
             cols = self.printChar(c, bg_buf)
@@ -635,7 +740,7 @@ class TFT:
 #
 # Print string c using the given char bitmap at location x, y, returning the width of the printed char in pixels
 # 
-    def printChar(self, c, bg_buf = None):
+    def printChar(self, c, bg_buf=None):
 # get the charactes pixel bitmap and dimensions
         if self.text_font: 
             fontptr, rows, cols = self.text_font.get_ch(ord(c))
@@ -646,11 +751,10 @@ class TFT:
         if self.text_x + cols > self.text_width:  # does the char fit on the screen?
             if self.text_scroll:
                 self.printCR()      # No, then CR
-                self.printNewline() # NL: advance to the next line
-                self.printClrEOL()  # clear to end of line
+                self.printNewline(True) # NL: advance to the next line
             else:
                 return 0
-# set data arrays & XY-Range
+# Retrieve Background data if transparency is required
         if self.transparency: # in case of transpareny, the frame buffer content is needed
             if not bg_buf:    # buffer allocation needed?
                 bg_buf = bytearray(pix_count * 3) # sigh...
@@ -658,9 +762,9 @@ class TFT:
             TFT_io.tft_read_cmd_data_AS(0x2e, bg_buf, pix_count * 3) # read background data
         else:
             bg_buf = 0 # dummy assignment, since None is not accepted
-# print char
+# Set XY range & print char
         self.setXY(self.text_x, self.text_y, self.text_x + cols - 1, self.text_y + rows - 1) # set area
-        TFT_io.displaySCR_bitmap(fontptr, pix_count, self.text_color, bg_buf) # display char!
+        TFT_io.displaySCR_charbitmap(fontptr, pix_count, self.text_color, bg_buf) # display char!
 #advance pointer
         self.text_x += (cols + self.text_gap)
         return cols + self.text_gap

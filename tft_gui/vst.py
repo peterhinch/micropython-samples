@@ -1,4 +1,4 @@
-# slidetest.py Demo/test program for vertical slider class for Pyboard TFT GUI
+# vst.py Demo/test program for vertical slider class for Pyboard TFT GUI
 
 # The MIT License (MIT)
 #
@@ -26,38 +26,29 @@ from font10 import font10
 from tft import TFT, LANDSCAPE
 from usched import Sched
 from touch import TOUCH
-from slider import Slider
-from button import Button
-from displays import Dial, Label
-from ui import CLIPPED_RECT, WHITE, BLACK, RED, GREEN, BLUE, YELLOW, GREY
+from ugui import Slider, Button, Dial, Label, CLIPPED_RECT, WHITE, BLACK, RED, GREEN, BLUE, YELLOW, GREY
 from math import pi
 
 # CALLBACKS
 # cb_end occurs when user stops touching the control
-def callback(slider, args):
-    print('{} returned {}'.format(args[0], slider.value()))
+def callback(slider, device):
+    print('{} returned {}'.format(device, slider.value()))
 
 def to_string(val):
     return '{:3.1f} ohms'.format(val * 10)
 
-def master_moved(slider, args):
+def master_moved(slider, slave1, slave2, label):
     val = slider.value()
-    slave1 = args[0]
     slave1.value(val)
-    slave2 = args[1]
     slave2.value(val)
-    label = args[2]
     label.show(to_string(val))
 
 # Either slave has had its slider moved (by user or by having value altered)
-def slave_moved(slider, args):
+def slave_moved(slider, label):
     val = slider.value()
-    dial = args[0]
-    dial.delta = val
-    label = args[1]
     label.show(to_string(val))
 
-def doquit(button, args):
+def doquit(button):
     button.objsched.stop()
 
 # THREADS
@@ -88,11 +79,11 @@ table = {'fontcolor' : WHITE,
          }
 #          'border' : 2,
 
-def test(duration = 0):
+def test():
     print('Test TFT panel...')
     objsched = Sched()                                      # Instantiate the scheduler
     mytft = TFT("SSD1963", "LB04301", LANDSCAPE)
-    mytouch = TOUCH("XPT2046", objsched, confidence=50)
+    mytouch = TOUCH("XPT2046", objsched, confidence=50, margin = 50)
     mytft.backlight(100) # light on
     Button(objsched, mytft, mytouch, (400, 240), font = font10, callback = doquit, fgcolor = RED,
            height = 30, text = 'Quit', shape = CLIPPED_RECT)
@@ -103,11 +94,11 @@ def test(duration = 0):
         lstlbl.append(Label(mytft, (80 * n, 240), font = font10, **labels))
     y = 5
     slave1 = Slider(objsched, mytft, mytouch, (80, y), font10,
-           fgcolor = (0, 255, 0), cbe_args = ('Slave1',), cb_move = slave_moved, cbm_args = (dial1, lstlbl[1]), **table)
+           fgcolor = GREEN, cbe_args = ('Slave1',), cb_move = slave_moved, cbm_args = [lstlbl[1]], **table)
     slave2 = Slider(objsched, mytft, mytouch, (160, y), font10,
-           fgcolor = (0, 255, 0), cbe_args = ('Slave2',), cb_move = slave_moved, cbm_args = (dial2, lstlbl[2]), **table)
+           fgcolor = GREEN, cbe_args = ('Slave2',), cb_move = slave_moved, cbm_args = [lstlbl[2]], **table)
     master = Slider(objsched, mytft, mytouch, (0, y), font10,
-           fgcolor = (255, 255, 0), cbe_args = ('Master',), cb_move = master_moved, cbm_args = (slave1, slave2, lstlbl[0]), value=0.5, **table)
+           fgcolor = YELLOW, cbe_args = ('Master',), cb_move = master_moved, cbm_args = (slave1, slave2, lstlbl[0]), value=0.5, **table)
     objsched.add_thread(mainthread(slave1, dial1))
     objsched.add_thread(mainthread(slave2, dial2))
     objsched.run()                                          # Run it!

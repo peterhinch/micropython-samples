@@ -26,20 +26,16 @@ from font14 import font14
 from tft import TFT, LANDSCAPE
 from usched import Sched
 from touch import TOUCH
-from button import Button, Buttonset, RadioButtons, Checkbox
-from ui import CIRCLE, RECTANGLE, CLIPPED_RECT, WHITE, BLACK, RED, GREEN, BLUE, YELLOW, GREY
-from displays import Label
+from ugui import Button, Buttonset, RadioButtons, Checkbox, Label
+from ugui import CIRCLE, RECTANGLE, CLIPPED_RECT, WHITE, BLACK, RED, GREEN, BLUE, YELLOW, GREY
 
-def callback(button, args):
-    arg = args[0]
-    label = args[1]
+def callback(button, arg, label):
     label.show(arg)
     if arg == 'Q':
         button.objsched.stop()
 
-def cbcb(checkbox, args):
-    label = args[0]
-    if checkbox.value:
+def cbcb(checkbox, label):
+    if checkbox.value():
         label.show('True')
     else:
         label.show('False')
@@ -85,11 +81,16 @@ labels = { 'width' : 70,
 
 # USER TEST FUNCTION
 
+def cbtest(checkbox):
+    while True:
+        yield 3
+        checkbox.value(not checkbox.value())
+
 def test():
     print('Testing TFT...')
     objsched = Sched()                                      # Instantiate the scheduler
     mytft = TFT("SSD1963", "LB04301", LANDSCAPE)
-    mytouch = TOUCH("XPT2046", objsched)
+    mytouch = TOUCH("XPT2046", objsched, confidence = 50, margin = 50)
     mytft.backlight(100) # light on
     lstlbl = []
     for n in range(3):
@@ -124,14 +125,15 @@ def test():
     for t in table4:
         t['args'].append(lstlbl[2])
         rb.add_button(objsched, mytft, mytouch, (x, 180), font = font14, fontcolor = WHITE,
-                      fgcolor = (0, 0, 90), height = 30, **t)
-        x += 40
+                      fgcolor = (0, 0, 90), height = 40, **t)
+        x += 60
     rb.run()
 
 # Checkbox
     Checkbox(objsched, mytft, mytouch, (300, 0), callback = cbcb, args = [lstlbl[0]])
-    Checkbox(objsched, mytft, mytouch, (300, 50), fillcolor = RED, callback = cbcb, args = [lstlbl[1]])
+    cb2 = Checkbox(objsched, mytft, mytouch, (300, 50), fillcolor = RED, callback = cbcb, args = [lstlbl[1]])
 
+    objsched.add_thread(cbtest(cb2)) # Toggle every 2 seconds
     objsched.run()                                          # Run it!
 
 test()
