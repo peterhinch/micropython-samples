@@ -1,0 +1,6 @@
+#! /bin/bash
+# PYB V1.1 build script for 4/8 Core i7 and frozen bytecode
+# Run from micropython/stmhal
+# edit location of pyb_boot
+make BOARD=PYBV10 clean && make -j 8 BOARD=PYBV10 FROZEN_MPY_DIR=scripts && /mnt/qnap2/Scripts/pyb_boot && make BOARD=PYBV10 deploy
+

@@ -1,19 +1,39 @@
 # micropython-samples
-A place for assorted code ideas for MicroPython.
+A place for assorted code ideas for MicroPython. Most are targeted at the Pyboard variants.
 
-mutex: A class providing mutal exclusion enabling interrupt handlers and the main program to
-access shared data in a manner which ensures data integrity.
+## mutex
+A class providing mutal exclusion enabling interrupt handlers and the main program to access shared
+data in a manner which ensures data integrity.
 
-watchdog: How to access the simpler of the Pyboard's watchdog timers.
+## watchdog
+Access the simpler of the Pyboard's watchdog timers.
 
-reverse: Fast reverse a bytearray.
+## reverse
+Fast reverse a bytearray.
 
-font: Convert a C file produced by GLCD Font Creator to Python for storage as persistent byte code.
+## font
+Convert a C file produced by GLCD Font Creator to Python for storage as persistent byte code.
 
-ds3231_pb: Driver for the DS3231 low cost precison RTC, including a facility to calibrate the
-Pyboard's RTC from the DS3231
+## ds3231_pb
+Driver for the DS3231 low cost precison RTC, including a facility to calibrate the Pyboard's RTC
+from the DS3231.
 
-Buildcheck: Raise an exception if a firmware build is earlier than a given date.
+## Buildcheck
+Raise an exception if a firmware build is earlier than a given date.
+
+## timed_function
+Time a function's execution using a decorator
+
+## fastbuild - Pyboard use under Linux
+Build MicroPython with your frozen bytecode, put the Pyboard into DFU mode, and deploy the build to
+the board with a single command. Takes just over 60 seconds on a fast PC. Note the use of make's j
+argument to use mutliple cores. Empirically 8 gave the fastest build on my core i7 4/8 core laptop:
+adjust to suit your PC.
+
+Includes udev rules to avoid jumps from /dev/ttyACM0 to /dev/ttyACM1: ensures Pyboards of all types
+appear as /dev/pyboard. Also rules for USB connected WiPy and FTDI USB/serial adaptor.
+
+# License
 
 Any code placed here is released under the MIT License (MIT).  
 The MIT License (MIT)  

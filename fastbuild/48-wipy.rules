@@ -1,0 +1,6 @@
+# 0403:6015 - WiPy board ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6015", ENV{ID_MM_DEVICE_IGNORE}="1" 
+# WiPy appears as /dev/wipy
+ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6015", ENV{MTP_NO_PROBE}="1" 
+SUBSYSTEMS=="usb", ATTRS{idVendor}=="0403", MODE:="0666"
+KERNEL=="ttyUSB*", ATTRS{idVendor}=="0403", SYMLINK+="wipy", MODE:="0666"
+

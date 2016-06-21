@@ -1,0 +1,5 @@
+# FTDI lead 
+ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6001", ENV{MTP_NO_PROBE}="1" 
+SUBSYSTEMS=="usb", ATTRS{idVendor}=="0403", MODE:="0666"
+KERNEL=="ttyUSB*", ATTRS{idVendor}=="0403", SYMLINK+="ftdi", MODE:="0666"
+

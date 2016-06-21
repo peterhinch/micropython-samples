@@ -1,0 +1,17 @@
+#!/usr/bin/env python
+# Edit this to match the location of micropython/tools and the Pyboard device
+
+import sys
+sys.path.append('/mnt/qnap2/data/Projects/MicroPython/micropython/tools')
+import pyboard
+def main():
+    pyb=pyboard.Pyboard('/dev/pyboard')
+    pyb.enter_raw_repl()
+    try:
+        pyb.exec_raw('pyb.bootloader()')
+    except:
+        pass
+
+if __name__ == "__main__":
+    main()
+
