@@ -34,9 +34,10 @@ Includes udev rules to avoid jumps from /dev/ttyACM0 to /dev/ttyACM1: ensures Py
 appear as /dev/pyboard. Also rules for USB connected WiPy and FTDI USB/serial adaptor.
 
 ## ESP8266
-benchmark.py Tests performance by periodically publishing while subscribed to the same topic.
-Measures the round-trip delay. Adapt to suit your server address and desired QOS (quality of
-service, 0 and 1 are supported). After 100 messages reports maximum and minimum delays.
+benchmark.py Tests the performance of MQTT by periodically publishing while subscribed to
+the same topic. Measures the round-trip delay. Adapt to suit your server address and desired
+QOS (quality of service, 0 and 1 are supported). After 100 messages reports maximum and
+minimum delays.
 
 # License
 
