@@ -39,6 +39,18 @@ the same topic. Measures the round-trip delay. Adapt to suit your server address
 QOS (quality of service, 0 and 1 are supported). After 100 messages reports maximum and
 minimum delays.
 
+## Rotary Incremental Encoder
+
+Classes for handling incremental rotary position encoders. Note that the Pyboard timers can
+do this in hardware. These samples cater for cases where that solution can't be used. The
+encoder_timed.py sample provides rate information by timing successive edges. In practice this
+is likely to need filtering to reduce jitter caused by imperfections in the encoder geometry.
+
+There are other algorithms but this is the simplest and fastest I've encountered.
+
+These were written for encoders producing TTL outputs. For switches, adapt the pull definition
+to provide a pull up or pull down as required.
+
 # License
 
 Any code placed here is released under the MIT License (MIT).  
