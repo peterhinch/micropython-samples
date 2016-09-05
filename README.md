@@ -39,6 +39,8 @@ the same topic. Measures the round-trip delay. Adapt to suit your server address
 QOS (quality of service, 0 and 1 are supported). After 100 messages reports maximum and
 minimum delays.
 
+conn.py Connect in station mode using saved connection details where possible
+
 ## Rotary Incremental Encoder
 
 Classes for handling incremental rotary position encoders. Note that the Pyboard timers can
