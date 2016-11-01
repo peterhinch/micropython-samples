@@ -1,5 +1,16 @@
 import pyb, utime
 
+def tdiff():
+    new_semantics = utime.ticks_diff(2, 1) == 1
+    def func(old, new):
+        nonlocal new_semantics
+        if new_semantics:
+            return utime.ticks_diff(new, old)
+        return utime.ticks_diff(old, new)
+    return func
+
+ticksdiff = tdiff()
+
 class EncoderTimed(object):
     def __init__(self, pin_x, pin_y, reverse, scale):
         self.reverse = reverse
@@ -29,10 +40,10 @@ class EncoderTimed(object):
     def rate(self):                                         # Return rate in edges per second
         self.x_interrupt.disable()
         self.y_interrupt.disable()
-        if utime.ticks_diff(self.tlast, utime.ticks_us) > 2000000: # It's stopped
+        if ticksdiff(self.tlast, utime.ticks_us) > 2000000: # It's stopped
             result = 0.0
         else:
-            result = 1000000.0/(utime.ticks_diff(self.tprev, self.tlast))
+            result = 1000000.0/(ticksdiff(self.tprev, self.tlast))
         self.x_interrupt.enable()
         self.y_interrupt.enable()
         result *= self.scale

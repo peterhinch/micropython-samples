@@ -6,7 +6,18 @@
 import ubinascii
 from simple import MQTTClient
 from machine import unique_id
-from time import sleep, ticks_ms, ticks_diff
+from utime import sleep, ticks_ms, ticks_diff
+
+def tdiff():
+    new_semantics = ticks_diff(2, 1) == 1
+    def func(old, new):
+        nonlocal new_semantics
+        if new_semantics:
+            return ticks_diff(new, old)
+        return ticks_diff(old, new)
+    return func
+
+ticksdiff = tdiff()
 
 SERVER = "192.168.0.23"
 CLIENT_ID = ubinascii.hexlify(unique_id())
@@ -20,7 +31,7 @@ mint = 5000
 
 def sub_cb(topic, msg):
     global t, maxt, mint
-    dt = ticks_diff(t, ticks_ms())
+    dt = ticksdiff(t, ticks_ms())
     print('echo received in {} ms'.format(dt))
     print((topic, msg))
     maxt = max(maxt, dt)
