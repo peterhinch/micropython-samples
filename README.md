@@ -1,6 +1,10 @@
 # micropython-samples
 A place for assorted code ideas for MicroPython. Most are targeted at the Pyboard variants.
 
+## ssd1306
+
+A means of rendering multiple larger fonts to the SSD1306 OLED display
+
 ## mutex
 A class providing mutal exclusion enabling interrupt handlers and the main program to access shared
 data in a manner which ensures data integrity.
