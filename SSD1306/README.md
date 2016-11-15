@@ -87,6 +87,12 @@ only. Should the official ssd1306 driver be changed to use vertical mapping
 (which the device supports) this method may be used to accommodate it. This mode
 has been tested.
 
+# Use of font_to_py.py
+
+To convert font files to Python for use with this driver the default (vertical)
+mapping and bit order should be used. The only optional argument which may be
+needed is ``-f`` if fixed-width rendering is desired.
+
 # Note
 
 The official SSD1306 driver is based on the framebuf module which is in a state
