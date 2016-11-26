@@ -29,13 +29,28 @@ Raise an exception if a firmware build is earlier than a given date.
 Time a function's execution using a decorator
 
 ## fastbuild - Pyboard use under Linux
-Build MicroPython with your frozen bytecode, put the Pyboard into DFU mode, and deploy the build to
-the board with a single command. Takes just over 60 seconds on a fast PC. Note the use of make's j
-argument to use mutliple cores. Empirically 8 gave the fastest build on my core i7 4/8 core laptop:
-adjust to suit your PC.
+Build MicroPython with your frozen bytecode, put the Pyboard into DFU mode, and
+deploy the build to the board with a single command. Takes just over 60 seconds
+on a fast PC. Note the use of make's j argument to use mutliple cores.
+Empirically 8 gave the fastest build on my core i7 4/8 core laptop: adjust to
+suit your PC.
 
-Includes udev rules to avoid jumps from /dev/ttyACM0 to /dev/ttyACM1: ensures Pyboards of all types
-appear as /dev/pyboard. Also rules for USB connected WiPy and FTDI USB/serial adaptor.
+Includes udev rules to avoid jumps from /dev/ttyACM0 to /dev/ttyACM1: ensures
+Pyboards of all types appear as /dev/pyboard. Also rules for USB connected WiPy
+and FTDI USB/serial adaptor.
+
+Improved build script: ``buildpyb``  
+This checks the attached pyboard. If it's a V1.0, V1.1 or Lite it builds the
+correct firmware and deploys it. Otherwise it produces an error message. It uses
+the supplied ``pyb_check`` utility which depends on ``pyboard.py`` being on the
+path. Install (from micropython/tools) and test first.
+
+Optional argument ``--clean`` - if supplied does a ``make clean``. Strongly
+recommended after pulling new sourcecode.
+
+There are a couple of site specifics here. ``pyb_check`` assumes the udev rule
+above is applied to put the device on ``/dev/pyboard``. ``buildpyb`` assumes a
+frozen modules directory ``stmhal/modules``. Modify to suit.
 
 ## ESP8266
 benchmark.py Tests the performance of MQTT by periodically publishing while subscribed to

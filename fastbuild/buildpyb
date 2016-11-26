@@ -1,0 +1,41 @@
+#! /bin/bash
+# Detect pyboard variant build and deploy
+# requires pyb_check
+# Also requires the pyboard utility to be on the path
+
+BOARD=""
+if pyb_check PYBV11
+then
+    BOARD="PYBV11"
+fi
+if pyb_check PYBV10
+then
+    BOARD="PYBV10"
+fi
+if pyb_check PYBLITEV10
+then
+    BOARD="PYBLITEV10"
+fi
+echo $BOARD
+
+if [ $BOARD ]
+then
+    cd /mnt/qnap2/data/Projects/MicroPython/micropython/stmhal
+    if [ $# -eq 1 ] && [ $1 = "--clean" ]
+    then
+        make BOARD=$BOARD clean
+    fi
+    if make -j 8 BOARD=$BOARD FROZEN_MPY_DIR=modules && pyb_boot
+    then
+        sleep 1
+        sudo make BOARD=$BOARD deploy
+        cd -
+        sleep 1
+        rshell
+    else
+        echo Build failure
+    fi
+else
+    echo Incorrect board type
+fi
+

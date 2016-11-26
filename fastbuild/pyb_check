@@ -1,0 +1,31 @@
+#! /usr/bin/python3
+# -*- coding: utf-8 -*-
+
+# Called from buildpyb
+# Arg: expected board type
+# exit status 0 if hardware matches board type else 1
+
+import sys
+import os, os.path
+import pyboard
+device = '/dev/pyboard'
+errmsg = 'Must supply board type PYBV10 PYBV11 PYBLITEV10'
+d = {'PYBV11' : b'PYBv1.1', 'PYBV10' : b'PYBv1.0', 'PYBLITEV10' : b'PYBLITEv1.0'}
+def main():
+    if len(sys.argv) < 2:
+        print(errmsg)
+        sys.exit(1)
+    if not os.path.exists(device):
+        sys.exit(1)
+    pybd = pyboard.Pyboard('/dev/pyboard')
+    pybd.enter_raw_repl()
+    hardware = pybd.exec('import os; print(os.uname()[4].split(' ')[0])').strip()
+    pybd.exit_raw_repl()
+    board = d[sys.argv[1]]
+    if board == hardware:
+        sys.exit(0)
+    sys.exit(1)
+
+if __name__ == "__main__":
+    main()
+
