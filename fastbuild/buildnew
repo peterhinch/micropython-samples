@@ -1,0 +1,15 @@
+#! /bin/bash
+# Update MicroPython source and prepare for build
+
+cd /mnt/qnap2/data/Projects/MicroPython/micropython/
+git checkout master
+git pull origin master
+cd mpy-cross
+make clean
+make -j 8
+cd ../stmhal
+make BOARD=PYBV11 clean
+make BOARD=PYBV10 clean
+make BOARD=PYBLITEV10 clean
+cd ../esp8266
+make clean

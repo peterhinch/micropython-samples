@@ -1,0 +1,18 @@
+#! /bin/bash
+cd /mnt/qnap2/data/Projects/MicroPython/micropython/esp8266
+if [ $# -eq 1 ] && [ $1 = "--clean" ]
+then
+    make clean
+    esptool.py  --port /dev/ttyUSB0 erase_flash
+fi
+if make -j 8
+then
+    sleep 1
+    esptool.py --port /dev/ttyUSB0 --baud 115200 write_flash --verify --flash_size=detect -fm dio 0 firmware-combined.bin
+    cd -
+    sleep 1
+    rsusb  # alias rsusb='rshell -p /dev/pyboard --editor nano -p /dev/ttyUSB0'
+else
+    echo Build failure
+fi
+
