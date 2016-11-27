@@ -1,8 +1,10 @@
 #! /bin/bash
-# Detect pyboard variant build and deploy
+# Detect attached pyboard variant build and deploy
+# Assumes only one device attached and that this will appear as /dev/pyboard (udev rule)
 # requires pyb_check
-# Also requires the pyboard utility to be on the path
+# Also requires the pyboard.py utility to be on the path (micropython/tools/pyboard.py)
 
+DIRECTORY='/mnt/qnap2/data/Projects/MicroPython/micropython/stmhal'
 BOARD=""
 if pyb_check PYBV11
 then
@@ -16,11 +18,11 @@ if pyb_check PYBLITEV10
 then
     BOARD="PYBLITEV10"
 fi
-echo $BOARD
+echo Building for $BOARD
 
 if [ $BOARD ]
 then
-    cd /mnt/qnap2/data/Projects/MicroPython/micropython/stmhal
+    cd $DIRECTORY
     if [ $# -eq 1 ] && [ $1 = "--clean" ]
     then
         make BOARD=$BOARD clean
