@@ -1,15 +1,21 @@
-#!/usr/bin/env python
-# Edit this to match the location of micropython/tools and the Pyboard device
+#!/usr/bin/python3
+
+# Called from buildpyb
+# Put pyboard into DFU mode.
 
 import sys
-sys.path.append('/mnt/qnap2/data/Projects/MicroPython/micropython/tools')
+import os
+mp = os.getenv('MPDIR')
+device = os.getenv('MPDEVICE')
+sys.path.append(''.join((mp, '/tools')))
 import pyboard
 def main():
-    pyb=pyboard.Pyboard('/dev/pyboard')
+    pyb=pyboard.Pyboard(device)
     pyb.enter_raw_repl()
     try:
         pyb.exec_raw('pyb.bootloader()')
-    except:
+        print('Failed to enter DFU mode')
+    except Exception:  # It will throw one!
         pass
 
 if __name__ == "__main__":

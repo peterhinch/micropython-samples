@@ -2,8 +2,10 @@
 # Update MicroPython source and prepare for build
 
 cd /mnt/qnap2/data/Projects/MicroPython/micropython/
+echo Working...
 git checkout master
 git pull origin master
+git submodule update --init
 cd mpy-cross
 make clean
 make -j 8
@@ -13,3 +15,9 @@ make BOARD=PYBV10 clean
 make BOARD=PYBLITEV10 clean
 cd ../esp8266
 make clean
+cd ../unix
+make axtls
+# If you're going to enable deplibs: see micropython/README
+#make deplibs
+make
+

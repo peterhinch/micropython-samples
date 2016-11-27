@@ -4,7 +4,8 @@
 # requires pyb_check
 # Also requires the pyboard.py utility to be on the path (micropython/tools/pyboard.py)
 
-DIRECTORY='/mnt/qnap2/data/Projects/MicroPython/micropython/stmhal'
+export MPDIR='/mnt/qnap2/data/Projects/MicroPython/micropython'
+export MPDEVICE='/dev/pyboard'
 BOARD=""
 if pyb_check PYBV11
 then
@@ -22,7 +23,7 @@ echo Building for $BOARD
 
 if [ $BOARD ]
 then
-    cd $DIRECTORY
+    cd $MPDIR/stmhal
     if [ $# -eq 1 ] && [ $1 = "--clean" ]
     then
         make BOARD=$BOARD clean

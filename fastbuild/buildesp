@@ -5,14 +5,19 @@ then
     make clean
     esptool.py  --port /dev/ttyUSB0 erase_flash
 fi
-if make -j 8
+if make -j 8 axtls
 then
-    sleep 1
-    esptool.py --port /dev/ttyUSB0 --baud 115200 write_flash --verify --flash_size=detect -fm dio 0 firmware-combined.bin
-    cd -
-    sleep 1
-    rsusb  # alias rsusb='rshell -p /dev/pyboard --editor nano -p /dev/ttyUSB0'
+    if make -j 8
+    then
+        sleep 1
+        esptool.py --port /dev/ttyUSB0 --baud 115200 write_flash --verify --flash_size=detect -fm dio 0 build/firmware-combined.bin
+        cd -
+        sleep 1
+        rshell -p /dev/ttyUSB0 --editor nano
+    else
+        echo Build failure
+    fi
 else
-    echo Build failure
+    echo Axtls build failure
 fi
-
+cd -
