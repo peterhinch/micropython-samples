@@ -52,8 +52,8 @@ cp 49-micropython.rules /etc/udev/rules.d
 pip3 install rshell
 ```
 
-Verify that ``pyboard.py`` works: Close and restart the terminal session. Run
-Python3 and paste the following:
+Verify that ``pyboard.py`` works. To do this, close and restart the terminal
+session. Run Python3, paste the following and check that the red LED lights:
 
 ```python
 import os
@@ -85,7 +85,7 @@ correct firmware and deploys it. Otherwise it produces an error message.
 Optional argument ``--clean`` - if supplied does a ``make clean`` to delete
 all files produced by the previous build before proceeding.
 
-### Update source: ``buildnew``/usr/local/bin
+### Update source: ``buildnew``
 
 Report state of master branch, update sources and issue ``make clean`` for
 Pyboard variants, and ESP8266. Builds cross compiler and unix port.
