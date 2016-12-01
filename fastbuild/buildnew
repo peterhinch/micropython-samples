@@ -1,7 +1,7 @@
 #! /bin/bash
 # Update MicroPython source and prepare for build
 
-cd /mnt/qnap2/data/Projects/MicroPython/micropython/
+cd $MPDIR
 echo Working...
 git checkout master
 git pull origin master
@@ -16,8 +16,7 @@ make BOARD=PYBLITEV10 clean
 cd ../esp8266
 make clean
 cd ../unix
-make axtls
+make -j 8 axtls
 # If you're going to enable deplibs: see micropython/README
 #make deplibs
-make
-
+make -j 8
