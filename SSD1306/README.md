@@ -16,6 +16,9 @@ trades a 2:1 drop in performance for portability between devices with different
 mappings. File ssd1306_drv.py is no longer provided as the framebuf scrolling
 bug is now fixed.
 
+Note that framebuf scrolling does not clear the exposed region of the screen.
+This is by design but see issue #2692.
+
 # Files
 
 1. ssd1306_test.py A simple test program.
