@@ -26,8 +26,10 @@
 # https://learn.adafruit.com/monochrome-oled-breakouts/wiring-128x32-spi-oled-display
 # https://www.proto-pic.co.uk/monochrome-128x32-oled-graphic-display.html
 
+# V0.2 Dec 17th 2016 Now supports updated framebuf module.
+
 import machine
-from ssd1306_drv import SSD1306_SPI, SSD1306_I2C
+from ssd1306 import SSD1306_SPI, SSD1306_I2C
 from writer import Writer
 
 # Fonts

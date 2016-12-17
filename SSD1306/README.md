@@ -9,12 +9,18 @@ presented [here](https://github.com/peterhinch/micropython-font-to-py.git).
 
 ![Picture](ssd1306.JPG)
 
+## Release notes
+
+V0.2 17th Dec 2016 The ``Writer`` class now uses the framebuf pixel method. This
+trades a 2:1 drop in performance for portability between devices with different
+mappings. File ssd1306_drv.py is no longer provided as the framebuf scrolling
+bug is now fixed.
+
 # Files
 
 1. ssd1306_test.py A simple test program.
 2. ssd1306.py A snapshot of the current official driver.
-3. ssd1306_drv.py A temporary Python fix for a bug in the above.
-4. writer.py A generic Writer class. Keeps track of the text insertion point
+3. writer.py A generic Writer class. Keeps track of the text insertion point
 over multiple fonts, handles newline and vertical scrolling if required.
 
 In addition several font files are provided as samples.
@@ -27,7 +33,7 @@ to a Pyboard. It is untested on other platforms, but I'd expect it to be
 portable to any device supporting the official driver. If in doubt, install and
 test this first.
 
-Copy files 1-4 and ``freesans20.py`` to the target and issue
+Copy files 1-3 and ``freesans20.py`` to the target and issue
 
 ```python
 import ssd1306_test
@@ -78,31 +84,11 @@ default text overrunning the bottom of the display will cause text above to
 scroll up to accommodate it. Setting ``row_clip`` will override this behaviour
 causing text to be clipped.
 
-A final classmethod is provided for possible future use.
-
-``mapping`` The current official ssd1306 driver configures the hardware to use
-an unorthodox mapping of bytes onto pixels. The original plan for the
-``framebuf`` module was that it should support vertical and horizontal mappings
-only. Should the official ssd1306 driver be changed to use vertical mapping
-(which the device supports) this method may be used to accommodate it. This mode
-has been tested.
-
 # Use of font_to_py.py
 
 To convert font files to Python for use with this driver the default (vertical)
 mapping and bit order should be used. The only optional argument which may be
 needed is ``-f`` if fixed-width rendering is desired.
-
-# Note
-
-The official SSD1306 driver is based on the framebuf module which is in a state
-of active development. The code presented here extends the official driver and
-consequently may be less than stable if there is significant change to the
-underlying framebuffer class. Further, the official driver's scroll method is
-buggy and at the time of writing there is a moratorium on PR's. I have coded a
-Python workround in the file ssd1306_drv.py. Hopefully in time this file will
-become redundant and the official driver will support vertical scrolling over
-long distances.
 
 # License
 

@@ -1,5 +1,5 @@
 # writer.py Implements the Writer class.
-# V0.1 Peter Hinch Nov 2016
+# V0.2 Peter Hinch Dec 2016: supports updated framebuf module.
 
 # The MIT License (MIT)
 #
@@ -24,21 +24,15 @@
 # THE SOFTWARE.
 
 # A Writer supports rendering text to a Display instance in a given font.
-# Currently supports vertical mapping and the SSD1306 "pseudo-horizontal" map
-# only
 # Multiple Writer instances may be created, each rendering a font to the
 # same Display object.
 
-VERT = 0
-HORIZ = 1
-WEIRD = 2
 
 class Writer(object):
-    text_row = 0  # attributes common to all Writer instances
+    text_row = 0        # attributes common to all Writer instances
     text_col = 0
-    row_clip = False  # Clip or scroll when screen full
-    col_clip = False  # Clip or new line when row is full
-    bmap = WEIRD  # SSD1306 pseudo-horizontal
+    row_clip = False    # Clip or scroll when screen full
+    col_clip = False    # Clip or new line when row is full
 
     @classmethod
     def set_textpos(cls, row, col):
@@ -50,13 +44,6 @@ class Writer(object):
         cls.row_clip = row_clip
         cls.col_clip = col_clip
 
-    @classmethod
-    def mapping(cls, bmap):
-        if bmap in (VERT, HORIZ):
-            cls.bmap = bmap
-        else:
-            raise ValueError('Unsupported mapping')
-
     def __init__(self, device, font):
         super().__init__()
         self.device = device
@@ -65,8 +52,6 @@ class Writer(object):
             raise OSError('Font must be vertically mapped')
         self.screenwidth = device.width  # In pixels
         self.screenheight = device.height
-        div, mod = divmod(device.height, 8)
-        self.bytes_per_col = div + 1 if mod else div
 
     def _newline(self):
         height = self.font.height()
@@ -83,41 +68,32 @@ class Writer(object):
             self._printchar(char)
 
     def _printchar(self, char):
-        bmap = Writer.bmap # Buffer mapping
         if char == '\n':
             self._newline()
             return
-        fbuff = self.device.buffer
         glyph, char_height, char_width = self.font.get_ch(char)
-        if Writer.text_row+char_height > self.screenheight and Writer.row_clip:
-            return
+        if Writer.text_row + char_height > self.screenheight:
+            if Writer.row_clip:
+                return
+            self._newline()
         if Writer.text_col + char_width > self.screenwidth:
             if Writer.col_clip:
                 return
             else:
                 self._newline()
+
         div, mod = divmod(char_height, 8)
-        gbytes = div + 1 if mod else div  # No. of bytes per column of glyph
-        start_row, align = divmod(Writer.text_row, 8)
-        for scol in range(0, char_width):  # Source column
-            dcol = scol + Writer.text_col  # Destination column
-            dest_row_byte = start_row
-            for gbyte in range(gbytes):  # Each glyph byte in column
-                if bmap == VERT:
-                    dest = dcol * self.bytes_per_col + dest_row_byte
-                elif bmap == WEIRD:
-                    dest = dcol + dest_row_byte * self.screenwidth
-                source = scol * gbytes + gbyte
-                data = fbuff[dest] & (0xff >> (8 - align))
-                fbuff[dest] = data | glyph[source] << align
-                if align and (dest_row_byte + 1) < self.bytes_per_col:
-                    if bmap == VERT:
-                        dest += 1
-                    elif bmap == WEIRD:
-                        dest += self.screenwidth
-                    data = fbuff[dest] & (0xff << align)
-                    fbuff[dest] = data | glyph[source] >> (8 - align)
-                dest_row_byte += 1
-                if dest_row_byte >= self.bytes_per_col:
+        gbytes = div + 1 if mod else div    # No. of bytes per column of glyph
+        device = self.device
+        for scol in range(char_width):      # Source column
+            dcol = scol + Writer.text_col   # Destination column
+            drow = Writer.text_row          # Destination row
+            for srow in range(char_height): # Source row
+                gbyte, gbit = divmod(srow, 8)
+                if drow >= self.screenheight:
                     break
+                if gbit == 0:               # Next glyph byte
+                    data = glyph[scol * gbytes + gbyte]
+                device.pixel(dcol, drow, data & (1 << gbit))
+                drow += 1
         Writer.text_col += char_width
