@@ -143,6 +143,20 @@ There are other algorithms but this is the simplest and fastest I've encountered
 These were written for encoders producing TTL outputs. For switches, adapt the pull definition
 to provide a pull up or pull down as required.
 
+# A pseudo random number generator
+
+On the Pyboard V1.1, true random numbers may be generated rapidly with pyb.rng()
+which uses a hardware random number generator on the microcontroller.
+
+There are two use cases for the pseudo random number generator. Firstly on
+platforms lacking a hardware generator (e.g. the Pyboard Lite). And secondly
+where repeatable results are required, for example in testing. A pseudo random
+number generator is seeded with an arbitrary initial value. On each call to the
+function it will return a random number, but (given the same seed) the sequence
+of numbers following initialisation will always be the same.
+
+See the code for usage and timing documentation.
+
 # License
 
 Any code placed here is released under the MIT License (MIT).  
