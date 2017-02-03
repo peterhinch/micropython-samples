@@ -109,10 +109,6 @@ Access the simpler of the Pyboard's watchdog timers.
 # reverse
 Fast reverse a bytearray.
 
-# font
-Convert a C file produced by GLCD Font Creator to Python for storage as
-persistent byte code. This is effectively obsolete: see [this solution](https://github.com/peterhinch/micropython-font-to-py.git).
-
 # ds3231_pb
 Driver for the DS3231 low cost precison RTC, including a facility to calibrate the Pyboard's RTC
 from the DS3231.
