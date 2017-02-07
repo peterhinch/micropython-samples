@@ -22,9 +22,11 @@ mutex = mutex.Mutex()
 data_ready = False
 
 def callback(): # Timer or interrupt callback
+    global data_ready
     if mutex.test():
         data_ready = True
         # Update critical variables
+        mutex.release()
     else:
         # defer any update
 # Associate callback with device (pin or timer)
