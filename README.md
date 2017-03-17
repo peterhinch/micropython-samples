@@ -107,7 +107,8 @@ data in a manner which ensures data integrity.
 Access the simpler of the Pyboard's watchdog timers.
 
 # reverse
-Fast reverse a bytearray.
+Fast reverse a bytearray in Arm Thumb assembler.  
+Python code to bit-reverse (fast-ish) 8, 16 and 32 bit words.
 
 # ds3231_pb
 Driver for the DS3231 low cost precison RTC, including a facility to calibrate the Pyboard's RTC
