@@ -1,5 +1,5 @@
 # writer.py Implements the Writer class.
-# V0.2 Peter Hinch Dec 2016: supports updated framebuf module.
+# V0.21 Peter Hinch 21 March 2017: supports updated framebuf module.
 
 # The MIT License (MIT)
 #

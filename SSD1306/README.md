@@ -11,10 +11,11 @@ presented [here](https://github.com/peterhinch/micropython-font-to-py.git).
 
 ## Release notes
 
-V0.2 17th Dec 2016 The ``Writer`` class now uses the framebuf pixel method. This
-trades a 2:1 drop in performance for portability between devices with different
-mappings. File ssd1306_drv.py is no longer provided as the framebuf scrolling
-bug is now fixed.
+V0.21 21st March 2017 The ``Writer`` class now uses the framebuf blit method.
+This works for monochrome devices using 1-bit colour mapping. Example code is
+provided for rendering to colour devices: the framebuf class does not yet offer
+an effective way to handle colour mapping when blitting between buffers with
+differing colour maps.
 
 Note that framebuf scrolling does not clear the exposed region of the screen.
 This is by design but see issue #2692.
