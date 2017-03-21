@@ -70,9 +70,10 @@ else:  # I2C
 #wri = Writer(ssd, freeserif19)
 wri2 = Writer(ssd, freesans20)
 Writer.set_clip(True, True)
+#Writer.set_textpos(20, 20)
+#wri2.printstring('Tues')
 wri2.printstring('Tuesday\n')
 wri2.printstring('8 Nov 2016\n')
 wri2.printstring('10.30am')
 
 ssd.show()
-

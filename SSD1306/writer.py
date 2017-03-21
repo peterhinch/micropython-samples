@@ -27,6 +27,7 @@
 # Multiple Writer instances may be created, each rendering a font to the
 # same Display object.
 
+import framebuf
 
 class Writer(object):
     text_row = 0        # attributes common to all Writer instances
@@ -48,8 +49,12 @@ class Writer(object):
         super().__init__()
         self.device = device
         self.font = font
+        # Allow to work with any font mapping
         if font.hmap():
-            raise OSError('Font must be vertically mapped')
+            self.map = framebuf.MHMSB if font.reverse() else framebuf.MHLSB
+        else:
+            raise ValueError('Font must be horizontally mapped.')
+        print('Orientation: {} Reversal: {}'.format('horiz' if font.hmap() else 'vert', font.reverse()))
         self.screenwidth = device.width  # In pixels
         self.screenheight = device.height
 
@@ -67,7 +72,31 @@ class Writer(object):
         for char in string:
             self._printchar(char)
 
+    # Method using blitting. Efficient rendering for monochrome displays.
+    # Tested on SSD1306.
     def _printchar(self, char):
+        if char == '\n':
+            self._newline()
+            return
+        glyph, char_height, char_width = self.font.get_ch(char)
+        if Writer.text_row + char_height > self.screenheight:
+            if Writer.row_clip:
+                return
+            self._newline()
+        if Writer.text_col + char_width > self.screenwidth:
+            if Writer.col_clip:
+                return
+            else:
+                self._newline()
+        buf = bytearray(glyph)
+        fbc = framebuf.FrameBuffer(buf, char_width, char_height, self.map)
+        self.device.framebuf.blit(fbc, Writer.text_col, Writer.text_row)
+        Writer.text_col += char_width
+
+    # Bitwise rendering. Currently this is required for colour displays
+    # because the framebuf blit method does not have an effective means of
+    # colour mapping single bit framebufs onto n-bit ones
+    def _printchar_bitwise(self, char):
         if char == '\n':
             self._newline()
             return
@@ -97,3 +126,4 @@ class Writer(object):
                 device.pixel(dcol, drow, data & (1 << gbit))
                 drow += 1
         Writer.text_col += char_width
+
