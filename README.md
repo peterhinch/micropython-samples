@@ -97,7 +97,8 @@ Pyboard variants, and ESP8266. Builds cross compiler and unix port.
 
 # ssd1306
 
-A means of rendering multiple larger fonts to the SSD1306 OLED display
+A means of rendering multiple larger fonts to the SSD1306 OLED display. See
+[docs](./SSD1306/README.md).
 
 # mutex
 A class providing mutal exclusion enabling interrupt handlers and the main program to access shared
@@ -112,13 +113,13 @@ Python code to bit-reverse (fast-ish) 8, 16 and 32 bit words.
 
 # ds3231_pb
 Driver for the DS3231 low cost precison RTC, including a facility to calibrate the Pyboard's RTC
-from the DS3231.
+from the DS3231. Calibration to high precision may be achieved in five minutes.
 
 # Buildcheck
 Raise an exception if a firmware build is earlier than a given date.
 
 # timed_function
-Time a function's execution using a decorator
+Time a function's execution using a decorator.
 
 # ESP8266
 benchmark.py Tests the performance of MQTT by periodically publishing while subscribed to
