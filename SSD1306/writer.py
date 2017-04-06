@@ -45,16 +45,17 @@ class Writer(object):
         cls.row_clip = row_clip
         cls.col_clip = col_clip
 
-    def __init__(self, device, font):
+    def __init__(self, device, font, verbose=True):
         super().__init__()
         self.device = device
         self.font = font
         # Allow to work with any font mapping
         if font.hmap():
-            self.map = framebuf.MHMSB if font.reverse() else framebuf.MHLSB
+            self.map = framebuf.MONO_HMSB if font.reverse() else framebuf.MONO_HLSB
         else:
             raise ValueError('Font must be horizontally mapped.')
-        print('Orientation: {} Reversal: {}'.format('horiz' if font.hmap() else 'vert', font.reverse()))
+        if verbose:
+            print('Orientation: {} Reversal: {}'.format('horiz' if font.hmap() else 'vert', font.reverse()))
         self.screenwidth = device.width  # In pixels
         self.screenheight = device.height
 
