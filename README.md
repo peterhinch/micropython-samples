@@ -141,6 +141,10 @@ There are other algorithms but this is the simplest and fastest I've encountered
 These were written for encoders producing TTL outputs. For switches, adapt the pull definition
 to provide a pull up or pull down as required.
 
+The `encoder.portable.py` version should work on all MicroPython platforms.
+Tested on ESP8266. Note that interrupt latency on the ESP8266 limits performance
+(ESP32 is probably similar).
+
 # A pseudo random number generator
 
 On the Pyboard V1.1, true random numbers may be generated rapidly with pyb.rng()
