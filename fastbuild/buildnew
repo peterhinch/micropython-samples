@@ -9,13 +9,14 @@ git submodule update --init
 cd mpy-cross
 make clean
 make -j 8
-cd ../stmhal
+cd ../ports/stm32
 make BOARD=PYBV11 clean
 make BOARD=PYBV10 clean
 make BOARD=PYBLITEV10 clean
 cd ../esp8266
 make clean
 cd ../unix
+make clean
 make -j 8 axtls
 # If you're going to enable deplibs: see micropython/README
 #make deplibs

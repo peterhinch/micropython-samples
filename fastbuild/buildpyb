@@ -32,7 +32,7 @@ fi
 
 if [ $BOARD ]
 then
-    cd $MPDIR/stmhal
+    cd $MPDIR/ports/stm32
     if [ $# -eq 1 ] && [ $1 = "--clean" ]
     then
         make BOARD=$BOARD clean

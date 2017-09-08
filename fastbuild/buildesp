@@ -1,23 +1,25 @@
 #! /bin/bash
-cd /mnt/qnap2/data/Projects/MicroPython/micropython/esp8266
+cd /mnt/qnap2/data/Projects/MicroPython/micropython/ports/esp8266
+
 if [ $# -eq 1 ] && [ $1 = "--clean" ]
+then
+    make clean
+fi
+
+if [ $# -eq 1 ] && [ $1 = "--erase" ]
 then
     make clean
     esptool.py  --port /dev/ttyUSB0 erase_flash
 fi
-if make -j 8 axtls
+
+if make -j 8
 then
-    if make -j 8
-    then
-        sleep 1
-        esptool.py --port /dev/ttyUSB0 --baud 115200 write_flash --verify --flash_size=detect -fm dio 0 build/firmware-combined.bin
-        cd -
-        sleep 1
-        rshell -p /dev/ttyUSB0 --editor nano
-    else
-        echo Build failure
-    fi
+    sleep 1
+    esptool.py --port /dev/ttyUSB0 --baud 115200 write_flash --verify --flash_size=detect -fm dio 0 build/firmware-combined.bin
+    cd -
+    sleep 4
+    rshell -p /dev/ttyUSB0 --editor nano --buffer-size=30
 else
-    echo Axtls build failure
+    echo Build failure
 fi
 cd -
