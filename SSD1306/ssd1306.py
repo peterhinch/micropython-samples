@@ -32,7 +32,21 @@ class SSD1306:
         self.external_vcc = external_vcc
         self.pages = self.height // 8
         self.buffer = bytearray(self.pages * self.width)
-        self.framebuf = framebuf.FrameBuffer(self.buffer, self.width, self.height, framebuf.MVLSB)
+        fb = framebuf.FrameBuffer(self.buffer, self.width, self.height, framebuf.MVLSB)
+        self.framebuf = fb
+        # Provide methods for accessing FrameBuffer graphics primitives. This is a workround
+        # because inheritance from a native class is currently unsupported.
+        # http://docs.micropython.org/en/latest/pyboard/library/framebuf.html
+        self.fill = fb.fill  # (col)
+        self.pixel = fb.pixel # (x, y[, c])
+        self.hline = fb.hline  # (x, y, w, col)
+        self.vline = fb.vline  # (x, y, h, col)
+        self.line = fb.line  # (x1, y1, x2, y2, col)
+        self.rect = fb.rect  # (x, y, w, h, col)
+        self.fill_rect = fb.fill_rect  # (x, y, w, h, col)
+        self.text = fb.text  # (string, x, y, col=1)
+        self.scroll = fb.scroll  # (dx, dy)
+        self.blit = fb.blit  # (fbuf, x, y[, key])
         self.poweron()
         self.init_display()
 
@@ -88,18 +102,6 @@ class SSD1306:
         self.write_cmd(self.pages - 1)
         self.write_data(self.buffer)
 
-    def fill(self, col):
-        self.framebuf.fill(col)
-
-    def pixel(self, x, y, col):
-        self.framebuf.pixel(x, y, col)
-
-    def scroll(self, dx, dy):
-        self.framebuf.scroll(dx, dy)
-
-    def text(self, string, x, y, col=1):
-        self.framebuf.text(string, x, y, col)
-
 
 class SSD1306_I2C(SSD1306):
     def __init__(self, width, height, i2c, addr=0x3c, external_vcc=False):
@@ -139,23 +141,23 @@ class SSD1306_SPI(SSD1306):
 
     def write_cmd(self, cmd):
         self.spi.init(baudrate=self.rate, polarity=0, phase=0)
-        self.cs.high()
-        self.dc.low()
-        self.cs.low()
+        self.cs(1)
+        self.dc(0)
+        self.cs(0)
         self.spi.write(bytearray([cmd]))
-        self.cs.high()
+        self.cs(1)
 
     def write_data(self, buf):
         self.spi.init(baudrate=self.rate, polarity=0, phase=0)
-        self.cs.high()
-        self.dc.high()
-        self.cs.low()
+        self.cs(1)
+        self.dc(1)
+        self.cs(0)
         self.spi.write(buf)
-        self.cs.high()
+        self.cs(1)
 
     def poweron(self):
-        self.res.high()
+        self.res(1)
         time.sleep_ms(1)
-        self.res.low()
+        self.res(0)
         time.sleep_ms(10)
-        self.res.high()
+        self.res(1)
