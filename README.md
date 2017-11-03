@@ -101,7 +101,7 @@ A means of rendering multiple larger fonts to the SSD1306 OLED display. See
 [docs](./SSD1306/README.md).
 
 # mutex
-A class providing mutal exclusion enabling interrupt handlers and the main program to access shared
+A class providing mutual exclusion enabling interrupt handlers and the main program to access shared
 data in a manner which ensures data integrity.
 
 # watchdog
@@ -127,19 +127,20 @@ the same topic. Measures the round-trip delay. Adapt to suit your server address
 QOS (quality of service, 0 and 1 are supported). After 100 messages reports maximum and
 minimum delays.
 
-conn.py Connect in station mode using saved connection details where possible
+conn.py Connect in station mode using saved connection details where possible.
 
 # Rotary Incremental Encoder
 
-Classes for handling incremental rotary position encoders. Note that the Pyboard timers can
-do this in hardware. These samples cater for cases where that solution can't be used. The
-encoder_timed.py sample provides rate information by timing successive edges. In practice this
-is likely to need filtering to reduce jitter caused by imperfections in the encoder geometry.
+Classes for handling incremental rotary position encoders. Note that the Pyboard
+timers can do this in hardware. These samples cater for cases where that
+solution can't be used. The encoder_timed.py sample provides rate information by
+timing successive edges. In practice this is likely to need filtering to reduce
+jitter caused by imperfections in the encoder geometry.
 
 There are other algorithms but this is the simplest and fastest I've encountered.
 
-These were written for encoders producing TTL outputs. For switches, adapt the pull definition
-to provide a pull up or pull down as required.
+These were written for encoders producing TTL outputs. For switches, adapt the
+pull definition to provide a pull up or pull down as required.
 
 The `encoder.portable.py` version should work on all MicroPython platforms.
 Tested on ESP8266. Note that interrupt latency on the ESP8266 limits performance
@@ -158,6 +159,14 @@ function it will return a random number, but (given the same seed) the sequence
 of numbers following initialisation will always be the same.
 
 See the code for usage and timing documentation.
+
+# A design for a hardware power meter
+
+This uses a Pyboard to measure the power consumption of mains powered devices. 
+Unlike simple commercial devices it performs a true vector (phasor) measurement
+enabling it to provide information on power factor and to work with devices
+which generate as well as consume power. It uses the official LCD160CR display
+as a touch GUI interface. It is documented [here](./power/README.md).
 
 # License
 
