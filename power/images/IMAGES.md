@@ -1,11 +1,9 @@
-# Sample Images
-
-#Puhbuttons
+# Power Meter Sample Images
 
 ![Exterior](./outside.JPG)
 
 ![Interior](./interior.JPG)
-Interior construction.
+Interior construction - slightly out of date: doesn't show cable glands.
 
 ![Microwave](./microwave.JPG)
 Microwave oven.
@@ -19,5 +17,5 @@ Integration screen.
 Soldering iron on 3KW range.
 
 ![Correct range](./correctrange.JPG)
-Same iron on 30W range
+Same iron on 30W range.
 
