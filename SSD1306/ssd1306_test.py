@@ -1,4 +1,4 @@
-# ssd1306_test.py Demo pogram for rendering arbitrary fonts to an SSD1306 OLED display
+# ssd1306_test.py Demo pogram for rendering arbitrary fonts to an SSD1306 OLED display.
 
 # The MIT License (MIT)
 #
@@ -26,7 +26,9 @@
 # https://learn.adafruit.com/monochrome-oled-breakouts/wiring-128x32-spi-oled-display
 # https://www.proto-pic.co.uk/monochrome-128x32-oled-graphic-display.html
 
-# V0.2 Dec 17th 2016 Now supports updated framebuf module.
+# V0.22 Dec 23rd 2017 machine.SPI now only seems to work soft SPI and I2C
+# implmentations
+# Now provides demo of simple graphics
 
 import machine
 from ssd1306 import SSD1306_SPI, SSD1306_I2C
@@ -38,40 +40,52 @@ import freesans20
 #import inconsolata16
 
 WIDTH = const(128)
-SPI = False
+HEIGHT = const(64)
 
-if SPI:
-    # Pyb   SSD
-    # 3v3   Vin
-    # Gnd   Gnd
-    # X1    DC
-    # X2    CS
-    # X3    Rst
-    # X6    CLK
-    # X8    DATA
-    HEIGHT = 32
-    pdc = machine.Pin('X1', machine.Pin.OUT_PP)
-    pcs = machine.Pin('X2', machine.Pin.OUT_PP)
-    prst = machine.Pin('X3', machine.Pin.OUT_PP)
-    spi = machine.SPI(1)
-    ssd = SSD1306_SPI(WIDTH, HEIGHT, spi, pdc, prst, pcs)
-else:  # I2C
-    # Pyb   SSD
-    # 3v3   Vin
-    # Gnd   Gnd
-    # Y9    CLK
-    # Y10   DATA
-    HEIGHT = 64
-    pscl = machine.Pin('Y9', machine.Pin.OUT_PP)
-    psda = machine.Pin('Y10', machine.Pin.OUT_PP)
-    i2c = machine.I2C(scl=pscl, sda=psda)
-    ssd = SSD1306_I2C(WIDTH, HEIGHT, i2c)
+def test(use_spi=False):
+    if use_spi:
+        # Pyb   SSD
+        # 3v3   Vin
+        # Gnd   Gnd
+        # X1    DC
+        # X2    CS
+        # X3    Rst
+        # X6    CLK
+        # X8    DATA
+        pdc = machine.Pin('X1', machine.Pin.OUT_PP)
+        pcs = machine.Pin('X2', machine.Pin.OUT_PP)
+        prst = machine.Pin('X3', machine.Pin.OUT_PP)
+    #    spi = machine.SPI('Y')
+        spi = machine.SPI(sck=machine.Pin('X6'), mosi=machine.Pin('X8'), miso=machine.Pin('X7'))
+        ssd = SSD1306_SPI(WIDTH, HEIGHT, spi, pdc, prst, pcs)
+    else:  # I2C
+        # Pyb   SSD
+        # 3v3   Vin
+        # Gnd   Gnd
+        # Y9    CLK
+        # Y10   DATA
+        pscl = machine.Pin('Y9', machine.Pin.OUT_PP)
+        psda = machine.Pin('Y10', machine.Pin.OUT_PP)
+        i2c = machine.I2C(scl=pscl, sda=psda)
+    #    i2c = machine.I2C(2)
+        ssd = SSD1306_I2C(WIDTH, HEIGHT, i2c, 0x3c)
 
-#wri = Writer(ssd, freeserif19)
-wri2 = Writer(ssd, freesans20, verbose=False)
-Writer.set_clip(True, True)
-#Writer.set_textpos(20, 20)
-wri2.printstring('Tuesday\n')
-wri2.printstring('8 Nov 2016\n')
-wri2.printstring('10.30am')
-ssd.show()
+    rhs = WIDTH -1
+    ssd.line(rhs - 20, 0, rhs, 20, 1)
+    square_side = 10
+    ssd.fill_rect(rhs - square_side, 0, square_side, square_side, 1)
+
+    #wri = Writer(ssd, freeserif19)
+    wri2 = Writer(ssd, freesans20, verbose=False)
+    Writer.set_clip(True, True)
+    Writer.set_textpos(0, 0)
+    wri2.printstring('Tuesday\n')
+    wri2.printstring('8 Nov 2016\n')
+    wri2.printstring('10.30am')
+    ssd.show()
+
+print('Test assumes a 128*64 (w*h) display. Edit WIDTH and HEIGHT for others.')
+print('Device pinouts are commented in the code.')
+print('Issue:')
+print('ssd1306_test.test() for an I2C connected device.')
+print('ssd1306_test.test(True) for an SPI connected device.')

@@ -31,16 +31,20 @@ In addition several font files are provided as samples.
 
 # Getting started
 
-Edit ``ssd1306_test.py`` to match your hardware, namely whether it uses SPI or
-I2C and the value of HEIGHT. The file contains details of how to wire the device
-to a Pyboard. It is untested on other platforms, but I'd expect it to be
-portable to any device supporting the official driver. If in doubt, install and
-test this first.
+The file ``ssd1306_test.py`` may need editing to match your hardware notably
+the values of WIDTH and HEIGHT which are set to 128x64 (w*h) pixels. Wiring
+details are included in code comments but may be changed if required as soft
+I2C and SPI interfaces are specified.
+
+Its principal testing was performed on Pyboards but I'd expect it to be
+portable to any device supporting the official driver and the `machine` module.
 
 Copy files 1-3 and ``freesans20.py`` to the target and issue
 
 ```python
 import ssd1306_test
+ssd1306_test.test() # If it uses an I2C connection
+ssd1306_test.test(True) # If it uses SPI
 ```
 
 # Principle of Operation
