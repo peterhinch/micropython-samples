@@ -1,5 +1,5 @@
 # writer.py Implements the Writer class.
-# V0.21 Peter Hinch 21 March 2017: supports updated framebuf module.
+# V0.22 Peter Hinch 3rd Jan 2018: Supports new SSD1306 driver.
 
 # The MIT License (MIT)
 #
@@ -91,7 +91,7 @@ class Writer(object):
                 self._newline()
         buf = bytearray(glyph)
         fbc = framebuf.FrameBuffer(buf, char_width, char_height, self.map)
-        self.device.framebuf.blit(fbc, Writer.text_col, Writer.text_row)
+        self.device.blit(fbc, Writer.text_col, Writer.text_row)
         Writer.text_col += char_width
 
     # Bitwise rendering. Currently this is required for colour displays

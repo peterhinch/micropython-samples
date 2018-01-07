@@ -160,6 +160,13 @@ of numbers following initialisation will always be the same.
 
 See the code for usage and timing documentation.
 
+# micropip
+
+This is a version of upip which runs under Python 3.2 or above. It is intended
+for users of hardware which is not network enabled. It avoids the need for a
+Linux installation, and also avoids the need to compile the Unix build of
+MicroPython. Libraries may be installed to the PC for transfer to the target.
+
 # A design for a hardware power meter
 
 This uses a Pyboard to measure the power consumption of mains powered devices. 

@@ -68,7 +68,7 @@ def test(use_spi=False):
         psda = machine.Pin('Y10', machine.Pin.OUT_PP)
         i2c = machine.I2C(scl=pscl, sda=psda)
     #    i2c = machine.I2C(2)
-        ssd = SSD1306_I2C(WIDTH, HEIGHT, i2c, 0x3c)
+        ssd = SSD1306_I2C(WIDTH, HEIGHT, i2c)
 
     rhs = WIDTH -1
     ssd.line(rhs - 20, 0, rhs, 20, 1)

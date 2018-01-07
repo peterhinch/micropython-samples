@@ -6,6 +6,7 @@ This provides a means of extending the official driver to support this. Suitable
 font files may be created from standard ``ttf`` or ``otf`` files using the utility
 presented [here](https://github.com/peterhinch/micropython-font-to-py.git).
 
+Requires firmware dated 1st Dec 2017 or later.
 
 ![Picture](ssd1306.JPG)
 
