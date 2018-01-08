@@ -85,14 +85,14 @@ def install_tar(f, prefix):
 
         save = True
         for p in ("setup.", "PKG-INFO", "README"):
-                #print(fname, p)
-                if fname.startswith(p) or ".egg-info" in fname:
-                    if fname.endswith("/requires.txt"):
-                        meta["deps"] = f.extractfile(info).read()
-                    save = False
-                    if debug:
-                        print("Skipping", fname)
-                    break
+            #print(fname, p)
+            if fname.startswith(p) or ".egg-info" in fname:
+                if fname.endswith("/requires.txt"):
+                    meta["deps"] = f.extractfile(info).read()
+                save = False
+                if debug:
+                    print("Skipping", fname)
+                break
 
         if save:
             outfname = prefix + fname
@@ -116,14 +116,11 @@ def url_open(url):
     try:
         ai = usocket.getaddrinfo(host, 443)
     except OSError as e:
-        fatal("Unable to resolve %s (no Internet?)" % host, e)
-#    print("Address infos:", ai)
+        print("Unable to resolve %s (no Internet?)" % host)
+        raise
     addr = ai[0][4]
-
     s = usocket.socket(ai[0][0])
     try:
-#        print("Connect address:", addr)
-
         if proto == "https:":
             s = ussl.wrap_socket(s)
             if warn_ussl:
@@ -159,10 +156,8 @@ def get_pkg_metadata(name):
     finally:
         f.close()
 
-def fatal(msg, exc=None):
+def fatal(msg):
     print("Error:", msg)
-    if exc and debug:
-        raise exc
     sys.exit(1)
 
 def install_pkg(pkg_spec, install_path):
@@ -173,7 +168,6 @@ def install_pkg(pkg_spec, install_path):
     assert len(packages) == 1
     package_url = packages[0]["url"]
     print("Installing %s %s from %s" % (pkg_spec, latest_ver, package_url))
-    package_fname = os.path.basename(package_url)
     f1 = url_open(package_url)
     s = read_lines(f1)
     try:
@@ -213,10 +207,9 @@ def install(to_install):
                 to_install.extend(deps)
     except Exception as e:
         print("Error installing '{}': {}, packages may be partially installed".format(
-                pkg_spec, e),
-            file=sys.stderr)
+            pkg_spec, e), file=sys.stderr)
 
-def help():
+def help_msg():
     print("""\
 micropip - Simple PyPI package manager for MicroPython
 Runs on a PC under Python 3.2 or above, and installs to a PC directory for
@@ -237,7 +230,7 @@ def main():
     global g_install_path
 
     if len(sys.argv) < 2 or sys.argv[1] == "-h" or sys.argv[1] == "--help":
-        help()
+        help_msg()
         return
 
     if sys.argv[1] != "install":
@@ -250,7 +243,7 @@ def main():
         opt = sys.argv[i]
         i += 1
         if opt == "-h" or opt == "--help":
-            help()
+            help_msg()
             return
         elif opt == "-p":
             g_install_path = sys.argv[i]
@@ -273,12 +266,11 @@ def main():
 
     to_install.extend(sys.argv[i:])
     if not to_install:
-        help()
+        help_msg()
         return
 
     g_install_path = os.path.expanduser(g_install_path)
     g_install_path = os.path.abspath(g_install_path)
-    print('g_install_path', g_install_path)
     install(to_install)
 
 
