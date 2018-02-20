@@ -1,9 +1,8 @@
-# Portable driver for DS3231 precison real time clock.
+# ds3231_port.py Portable driver for DS3231 precison real time clock.
 # Adapted from WiPy driver at https://github.com/scudderfish/uDS3231
-# Includes routine to calibrate the Pyboard's RTC from the DS3231
-# delta method now operates to 1mS precision
-# precison of calibration further improved by timing Pyboard RTC transition
-# Adapted by Peter Hinch, Feb 2017
+
+# Author: Peter Hinch
+# Copyright Peter Hinch 2018 Released under the MIT license.
 
 import utime
 import machine
