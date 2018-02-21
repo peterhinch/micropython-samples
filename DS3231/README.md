@@ -17,7 +17,7 @@ Both divers use edge detection to achieve millisecond-level precision from the
 DS3231. This enables relatively rapid accuracy testing of the platform's RTC,
 and fast calibration of the Pyboard's RTC.
 
-###### [Main README](./README.md)
+###### [Main README](../README.md)
 
 # 1. The multi-platform driver
 

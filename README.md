@@ -88,9 +88,21 @@ See the code for usage and timing documentation.
 # micropip
 
 This is a version of upip which runs under Python 3.2 or above. It is intended
-for users of hardware which is not network enabled. It avoids the need for a
-Linux installation, and also avoids the need to compile the Unix build of
-MicroPython. Libraries may be installed to the PC for transfer to the target.
+for users of hardware which is not network enabled. Libraries may be installed
+to the PC for transfer to the target. Usage is the same as for the official
+`upip.py` and help may be accessed with
+
+```
+micropip.py --help
+```
+or
+
+```
+python3 -m micropip --help
+```
+
+Its advantage over running `upip.py` on a PC is that it avoids the need for a
+Linux installation and having to compile the Unix build of MicroPython.
 
 # A design for a hardware power meter
 

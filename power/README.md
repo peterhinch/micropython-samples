@@ -9,6 +9,8 @@ of sourcing power into the grid. It supports full scale ranges of 30W to 3KW.
 
 [Images of device](./images/IMAGES.md)
 
+###### [Main README](../README.md)
+
 ## Warning
 
 This project includes mains voltage wiring. Please don't attempt it unless you

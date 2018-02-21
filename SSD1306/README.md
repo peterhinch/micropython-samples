@@ -17,7 +17,7 @@ PR requiring this to be changed is unlikely to find favour.
 
 ![Picture](ssd1306.JPG)
 
-###### [Main README](./README.md)
+###### [Main README](../README.md)
 
 ## Release notes
 

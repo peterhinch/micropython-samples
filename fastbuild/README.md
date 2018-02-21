@@ -20,7 +20,7 @@ and `pyb_check` to determine the type of attached board. These use the
 `pyboard.py` module in the source tree to execute scripts on the attached
 board.
 
-###### [Main README](./README.md)
+###### [Main README](../README.md)
 
 ### Optional Edits
 
