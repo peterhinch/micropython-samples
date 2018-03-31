@@ -107,7 +107,7 @@ Linux installation and having to compile the Unix build of MicroPython.
 # Measurement of relative timing and phase of fast analog signals
 
 This describes ways of using the Pyboard to perform precision measurements of
-analog signals of up to around 36KHz.
+analog signals of up to around 36KHz. It is documented [here](./phase/README.md).
 
 # A design for a hardware power meter
 
