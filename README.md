@@ -52,13 +52,13 @@ subscribed to the same topic. Measures the round-trip delay. Adapt to suit your
 server address and desired QOS (quality of service, 0 and 1 are supported).
 After 100 messages reports maximum and minimum delays.
 
-conn.py Connect in station mode using saved connection details where possible.
+`conn.py` Connect in station mode using saved connection details where possible.
 
 # Rotary Incremental Encoder
 
 Classes for handling incremental rotary position encoders. Note that the Pyboard
 timers can do this in hardware. These samples cater for cases where that
-solution can't be used. The encoder_timed.py sample provides rate information by
+solution can't be used. The `encoder_timed.py` sample provides rate information by
 timing successive edges. In practice this is likely to need filtering to reduce
 jitter caused by imperfections in the encoder geometry.
 
@@ -103,6 +103,11 @@ python3 -m micropip --help
 
 Its advantage over running `upip.py` on a PC is that it avoids the need for a
 Linux installation and having to compile the Unix build of MicroPython.
+
+# Measurement of relative timing and phase of fast analog signals
+
+This describes ways of using the Pyboard to perform precision measurements of
+analog signals of up to around 36KHz.
 
 # A design for a hardware power meter
 
