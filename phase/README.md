@@ -1,14 +1,10 @@
 # Measurement of relative timing and phase of fast analog signals
 
-With the current MicroPython firmware for the Pyboard it is difficult to
-measure the relative timing of multiple analog signals. There is a
-[PR](https://github.com/micropython/micropython/pull/3673) awaiting review
-which provides a solution. This may be downloaded and the firmware built.
-
-Alternatively copy `adc.py` from this repo to `ports/stm32/adc.c` and rebuild.
-
-This provides the static method `ADC.read_timed_multi` which is necessary to
-apply the techniques described below.
+As of 11th April 2018 the Pyboard firmware has been enhanced to enable multiple
+ADC channels to be read in a similar way to the existing `read_timed` method.
+At each timer tick a reading is taken from each ADC in very quick succession.
+This enables the relative timing or phase of relatively fast signals to be
+measured.
 
 The ability to perform such measurements substantially increases the potential
 application areas of the Pyboard, supporting precision measurements of signals
@@ -52,6 +48,8 @@ running at the desired sampling frequency.
 Example reading 3 ADC's:
 
 ```python
+    import pyb
+    import array
     adc0 = pyb.ADC(pyb.Pin.board.X1)    # Create ADC's
     adc1 = pyb.ADC(pyb.Pin.board.X2)
     adc2 = pyb.ADC(pyb.Pin.board.X3)
@@ -75,15 +73,14 @@ precision in the sample interval. In extreme cases samples may be missed.
 
 The maximum rate depends on factors including the data width and the number of
 ADC's being read. In testing two ADC's were sampled at 12 bit precision and at
-a timer rate of 140KHz without overrun. Samples were missed at 180KHz. At high
-sample rates disabling interrupts for the duration can reduce the risk of
-sporadic data loss.
+a timer rate of 210KHz without overrun. At high sample rates disabling
+interrupts for the duration can reduce the risk of sporadic data loss.
 
 # 2 Applications
 
 ## 2.1 Measurements of relative timing
 
-In practice `ADC.read_timed_multi` reads each ADC in turn This implies a delay
+In practice `ADC.read_timed_multi` reads each ADC in turn. This implies a delay
 between each reading. This was measured at 3.236μs on a Pyboard V1.1 and can be
 used to compensate any measurements taken.
 
