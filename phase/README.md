@@ -23,15 +23,15 @@ ultrasonic active sonar capable of providing directional and distance
 information for multiple targets.
 
 I have used it to build an electrical network analyser which yields accurate
-gain and phase (+-5°) plots of signals up to 40KHz.
+gain and phase (+-3°) plots of signals up to 40KHz.
 
 # 2 Applications
 
 ## 2.1 Measurements of relative timing
 
 In practice `ADC.read_timed_multi` reads each ADC in turn. This implies a delay
-between each reading. This was measured at 3.24μs on a Pyboard V1.1. The
-measured value can be used to compensate any readings taken.
+between each reading. This was estimated at 1.8μs on a Pyboard V1.1. This value
+can be used to compensate any readings taken.
 
 ## 2.2 Phase measurements
 
@@ -88,7 +88,7 @@ of unit magnitude and phase -θ:
 
 α = λ(cos θ - jsin θ)
 
-For small angles this approximates to
+For small angles (i.e. at lower frequencies) this approximates to
 
 α ~= λ(1 - jθ)
 
@@ -148,8 +148,8 @@ def demod(freq, nsamples):
     sum_norm /= (buflen * 0.5)  # Factor of 0.5 from the trig formula
     sum_quad /= (buflen * 0.5)
     c = sum_norm + 1j * sum_quad  # Create the complex phasor
-    # Apply phase compensation measured at 3.236μs
-    theta = 2 * pi * freq * 3.236e-6
+    # Apply phase compensation measured at 1.8μs
+    theta = 2 * pi * freq * 1.8e-6
     c *= cos(theta) - 1j * sin(theta)
     return cmath.phase(c)
 ```
