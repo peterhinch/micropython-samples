@@ -1,92 +1,41 @@
-# Measurement of relative timing and phase of fast analog signals
+# 1. Introduction
+
+The principal purpose of this application note is to describe a technique for
+measuring the relative phase of a pair of sinsusoidal signals over the full
+range of 2π radians (360°). This is known as quadrature detection; while
+ancient history to radio engineers the method may be unfamiliar to those from
+a programming background.
+
+## 1.1 Measurement of relative timing and phase of analog signals
 
 As of 11th April 2018 the Pyboard firmware has been enhanced to enable multiple
-ADC channels to be read in a similar way to the existing `read_timed` method.
-At each timer tick a reading is taken from each ADC in very quick succession.
-This enables the relative timing or phase of relatively fast signals to be
-measured.
+ADC channels to be read in response to a timer tick. At each tick a reading is
+taken from each ADC in quick succession. This enables the relative timing or
+phase of signals to be measured. This is facilitated by the static method
+`ADC.read_timed_multi` which is documented
+[here](http://docs.micropython.org/en/latest/pyboard/library/pyb.ADC.html).
 
 The ability to perform such measurements substantially increases the potential
 application areas of the Pyboard, supporting precision measurements of signals
-into the ultrasonic range. Applications such as ultrasonic rangefinders come to
-mind. With two or more microphones it may be feasible to produce an ultrasonic
-active sonar capable of providing directional and distance information for
-multiple targets.
+into the ultrasonic range. Applications such as ultrasonic rangefinders may be
+practicable. With two or more microphones it may be feasible to produce an
+ultrasonic active sonar capable of providing directional and distance
+information for multiple targets.
 
 I have used it to build an electrical network analyser which yields accurate
-gain and phase plots of signals up to 36KHz.
-
-# 1. Staticmethod ADC.read_timed_multi
-
-The following is based on the documentation changes in the above PR.
-
-Call pattern:  
-```python
-from pyb import ADC
-ok = ADC.read_timed_multi((adcx, adcy, ...), (bufx, bufy, ...), timer)
-```
-
-This is a static method. It can be used to extract relative timing or phase
-data from multiple ADC's.
-
-It reads analog values from multiple ADCs into buffers at a rate set by the
-`timer` object. Each time the timer triggers a sample is rapidly read from each
-ADC in turn.
-
-ADC and buffer instances are passed in tuples with each ADC having an
-associated buffer. All buffers must be of the same type and length and the
-number of buffers must equal the number of ADC's.
-
-Buffers must be `bytearray` or `array.array` instances. The ADC values have
-12-bit resolution and are stored directly into the buffer if its element size
-is 16 bits or greater.  If buffers have only 8-bit elements (i.e. a bytearray)
-then the sample resolution will be reduced to 8 bits.
-
-`timer` must be a Timer object. The timer must already be initialised and
-running at the desired sampling frequency.
-
-Example reading 3 ADC's:
-
-```python
-    import pyb
-    import array
-    adc0 = pyb.ADC(pyb.Pin.board.X1)    # Create ADC's
-    adc1 = pyb.ADC(pyb.Pin.board.X2)
-    adc2 = pyb.ADC(pyb.Pin.board.X3)
-    tim = pyb.Timer(8, freq=100)        # Create timer
-    rx0 = array.array('H', (0 for i in range(100)))  # ADC buffers of
-    rx1 = array.array('H', (0 for i in range(100)))  # 100 16-bit words
-    rx2 = array.array('H', (0 for i in range(100)))
-        # read analog values into buffers at 100Hz (takes one second)
-    pyb.ADC.read_timed_multi((adc0, adc1, adc2), (rx0, rx1, rx2), tim)
-    for n in range(len(rx0)):
-        print(rx0[n], rx1[n], rx2[n])
-```
-
-This function does not allocate any memory. It has blocking behaviour: it does
-not return to the calling program until the buffers are full.
-
-The function returns `True` if all samples were acquired with correct timing.
-At high sample rates the time taken to acquire a set of samples can exceed the
-timer period. In this case the function returns `False`, indicating a loss of
-precision in the sample interval. In extreme cases samples may be missed.
-
-The maximum rate depends on factors including the data width and the number of
-ADC's being read. In testing two ADC's were sampled at 12 bit precision and at
-a timer rate of 210KHz without overrun. At high sample rates disabling
-interrupts for the duration can reduce the risk of sporadic data loss.
+gain and phase (+-5°) plots of signals up to 40KHz.
 
 # 2 Applications
 
 ## 2.1 Measurements of relative timing
 
 In practice `ADC.read_timed_multi` reads each ADC in turn. This implies a delay
-between each reading. This was measured at 3.236μs on a Pyboard V1.1 and can be
-used to compensate any measurements taken.
+between each reading. This was measured at 3.24μs on a Pyboard V1.1. The
+measured value can be used to compensate any readings taken.
 
 ## 2.2 Phase measurements
 
-### 2.2.1 The phase sensitive detector
+### 2.2.1 The quadrature detector
 
 The principle of a phase sensitive detector (applicable to linear and sampled
 data systems) is based on multiplying the two signals and low pass filtering
@@ -107,12 +56,12 @@ phase of the two signals. The second is an AC component at twice the incoming
 frequency. So if the product signal is passed through a low pass filter the
 right hand term disappears leaving only 0.5cos(-ϕ).
 
-Where the frequency is known ideal filtering may be achieved simply, by
-averaging over an integer number of cycles.
+Where the frequency is known the filtering may be achieved simply by averaging
+over an integer number of cycles.
 
 For the above to produce accurate phase measurements the amplitudes of the two
-signals must be normalised to 1. Alternatively the amplitudes should be
-measured and the resultant DC value divided by their product.
+signals must be normalised to 1. Alternatively the amplitudes may be measured
+and the DC phase value divided by their product.
 
 Because cos ϕ = cos -ϕ this can only detect phase angles over a range of π
 radians. To achieve detection over the full 2π range a second product detector
@@ -150,11 +99,12 @@ accurately measure the phase difference between an outgoing sinewave produced
 by `DAC.write_timed` and an incoming response signal. For application reasons
 `DAC.write_timed` runs continuously. Its output feeds one ADC and the incoming
 signal feeds another. The ADC's are fed from matched hardware anti-aliasing
-filters.
+filters; the matched characteristic ensures that any phase shift in the filters
+cancels out.
 
 Because the frequency is known the ADC sampling rate is chosen so that an
-integer number of cycles are captured. This enables simple averaging to be used
-to remove the double frequency component.
+integer number of cycles are captured. Thus averaging is used to remove the
+double frequency component.
 
 The function `demod()` returns the phase difference in radians. The sample
 arrays are globals `bufout` and `bufin`. The `freq` arg is the frequency and is
@@ -199,6 +149,7 @@ def demod(freq, nsamples):
     sum_quad /= (buflen * 0.5)
     c = sum_norm + 1j * sum_quad  # Create the complex phasor
     # Apply phase compensation measured at 3.236μs
-    c *= 1 - 2j * pi * freq * 3.236e-6  # very close approximation
+    theta = 2 * pi * freq * 3.236e-6
+    c *= cos(theta) - 1j * sin(theta)
     return cmath.phase(c)
 ```

@@ -69,7 +69,7 @@ pull definition to provide a pull up or pull down as required.
 
 The `encoder.portable.py` version should work on all MicroPython platforms.
 Tested on ESP8266. Note that interrupt latency on the ESP8266 limits
-performance. ESP32 is similar.
+performance. ESP32 has similar limitations.
 
 # A pseudo random number generator
 
@@ -107,7 +107,7 @@ Linux installation and having to compile the Unix build of MicroPython.
 # Measurement of relative timing and phase of fast analog signals
 
 This describes ways of using the Pyboard to perform precision measurements of
-analog signals of up to around 36KHz. It is documented [here](./phase/README.md).
+analog signals of up to around 50KHz. It is documented [here](./phase/README.md).
 
 # A design for a hardware power meter
 
