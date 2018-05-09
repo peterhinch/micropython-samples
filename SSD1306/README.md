@@ -6,7 +6,7 @@ This provides a means of extending the official driver to support this. Suitable
 font files may be created from standard `ttf` or `otf` files using the utility
 presented [here](https://github.com/peterhinch/micropython-font-to-py.git).
 
-Requires firmware dated 1st Dec 2017 or later.
+Requires firmware dated Jan 2018 or later.
 
 A few users have pointed out limitations in the `Writer` class. While it works
 it is a rather minimal "proof of concept" for the font creator. PR's offering
