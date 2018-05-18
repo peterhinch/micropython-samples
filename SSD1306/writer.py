@@ -74,8 +74,8 @@ class Writer(object):
             self._printchar(char)
 
     # Method using blitting. Efficient rendering for monochrome displays.
-    # Tested on SSD1306.
-    def _printchar(self, char):
+    # Tested on SSD1306. Invert is for black-on-white rendering.
+    def _printchar(self, char, invert=False):
         if char == '\n':
             self._newline()
             return
@@ -90,6 +90,9 @@ class Writer(object):
             else:
                 self._newline()
         buf = bytearray(glyph)
+        if invert:
+            for i, v in enumerate(buf):
+                buf[i] = 0xFF & ~ v
         fbc = framebuf.FrameBuffer(buf, char_width, char_height, self.map)
         self.device.blit(fbc, Writer.text_col, Writer.text_row)
         Writer.text_col += char_width
