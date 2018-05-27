@@ -40,7 +40,7 @@ then
     if make -j 8 BOARD=$BOARD FROZEN_MPY_DIR=$FROZEN_DIR && pyb_boot $MPDEVICE
     then
         sleep 1
-        make BOARD=$BOARD deploy
+        make BOARD=$BOARD FROZEN_MPY_DIR=$FROZEN_DIR deploy
         cd -
         sleep 1
         rshell
