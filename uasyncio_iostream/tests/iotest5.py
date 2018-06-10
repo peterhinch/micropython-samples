@@ -1,5 +1,13 @@
-# iotest2.py Test PR #3836. User class write() performs buffered writing.
-# Reading is unbuffered.
+# iotest5.py Test PR #3836.
+# User class write() performs unbuffered writing.
+# Read is also unbuffered.
+
+# This test was to demonstrate the original issue.
+# With modified moduselect.c and uasyncio.__init__.py the test now passes.
+
+# iotest4.test() uses separate read and write objects.
+# iotest4.test(False) uses a common object (failed without the mod).
+
 
 import io, pyb
 import uasyncio as asyncio
@@ -14,17 +22,17 @@ MP_STREAM_ERROR = const(-1)
 def printbuf(this_io):
     for ch in this_io.wbuf[:this_io.wprint_len]:
         print(chr(ch), end='')
-    this_io.wbuf = b''
 
 class MyIO(io.IOBase):
-    def __init__(self):
-        self.ready_rd = False
-        self.ready_wr = False
-        self.wbuf = b''
-        self.wprint_len = 0
-        self.ridx = 0
+    def __init__(self, read=False, write=False):
+        self.ready_rd = False  # Read and write not ready
         self.rbuf = b'ready\n'  # Read buffer
-        pyb.Timer(4, freq = 1, callback = self.do_input)
+        self.ridx = 0
+        pyb.Timer(4, freq = 5, callback = self.do_input)
+        self.wch = b''
+        self.wbuf = bytearray(100)  # Write buffer
+        self.wprint_len = 0
+        self.widx = 0
         pyb.Timer(5, freq = 10, callback = self.do_output)
 
     # Read callback: emulate asynchronous input from hardware.
@@ -35,13 +43,17 @@ class MyIO(io.IOBase):
     # Write timer callback. Emulate hardware: if there's data in the buffer
     # write some or all of it
     def do_output(self, t):
-        if self.wbuf:
-            self.wprint_len = self.wbuf.find(b'\n') + 1
-            micropython.schedule(printbuf, self)
+        if self.wch:
+            self.wbuf[self.widx] = self.wch
+            self.widx += 1
+            if self.wch == ord('\n'):
+                self.wprint_len = self.widx  # Save for schedule
+                micropython.schedule(printbuf, self)
+                self.widx = 0
+        self.wch = b''
 
 
     def ioctl(self, req, arg):  # see ports/stm32/uart.c
-#        print('ioctl', req, arg)
         ret = MP_STREAM_ERROR
         if req == MP_STREAM_POLL:
             ret = 0
@@ -55,7 +67,7 @@ class MyIO(io.IOBase):
 
     # Test of device that produces one character at a time
     def readline(self):
-        self.ready_rd = False
+        self.ready_rd = False  # Cleared by timer cb do_input
         ch = self.rbuf[self.ridx]
         if ch == ord('\n'):
             self.ridx = 0
@@ -63,20 +75,21 @@ class MyIO(io.IOBase):
             self.ridx += 1
         return chr(ch)
 
+    # Emulate unbuffered hardware which writes one character: uasyncio waits
+    # until hardware is ready for the next. Hardware ready is emulated by write
+    # timer callback.
     def write(self, buf, off, sz):
-        self.wbuf = buf[:]
-        return sz  # No. of bytes written. uasyncio waits on ioctl write ready
+        self.wch = buf[off]  # Hardware starts to write a char
+        return 1  # 1 byte written. uasyncio waits on ioctl write ready
 
-myio = MyIO()
-
-async def receiver():
-    sreader = asyncio.StreamReader(myio)
+async def receiver(myior):
+    sreader = asyncio.StreamReader(myior)
     while True:
         res = await sreader.readline()
         print('Received', res)
 
-async def sender():
-    swriter = asyncio.StreamWriter(myio, {})
+async def sender(myiow):
+    swriter = asyncio.StreamWriter(myiow, {})
     await asyncio.sleep(5)
     count = 0
     while True:
@@ -85,8 +98,9 @@ async def sender():
         await swriter.awrite(tosend.encode('UTF8'))
         await asyncio.sleep(2)
 
+myior = MyIO()
+myiow = myior
 loop = asyncio.get_event_loop()
-loop.create_task(receiver())
-loop.create_task(sender())
+loop.create_task(receiver(myior))
+loop.create_task(sender(myiow))
 loop.run_forever()
-

@@ -1,5 +1,5 @@
-# iomiss.py Test for missed reads. The bug was fixed by disabling interrupts in
-# ioctl().
+# iotest.py Test PR #3836 timing using GPIO pins.
+
 import io, pyb
 import uasyncio as asyncio
 import micropython
@@ -8,6 +8,8 @@ micropython.alloc_emergency_exception_buf(100)
 MP_STREAM_POLL = const(3)
 MP_STREAM_POLL_RD = const(1)
 
+y1 = pyb.Pin('Y1', pyb.Pin.OUT)
+
 class MyIO(io.IOBase):
     def __init__(self):
         self.ready = False
@@ -15,7 +17,7 @@ class MyIO(io.IOBase):
         tim = pyb.Timer(4)
         tim.init(freq=1)
         tim.callback(self.setready)
-
+        
     def ioctl(self, req, arg):
         if req == MP_STREAM_POLL and (arg & MP_STREAM_POLL_RD):
             state = pyb.disable_irq()
@@ -26,13 +28,24 @@ class MyIO(io.IOBase):
         return 0
 
     def readline(self):
+        y1.value(0)
         return '{}\n'.format(self.count)
 
     def setready(self, t):
         self.count += 1
+        y1.value(1)
         self.ready = True
 
 myio = MyIO()
+
+async def foo(p):
+    print('start foo', p)
+    pin = pyb.Pin(p, pyb.Pin.OUT)
+    while True:
+        pin.value(1)
+        await asyncio.sleep(0)
+        pin.value(0)
+        await asyncio.sleep(0)
 
 async def receiver():
     last = None
@@ -50,5 +63,7 @@ async def receiver():
 
 loop = asyncio.get_event_loop()
 loop.create_task(receiver())
+loop.create_task(foo('Y2'))
+loop.create_task(foo('Y3'))
 loop.run_forever()
 
