@@ -51,8 +51,7 @@ class MyIOR(io.IOBase):
 # a ready status. For the demo it stores the characters in .wbuf for printing.
 
 def printbuf(this_io):
-    for x in range(this_io.wprint_len):
-        print(chr(this_io.wbuf[x]), end = '')
+    print(bytes(this_io.wbuf[:this_io.wprint_len]).decode(), end='')
 
 class MyIOW(io.IOBase):
     def __init__(self):

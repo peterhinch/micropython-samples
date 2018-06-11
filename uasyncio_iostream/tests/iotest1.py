@@ -11,8 +11,7 @@ MP_STREAM_POLL = const(3)
 MP_STREAM_ERROR = const(-1)
 
 def printbuf(this_io):
-    for ch in this_io.wbuf[:this_io.wprint_len]:
-        print(chr(ch), end='')
+    print(bytes(this_io.wbuf[:this_io.wprint_len]).decode(), end='')
 
 class MyIO(io.IOBase):
     def __init__(self):
