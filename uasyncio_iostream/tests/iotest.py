@@ -15,7 +15,7 @@ class MyIO(io.IOBase):
         self.ready = False
         self.count = 0
         tim = pyb.Timer(4)
-        tim.init(freq=1)
+        tim.init(freq=1)  # 1Hz - 1 simulated input line per sec.
         tim.callback(self.setready)
         
     def ioctl(self, req, arg):
@@ -27,18 +27,18 @@ class MyIO(io.IOBase):
             return r
         return 0
 
-    def readline(self):
+    def readline(self):  # Y1 goes low when I/O is serviced
         y1.value(0)
         return '{}\n'.format(self.count)
 
-    def setready(self, t):
+    def setready(self, t):  # Y1 goes high when I/O becomes ready
         self.count += 1
         y1.value(1)
         self.ready = True
 
 myio = MyIO()
 
-async def foo(p):
+async def foo(p):  # Toggle a pin when scheduled
     print('start foo', p)
     pin = pyb.Pin(p, pyb.Pin.OUT)
     while True:
