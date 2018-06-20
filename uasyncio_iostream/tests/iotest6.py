@@ -1,4 +1,5 @@
 # iotest6.py Test fast_io PR
+# https://github.com/micropython/micropython-lib/pull/287
 
 # Test is designed to quantify the difference between fast and normal I/O without
 # recourse to electronic testgear.
