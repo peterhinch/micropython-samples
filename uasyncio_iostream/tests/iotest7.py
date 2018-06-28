@@ -1,19 +1,12 @@
-# iotest6.py Test fast_io PR
+# iotest7.py Test fast_io PR
 # https://github.com/micropython/micropython-lib/pull/287
 
-# Test is designed to quantify the difference between fast and normal I/O without
-# recourse to electronic testgear.
+# Test the case where runq is empty
 
 # The MyIO class supports .readline() which updates a call counter and clears the
 # .ready_rd flag. This is set by a timer (emulating the arrival of data from
 # some hardware device).
-# The .dummy method emulates a relatively slow user coro which yields with a zero
-# delay; the test runs 10 instances of this. Each instance updates a common call
-# counter.
-# The receiver coro awaits .readline continuously. With normal scheduling each is
-# scheduled after the ten .dummy instances have run. With fast scheduling and a
-# timer period <= 10ms readline and dummy alternate. If timer period is increased
-# readline is sheduled progressively less frequently.
+
 
 import io
 import pyb
@@ -54,9 +47,8 @@ class MyIO(io.IOBase):
 
     async def dummy(self):
         while True:
-            await asyncio.sleep(0)
+            await asyncio.sleep_ms(50)
             self.dummy_count += 1
-            utime.sleep_ms(10)  # Emulate time consuming user code
 
     async def killer(self):
         print('Test runs for 5s')
@@ -72,11 +64,9 @@ def test(fast_io=False):
     loop = asyncio.get_event_loop(ioq_len = 6 if fast_io else 0)
     myior = MyIO()
     loop.create_task(receiver(myior))
-    for _ in range(10):
-        loop.create_task(myior.dummy())
+    loop.create_task(myior.dummy())
     loop.run_until_complete(myior.killer())
 
-print('Test case of I/O competing with zero delay tasks.')
-print('fast_io False: approx I/O count 25, dummy count 510.')
-print('fast_io True: approx I/O count 510, dummy count 510.')
+print('Test case of empty runq: the fast_io option has no effect.')
+print('I/O and dummy run at expected rates (around 500 and 99 counts respectively.')
 print('Run test() to check normal I/O, test(True) for fast I/O')
