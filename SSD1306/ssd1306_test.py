@@ -64,8 +64,8 @@ def test(use_spi=False):
         # Gnd   Gnd
         # Y9    CLK
         # Y10   DATA
-        pscl = machine.Pin('Y9', machine.Pin.OUT_PP)
-        psda = machine.Pin('Y10', machine.Pin.OUT_PP)
+        pscl = machine.Pin('Y9', machine.Pin.OPEN_DRAIN)
+        psda = machine.Pin('Y10', machine.Pin.OPEN_DRAIN)
         i2c = machine.I2C(scl=pscl, sda=psda)
     #    i2c = machine.I2C(2)
         ssd = SSD1306_I2C(WIDTH, HEIGHT, i2c)
