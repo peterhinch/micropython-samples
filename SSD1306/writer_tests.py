@@ -44,8 +44,9 @@ def inverse(use_spi=False, soft=True):
     square_side = 10
     ssd.fill_rect(rhs - square_side, 0, square_side, square_side, 1)
 
-    CWriter.set_textpos(0, 0)  # In case previous tests have altered it
-    wri = CWriter(ssd, freesans20, verbose=False)
+    Writer.set_textpos(0, 0)  # In case previous tests have altered it
+    Writer.set_clip(False, False, False)  # Char wrap
+    wri = Writer(ssd, freesans20, verbose=False)
     wri.printstring('Sunday\n')
     wri.printstring('12 Aug 2018\n')
     wri.printstring('10.30am', True)  # Inverse text
@@ -59,6 +60,7 @@ def scroll(use_spi=False, soft=True):
     ssd.fill_rect(rhs - square_side, 0, square_side, square_side, 1)
 
     Writer.set_textpos(0, 0)  # In case previous tests have altered it
+    Writer.set_clip(False, False, False)  # Char wrap
     wri = Writer(ssd, freesans20, verbose=False)
     wri.printstring('Sunday\n')
     wri.printstring('12 Aug 2018\n')
@@ -77,6 +79,7 @@ def usd_scroll(use_spi=False, soft=True):
     # Only CWriter can do usd
     CWriter.invert_display()
     CWriter.set_textpos(HEIGHT - 1, WIDTH - 1)
+    CWriter.set_clip(False, False, False)  # Char wrap
     wri = CWriter(ssd, freesans20, verbose=False)
 
     wri.printstring('Sunday\n')
@@ -97,6 +100,7 @@ def usd(use_spi=False, soft=True):
     # Only CWriter can do usd
     CWriter.invert_display()
     CWriter.set_textpos(HEIGHT - 1, WIDTH - 1)
+    CWriter.set_clip(False, False, False)  # Char wrap
     wri = CWriter(ssd, freesans20, verbose=False)
     wri.printstring('Sunday\n')
     wri.printstring('12 Aug 2018\n')
@@ -107,27 +111,29 @@ def usd(use_spi=False, soft=True):
 def rjust(use_spi=False, soft=True):
     ssd = setup(use_spi, soft)  # Create a display instance
     Writer.set_textpos(0, 0)  # Previous tests may have altered it
+    Writer.set_clip(False, False, False)  # Char wrap
     wri = Writer(ssd, freesans20, verbose=False)
 
     my_str = 'Sunday\n'
     l = wri.stringlen(my_str)
-    CWriter.set_textpos(col = WIDTH - l)
+    Writer.set_textpos(col = WIDTH - l)
     wri.printstring(my_str)
 
     my_str = '12 Aug 2018\n'
     l = wri.stringlen(my_str)
-    CWriter.set_textpos(col = WIDTH - l)
+    Writer.set_textpos(col = WIDTH - l)
     wri.printstring(my_str)
 
     my_str = '10.30am'
     l = wri.stringlen(my_str)
-    CWriter.set_textpos(col = WIDTH - l)
+    Writer.set_textpos(col = WIDTH - l)
     wri.printstring(my_str)
     ssd.show()
 
 def fonts(use_spi=False, soft=True):
     ssd = setup(use_spi, soft)  # Create a display instance
     Writer.set_textpos(0, 0)  # In case previous tests have altered it
+    Writer.set_clip(False, False, False)  # Char wrap
     wri = Writer(ssd, freesans20, verbose=False)
     wri_f = Writer(ssd, fixed, verbose=False)
     wri_f.printstring('Sunday\n')
@@ -135,17 +141,51 @@ def fonts(use_spi=False, soft=True):
     wri.printstring('10.30am')
     ssd.show()
 
+def tabs(use_spi=False, soft=True):
+    ssd = setup(use_spi, soft)  # Create a display instance
+    CWriter.set_textpos(0, 0)  # In case previous tests have altered it
+    CWriter.set_clip(False, False, False)  # Char wrap
+    wri = CWriter(ssd, fixed, verbose=False)
+    wri.printstring('1\t2\n')
+    wri.printstring('111\t22\n')
+    wri.printstring('1111\t1')
+    ssd.show()
+
+def usd_tabs(use_spi=False, soft=True):
+    ssd = setup(use_spi, soft)  # Create a display instance
+    CWriter.invert_display()
+    CWriter.set_textpos(HEIGHT - 1, WIDTH - 1)
+    CWriter.set_clip(False, False, False)  # Char wrap
+    wri = CWriter(ssd, fixed, verbose=False)
+    wri.printstring('1\t2\n')
+    wri.printstring('111\t22\n')
+    wri.printstring('1111\t1')
+    ssd.show()
+    CWriter.invert_display(False)  # For subsequent tests
+
+def wrap(use_spi=False, soft=True):
+    ssd = setup(use_spi, soft)  # Create a display instance
+    CWriter.set_textpos(0, 0)  # In case previous tests have altered it
+    CWriter.set_clip(False, False, True)  # Word wrap
+    wri = CWriter(ssd, freesans20, verbose=False)
+    wri.printstring('the quick brown fox jumps over')
+    ssd.show()
+
 tstr = '''Test assumes a 128*64 (w*h) display. Edit WIDTH and HEIGHT in ssd1306_setup.py for others.
 Device pinouts are comments in ssd1306_setup.py.
 All tests take two boolean args:
 use_spi = False. Set True for SPI connected device
 soft=True set False to use hardware I2C/SPI. Hardware option currently fails with official SSD1306 driver.
+
 Available tests:
 inverse() Show black on white text.
 scroll() Illustrate scrolling
 usd() Upside-down display.
 usd_scroll() Upside-down scroll test.
 rjust() Right justification.
-fonts() Two fonts.'''
+fonts() Two fonts.
+tabs() Tab stops.
+usd_tabs() Upside-down tabs.
+wrap() Word wrapping'''
 
 print(tstr)

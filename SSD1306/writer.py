@@ -37,6 +37,7 @@ class Writer():
     text_col = 0
     row_clip = False  # Clip or scroll when screen full
     col_clip = False  # Clip or new line when row is full
+    wrap = True  # Word wrap
 
     @classmethod
     def set_textpos(cls, row=None, col=None):
@@ -47,12 +48,14 @@ class Writer():
         return  Writer.text_row,  Writer.text_col
 
     @classmethod
-    def set_clip(cls, row_clip=None, col_clip=None):
+    def set_clip(cls, row_clip=None, col_clip=None, wrap=None):
         if row_clip is not None:
             Writer.row_clip = row_clip
         if col_clip is not None:
             Writer.col_clip = col_clip
-        return Writer.row_clip, Writer.col_clip
+        if wrap is not None:
+            Writer.wrap = wrap
+        return Writer.row_clip, Writer.col_clip, Writer.wrap
 
     def __init__(self, device, font, verbose=True):
         self.device = device
@@ -100,8 +103,23 @@ class Writer():
 
     def printstring(self, string, invert=False):
         #print('Writer.text_row = ', Writer.text_row)
+        # word wrapping. Assumes words separated by single space.
+        rstr = None
+        if Writer.wrap and self.stringlen(string) > self.screenwidth:
+            pos = 0
+            lstr = string[:]
+            while self.stringlen(lstr) > self.screenwidth:
+                pos = lstr.rfind(' ')
+                lstr = lstr[:pos]
+            if pos > 0:
+                rstr = string[pos + 1:]
+                string = lstr
+                
         for char in string:
             self._printchar(char, invert)
+        if rstr is not None:
+            self._printchar('\n')
+            self.printstring(rstr, invert)  # Recurse
 
     def stringlen(self, string):
         l = 0
@@ -172,14 +190,41 @@ class CWriter(Writer):
     def __init__(self,device, font, verbose=True):
         super().__init__(device, font, verbose)
         self.fgcolor = 1
+        self.cpos = 0
+        self.tab = 4
 
-    def setcolor(fgcolor, bgcolor):
-        self.fgcolor = fgcolor
-        self.bgcolor = bgcolor
+    def setcolor(self, fgcolor=None, bgcolor=None):
+        if fgcolor is not None:
+            self.fgcolor = fgcolor
+        if bgcolor is not None:
+            self.bgcolor = bgcolor
+        return self.fgcolor, self.bgcolor
 
-    def _printchar(self, char, invert=False):
+    def tabsize(self, value=None):
+        if value is not None:
+            self.tab = value
+        return self.tab
+
+    def _gchar(self, char):
+        if char == '\n':
+            self.cpos = 0
+        elif char == '\t':
+            nspaces = self.tab - (self.cpos % self.tab)
+            if nspaces == 0:
+                nspaces = self.tab
+            while nspaces:
+                nspaces -= 1
+                self._printchar(' ', recurse=True)
+            self.glyph = None  # All done
+            return
+        super()._get_char(char)
+        
+    def _printchar(self, char, invert=False, recurse=False):
         #print('Writer.text_row 1 = ', Writer.text_row)
-        self._get_char(char)
+        if recurse:
+            self._get_char(char)
+        else:
+            self._gchar(char)
         #print('Writer.text_row 2 = ', Writer.text_row)
         if self.glyph is None:
             return  # All done
@@ -212,3 +257,4 @@ class CWriter(Writer):
             if drow >= self.screenheight or drow < 0:
                 break
         Writer.text_col += -char_width if usd else char_width
+        self.cpos += 1
