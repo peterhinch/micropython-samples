@@ -7,10 +7,11 @@ Pyboard variants.
 Scripts for building MicroPython for various target hardware types and for
 updating your local source. See [docs](./fastbuild/README.md)
 
-# ssd1306
+# SSD1306
 
-A means of rendering multiple larger fonts to the SSD1306 OLED display. See
-[docs](./SSD1306/README.md).
+A means of rendering multiple larger fonts to the SSD1306 OLED display. The
+`Writer` class which performs this has been substantially improved and may now
+be found as part of [this repository](https://github.com/peterhinch/micropython-font-to-py).
 
 # mutex
 
