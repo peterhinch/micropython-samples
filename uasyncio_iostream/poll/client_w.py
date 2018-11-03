@@ -24,8 +24,8 @@ async def run():
                     # On ESP8266 if another task closes the socket the poll object
                     # never triggers. uasyncio expects it to trigger with POLLHUP or
                     # (POLLOUT & POLLERR or POLLOUT & POLLHUP)
-                    # If server fails gets OSError rather than above response.
-                else:  # But on Unix server failure or socket closure produces ev == 32
+                    # If server fails gets OSError on both platforms.
+                else:  # But on Unix socket closure produces ev == 32
                     print('Terminating event:', ev)  # What is 32??
                     ok = False
                     break
