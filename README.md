@@ -44,7 +44,8 @@ Raise an exception if a firmware build is earlier than a given date.
 
 # timed_function
 
-Time a function's execution using a decorator.
+Time a function's execution using a decorator. Also a way to implement timeouts
+using a closure.
 
 # ESP8266 (MQTT benchmark)
 
