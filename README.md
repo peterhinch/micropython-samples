@@ -56,6 +56,11 @@ After 100 messages reports maximum and minimum delays.
 
 `conn.py` Connect in station mode using saved connection details where possible.
 
+# resilient
+
+A guide to writing reliable ESP8266 networking code. Probably applies to other
+WiFi connected MicroPython devices, but reliable ones are thin on the ground.
+
 # Rotary Incremental Encoder
 
 Classes for handling incremental rotary position encoders. Note that the Pyboard
