@@ -57,7 +57,7 @@ class Client():
             else:
                 self.evfail.clear()
                 loop.create_task(asyn.Cancellable(self.reader)())
-                loop.create_task(asyn.Cancellable(self.writer, loop)())
+                loop.create_task(asyn.Cancellable(self.writer)())
                 loop.create_task(asyn.Cancellable(self._keepalive)())
                 await self.evfail  # Pause until something goes wrong
                 await asyn.Cancellable.cancel_all()
@@ -82,7 +82,7 @@ class Client():
             self.evfail.set()
 
     @asyn.cancellable
-    async def writer(self, loop):
+    async def writer(self):
         data = [0, 0]
         try:
             while True:
