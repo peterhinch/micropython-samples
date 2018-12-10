@@ -1,5 +1,8 @@
 # Resilient MicroPython WiFi code
 
+This document is intended as a general design guide. A specific solution for
+many IOT applications may be found [here](https://github.com/peterhinch/micropython-iot.git).
+
 The following is based on experience with the ESP8266. It aims to show how
 to design responsive bidirectional networking applications which are resilent:
 they recover from WiFi and server outages and are capable of long term running
