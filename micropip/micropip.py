@@ -1,5 +1,17 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+
+# This is a port of upip to CPython
+# Port Cpoyright (c) Peter Hinch
+# Licensed under the MIT license.
+
+# upip licensing/attribution
+# upip - Package manager for MicroPython
+#
+# Copyright (c) 2015-2018 Paul Sokolovsky
+#
+# Licensed under the MIT license.
+#
 import sys
 import os
 import errno
