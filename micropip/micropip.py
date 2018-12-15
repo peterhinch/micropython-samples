@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# This is a port of upip to CPython
-# Port Cpoyright (c) Peter Hinch
+# This is a port of the MicroPython upip utility to CPython
+# Port Copyright (c) Peter Hinch
 # Licensed under the MIT license.
+
+# Please note that the author of upip, Paul Sokolovsky, advocates its use
+# rather than this port.
 
 # upip licensing/attribution
 # upip - Package manager for MicroPython
