@@ -22,6 +22,13 @@ program to access shared data in a manner which ensures data integrity.
 
 Access the simpler of the Pyboard's watchdog timers.
 
+# software watchdog (soft_wdt)
+
+A software watchdog timer with a fixed or variable timeout. Supports temporary
+suspension and permanent cancellation. The latter can be useful when debugging
+code to prevent a machine reboot when the application fails, terminates or is
+interrupted with ctrl-c. See code and comments in swdt_tests.py.
+
 # reverse
 
 Fast reverse a bytearray in Arm Thumb assembler.  
