@@ -19,7 +19,7 @@ the board behaves more like ESP32 than ESP8266. If a WiFi outage occurs it will
 attempt automatically to reconnect. The following code fragments may be used.
 
 ```python
-[code]wl = network.WLAN()
+wl = network.WLAN()
 wl.connect(my_ssid, my_password)
 wl.active(1)
 print(wl)
@@ -34,7 +34,7 @@ reappears. `wl.status()` will give numeric values of these states:
 You can also debug the wlan using tracing:
 ```python
 wl = network.WLAN()
-wl.config(trace=`value`)
+wl.config(trace=value)
 ```
 `value` can be a bit-wise or of 1=async-events, 2=eth-tx, 4=eth-rx. So:
 ```python
@@ -64,3 +64,8 @@ To put the board in booloader mode, either execute pyb.bootloader(), or hold
 down USR during reset and letting go of USR when the LED shines white.
 - you're in bootloader mode when the red LED flashes once a second
 - then upload the DFU as usual: tools/pydfu.py -u `firmware`
+
+## Code emitters
+
+Based on quick tests the Native, Viper and inline Arm Thumb assembler features
+are supported.
