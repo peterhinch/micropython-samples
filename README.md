@@ -123,6 +123,11 @@ Linux installation and having to compile the Unix build of MicroPython.
 This describes ways of using the Pyboard to perform precision measurements of
 analog signals of up to around 50KHz. It is documented [here](./phase/README.md).
 
+# Pyboard D
+
+An unofficial guide to this board. When official docs emerge this will be
+removed.
+
 # A design for a hardware power meter
 
 This uses a Pyboard to measure the power consumption of mains powered devices. 
