@@ -1,4 +1,4 @@
-# Unofficial guide to the Pybaord D
+# Unofficial guide to the Pyboard D
 
 I'll update this with contributed ideas (issues, PR's and forum comments). I
 expect to delete it when official docs emerge.
