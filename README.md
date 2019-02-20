@@ -123,6 +123,15 @@ Linux installation and having to compile the Unix build of MicroPython.
 This describes ways of using the Pyboard to perform precision measurements of
 analog signals of up to around 50KHz. It is documented [here](./phase/README.md).
 
+# bitmap: bool arrays and sets of integers
+
+Classes for non-allocating handling of sets of small integers and small arrays
+of booleans. Legal member values for a set and array index values are
+constrained to 0 <= value <= max_value where max_value is a constructor arg.
+The set and the array are different ways of viewing a bitmap implemented as a
+bytearray: e.g. if max_value is 255 the bytearray occupies 32 bytes allocated by
+the constructor.
+
 # Pyboard D
 
 An unofficial guide to this board. When official docs emerge this will be
