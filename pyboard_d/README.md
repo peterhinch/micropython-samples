@@ -1,7 +1,7 @@
 # Unofficial guide to the Pyboard D
 
-I'll update this with contributed ideas (issues, PR's and forum comments). I
-expect to delete it when official docs emerge.
+Note: official docs may now be found [here](https://pybd.io/hw/pybd_sfxw.html)
+so I expect to remove this guide soon.
 
 ## LED's
 

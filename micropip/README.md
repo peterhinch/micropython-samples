@@ -4,7 +4,7 @@ Paul Sokolovsky, the author of most of the micropython library and major
 contributor to MicroPython, has forked the MicroPython project. This is the
 [pycopy fork](https://github.com/pfalcon/pycopy).
 
-Official firmware may be found [on micropython.org](https://micropython.org/).
+Official firmware may be found on [micropython.org](https://micropython.org/).
 Each firmware build has its own library. Some modules in the Pycopy library are
 incompatible with the official firmware.
 
@@ -12,9 +12,9 @@ Libraries may be installed by copying files from the appropriate library
 repository to the target device. However this requires some attention to detail
 where there are dependencies or where modules are organised as Python packages.
 
-Each fork has means of installing library and user contributed modules modelled
-on Python's `pip`. These handle dependencies and build the correct directory
-structure on the target.
+Each fork has applications for installing library and user contributed modules
+modelled on Python's `pip`. These handle dependencies and build the correct
+directory structure on the target.
 
 Note that `pip` and `pip3` cannot be used for MicroPython modules. This is
 because the file format is nonstandard. The file format was chosen to enable
@@ -27,8 +27,8 @@ the installer to run on targets with minimal resources.
  2. [Users of Pycopy firmware](./README.md#2-users-of-pycopy-firmware)  
  3. [Users of official MicroPython](./README.md#3-users-of-official-micropython)  
   3.1 [The installers](./README.md#31-the-installers)  
-   3.1.1 [upip_m](./README.md#311-upip_m)  
-   3.1.2 [micropip](./README.md#312-micropip)  
+   3.1.1 [upip_m](./README.md#311-upip_m) upip replacement runs on target hardware  
+   3.1.2 [micropip](./README.md#312-micropip) Runs on a PC  
  4. [Overriding built in library modules](./README.md#4-overriding-built-in-library-modules)  
 
 ###### [Main README](../README.md)
@@ -56,16 +56,16 @@ Usage of `upip` is documented in the
 The library at [micropython-lib](https://github.com/micropython/micropython-lib)
 is compatible with the official firmware. Unfortunately for users of official
 firmware its README is misleading, not least because the advocated `upip`
-module may produce an incorrect result. This is because some library modules on
-[PyPi](https://pypi.org/) require the `pycopy` firmware.
+module may produce an incorrect result. This is because it installs from
+[PyPi](https://pypi.org/) and some modules there require the `pycopy` firmware.
 
 Two (unofficial) utilities are provided for users of the official firmware.
 Where a library module is to be installed, these will locate a compatible
 version. User contributed modules located on PyPi will be handled as normal.
  * `upip_m.py` A modified version of `upip.py`. For network enabled targets.
  * `micropip.py` Installs modules to a PC for copying to the target device.
- For non-networked targets and for targets with too little RAM to run
- `upip_m.py`. Requires CPython 3.2 or later.
+ This is primarily for non-networked targets and for targets with insufficient
+ RAM to run `upip_m.py`. Requires CPython 3.2 or later.
 
 ## 3.1 The installers
 
