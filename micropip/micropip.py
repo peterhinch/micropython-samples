@@ -5,9 +5,6 @@
 # Port Copyright (c) Peter Hinch
 # Licensed under the MIT license.
 
-# Please note that the author of upip, Paul Sokolovsky, advocates its use
-# rather than this port.
-
 # upip licensing/attribution
 # upip - Package manager for MicroPython
 #
@@ -15,6 +12,14 @@
 #
 # Licensed under the MIT license.
 #
+# Please note that the author of upip, Paul Sokolovsky, advocates its use
+# rather than this port. This is true if using his MicroPython firmware, as
+# upip looks in his repo for library modules.
+# For users of mainline MicroPython this port ensures that compatible library
+# modules are installed.
+# Now searches the official library first before looking on PyPi for user
+# contributed packages.
+
 import sys
 import os
 import errno
@@ -163,9 +168,12 @@ def url_open(url):
 
     return s
 
+# Now searches official library first before looking on PyPi for user packages
 def get_pkg_metadata(name):
-#    f = url_open("https://pypi.python.org/pypi/%s/json" % name)
-    f = url_open("https://pypi.org/pypi/%s/json" % name)
+    try:
+        f = url_open("https://micropython.org/resources/upi/%s/json" % name)
+    except:
+        f = url_open("https://pypi.org/pypi/%s/json" % name)
     s = read_lines(f)
     try:
         return json.loads(s.decode('UTF8'))

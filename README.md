@@ -2,6 +2,12 @@
 A place for assorted code ideas for MicroPython. Most are targeted at the
 Pyboard variants.
 
+# Installing MicroPython libraries
+
+This is more involved since the advent of the pycopy fork of MicroPython.
+[This doc](./micropip/README.md) describes the issues and provides two
+utilities for users of official MicroPython firmware to simplify installation.
+
 # Fastbuild
 
 Scripts for building MicroPython for various target hardware types and for
@@ -98,25 +104,6 @@ function it will return a random number, but (given the same seed) the sequence
 of numbers following initialisation will always be the same.
 
 See the code for usage and timing documentation.
-
-# micropip
-
-This is a version of upip which runs under Python 3.2 or above. It is intended
-for users of hardware which is not network enabled. Libraries may be installed
-to the PC for transfer to the target. Usage is the same as for the official
-`upip.py` and help may be accessed with
-
-```
-micropip.py --help
-```
-or
-
-```
-python3 -m micropip --help
-```
-
-Its advantage over running `upip.py` on a PC is that it avoids the need for a
-Linux installation and having to compile the Unix build of MicroPython.
 
 # Measurement of relative timing and phase of fast analog signals
 
