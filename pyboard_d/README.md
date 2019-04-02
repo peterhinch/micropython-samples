@@ -62,7 +62,7 @@ I am aware of two variants distinguished by the sticker on top of the CPU.
 
 To put the board in booloader mode, either execute pyb.bootloader(), or hold
 down USR during reset and letting go of USR when the LED shines white.
-- you're in bootloader mode when the red LED flashes once a second
+The red LED then flashes once a second indicating bootloader mode.
 - then upload the DFU as usual: tools/pydfu.py -u `firmware`
 
 ## Code emitters

@@ -121,8 +121,9 @@ the constructor.
 
 # Pyboard D
 
-An unofficial guide to this board. When official docs emerge this will be
-removed.
+Note: official docs may now be found [here](https://pybd.io/hw/pybd_sfxw.html).
+This [unofficial guide](./pyboard_d/README.md) now contains little which is not
+in the official docs and will shortly be removed.
 
 # A design for a hardware power meter
 

@@ -102,6 +102,10 @@ or
 ```
 python3 -m micropip --help
 ```
+Example invocation line:
+```
+$ micropip.py install -p ~/rats micropython-uasyncio
+```
 
 ###### [Contents](./README.md#1-contents)
 
