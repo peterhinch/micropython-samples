@@ -13,6 +13,11 @@ utilities for users of official MicroPython firmware to simplify installation.
 Scripts for building MicroPython for various target hardware types and for
 updating your local source. See [docs](./fastbuild/README.md)
 
+# PicoWeb
+
+[Easy installation](./PICOWEB.md) guide. Simplify installing this on
+MicroPython hardware platforms under official MicroPython firmware.
+
 # SSD1306
 
 A means of rendering multiple larger fonts to the SSD1306 OLED display. The
