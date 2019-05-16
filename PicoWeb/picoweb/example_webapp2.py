@@ -18,7 +18,7 @@ def squares(req, resp):
     yield from app.render_template(resp, "squares.tpl", (req,))
 
 
-import logging
+import ulogging as logging
 logging.basicConfig(level=logging.INFO)
 
 app.run(debug=True, host='0.0.0.0', port=80)

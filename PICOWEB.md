@@ -5,8 +5,8 @@ This has regularly caused dificulty on the forum.
 The target hardware is assumed to be running official MicroPython firmware.
 
 This repo aims to clarify the installation process. Paul Sokolovsky's Picoweb
-code is unchanged except for the name of the logging library. The demos are
-trivially changed to use IP '0.0.0.0' and port 80.
+code is unchanged. The demos are trivially changed to use IP '0.0.0.0' and port
+80.
 
 To install on a hardware platform such as ESP32 or Pyboard D it is necessary to
 copy this directory and its contents (including subdirectories) to the target.
@@ -16,7 +16,7 @@ issue
 ```
 /my/tree/PicoWeb> rsync . /pyboard
 ```
-This may take some time.
+This may take some time: 1 minute here on ESP32.
 
 At the REPL connect to the network and determine your IP address
 ```
@@ -88,7 +88,5 @@ path/to/repo> cp picoweb/templates/squares.tpl /pyboard/picoweb/templates/
 
 See [the PicoWeb docs](https://github.com/pfalcon/picoweb)
 
-Note that to run under official MicroPython, references to `ulogging` in these
-demos must be changed to `logging`. You may also want to change IP and port as
-above.
-
+Note that to run the demos on platforms other than the Unix build you may want
+to change IP and port as above.

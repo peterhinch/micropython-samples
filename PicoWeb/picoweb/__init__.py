@@ -281,10 +281,10 @@ class WebApp:
 
     def run(self, host="127.0.0.1", port=8081, debug=False, lazy_init=False, log=None):
         if log is None and debug >= 0:
-            import logging
-            log = logging.getLogger("picoweb")
+            import ulogging
+            log = ulogging.getLogger("picoweb")
             if debug > 0:
-                log.setLevel(logging.DEBUG)
+                log.setLevel(ulogging.DEBUG)
         self.log = log
         gc.collect()
         self.debug = int(debug)
