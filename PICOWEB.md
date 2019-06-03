@@ -1,4 +1,4 @@
-# Running Picoweb on hardware devices
+# 1. Running Picoweb on hardware devices
 
 This has regularly caused dificulty on the forum.
 
@@ -8,21 +8,24 @@ This repo aims to clarify the installation process. Paul Sokolovsky's Picoweb
 code is unchanged. The demos are trivially changed to use IP '0.0.0.0' and port
 80.
 
-Two ways of installing Picoweb are available: copying this directory to the
-target or using `upip`. To use `upip` you should ensure your firmware is V1.11
-or later; your target will also require an internet connection. Both methods
-require the following preliminaries.
+Note that the ESP8266 requires the use of frozen bytecode: see [ESP8266](./PICOWEB.md#3-ESP8266)
+for installation instructions.
 
-## Preliminary steps
+On other platfroms two ways of installing Picoweb are available: copying this
+directory to the target or using `upip`. To use `upip` you should ensure your
+firmware is V1.11 or later; your target will also require an internet
+connection. Both methods require the following preliminaries.
 
-### Clone this repo to your PC.
+## 1.1 Preliminary steps
+
+### 1.1.1 Clone this repo to your PC
 
 From a suitable destination directory issue
 ```
 git clone https://github.com/peterhinch/micropython-samples
 ```
 
-### Establish uasyncio status
+### 1.1.2 Establish uasyncio status
 
 Determine whether your target has `uasyncio` already installed. At the REPL
 issue:
@@ -32,7 +35,7 @@ issue:
 ```
 If this throws an `ImportError`, `uasyncio` is not installed.
 
-## Installing using upip
+## 1.2 Installing using upip
 
 Copy the `picoweb` subdirectory of this repo's `PicoWeb` directory, with its
 contents, to the target. If using `rshell` to connect to a Pyboard D this would
@@ -50,7 +53,7 @@ upip.install('micropython-pkg_resources')
 upip.install('utemplate')
 ```
 
-## Installing by copying this archive
+## 1.3 Installing by copying this archive
 
 Copy the contents of the `PicoWeb` directory (including subdirectories) to the
 target. If using `rshell` on an ESP32 change to this directory, at the `rshell`
@@ -63,7 +66,7 @@ This may take some time: 1 minute here on ESP32.
 If `uasyncio` was already installed, the corrsponding directory on the target
 may be removed.
 
-# Running Picoweb
+# 2. Running Picoweb
 
 At the REPL connect to the network and determine your IP address
 ```
@@ -84,7 +87,7 @@ or
 
 Then point your browser at the IP address determined above.
 
-# ESP8266
+# 3. ESP8266
 
 RAM limitations require the use of frozen bytecode, and getting the examples
 running is a little more involved. Create a directory on your PC and copy the
@@ -127,7 +130,7 @@ path/to/repo> cp picoweb/templates/squares.tpl /pyboard/picoweb/templates/
 ```
 
 
-# Documentation and further examples
+# 4. Documentation and further examples
 
 See [the PicoWeb docs](https://github.com/pfalcon/picoweb)
 
