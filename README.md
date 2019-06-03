@@ -124,12 +124,6 @@ The set and the array are different ways of viewing a bitmap implemented as a
 bytearray: e.g. if max_value is 255 the bytearray occupies 32 bytes allocated by
 the constructor.
 
-# Pyboard D
-
-Note: official docs may now be found [here](https://pybd.io/hw/pybd_sfxw.html).
-This [unofficial guide](./pyboard_d/README.md) now contains little which is not
-in the official docs and will shortly be removed.
-
 # A design for a hardware power meter
 
 This uses a Pyboard to measure the power consumption of mains powered devices. 

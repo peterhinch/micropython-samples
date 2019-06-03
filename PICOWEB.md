@@ -8,15 +8,45 @@ This repo aims to clarify the installation process. Paul Sokolovsky's Picoweb
 code is unchanged. The demos are trivially changed to use IP '0.0.0.0' and port
 80.
 
-To install on a hardware platform such as ESP32 or Pyboard D it is necessary to
-copy this directory and its contents (including subdirectories) to the target.
-If using `rshell` on an ESP32 change to this directory, at the `rshell` prompt
-issue
+Two ways of installing Picoweb are available: copying this directory to the
+target or using `upip`. To use `upip` you should ensure your firmware is V1.11
+or later; your target will also require an internet connection.
 
+## Installing using upip
+
+Copy the `picoweb` subdirectory of this repo's `PicoWeb` directory, with its
+contents, to the target. If using `rshell` to connect to a Pyboard D this would
+be done with:
+```
+/my/tree/PicoWeb> cp -r picoweb/ /flash
+```
+Check whether your target has `uasyncio` pre-installed:
+```
+>>> import uasyncio
+>>>
+```
+If this throws an `ImportError`, you will need to install `uasyncio`.
+
+Ensure your target is connected to the internet. Then perform the following
+steps. The first step may be omitted if `uasyncio` is already installed.
+```
+upip.install('micropython-uasyncio')
+upip.install('micropython-ulogging')
+upip.install('micropython-pkg_resources')
+upip.install('utemplate')
+```
+
+## Installing by copying this archive
+
+Copy the contents of the `PicoWeb` directory (including subdirectories) to the
+target. If using `rshell` on an ESP32 change to this directory, at the `rshell`
+prompt issue
 ```
 /my/tree/PicoWeb> rsync . /pyboard
 ```
 This may take some time: 1 minute here on ESP32.
+
+# Running Picoweb
 
 At the REPL connect to the network and determine your IP address
 ```
