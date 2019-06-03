@@ -10,22 +10,36 @@ code is unchanged. The demos are trivially changed to use IP '0.0.0.0' and port
 
 Two ways of installing Picoweb are available: copying this directory to the
 target or using `upip`. To use `upip` you should ensure your firmware is V1.11
-or later; your target will also require an internet connection.
+or later; your target will also require an internet connection. Both methods
+require the following preliminaries.
+
+## Preliminary steps
+
+### Clone this repo to your PC.
+
+From a suitable destination directory issue
+```
+git clone https://github.com/peterhinch/micropython-samples
+```
+
+### Establish uasyncio status
+
+Determine whether your target has `uasyncio` already installed. At the REPL
+issue:
+```
+>>> import uasyncio
+>>>
+```
+If this throws an `ImportError`, `uasyncio` is not installed.
 
 ## Installing using upip
 
 Copy the `picoweb` subdirectory of this repo's `PicoWeb` directory, with its
 contents, to the target. If using `rshell` to connect to a Pyboard D this would
-be done with:
+be done from the `PicoWeb` directory with:
 ```
 /my/tree/PicoWeb> cp -r picoweb/ /flash
 ```
-Check whether your target has `uasyncio` pre-installed:
-```
->>> import uasyncio
->>>
-```
-If this throws an `ImportError`, you will need to install `uasyncio`.
 
 Ensure your target is connected to the internet. Then perform the following
 steps. The first step may be omitted if `uasyncio` is already installed.
@@ -45,6 +59,9 @@ prompt issue
 /my/tree/PicoWeb> rsync . /pyboard
 ```
 This may take some time: 1 minute here on ESP32.
+
+If `uasyncio` was already installed, the corrsponding directory on the target
+may be removed.
 
 # Running Picoweb
 
@@ -66,10 +83,6 @@ or
 ```
 
 Then point your browser at the IP address determined above.
-
-Note that some platforms will have `uasyncio` installed as frozen bytecode: in
-such cases there is no need to copy the `uasyncio` subdirectory (if you do, it
-will be ignored).
 
 # ESP8266
 
@@ -118,5 +131,5 @@ path/to/repo> cp picoweb/templates/squares.tpl /pyboard/picoweb/templates/
 
 See [the PicoWeb docs](https://github.com/pfalcon/picoweb)
 
-Note that to run the demos on platforms other than the Unix build you may want
-to change IP and port as above.
+Note that to run these demos on platforms other than the Unix build you may
+want to change IP and port as above.
