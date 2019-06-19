@@ -5,8 +5,8 @@ Pyboard variants.
 # Installing MicroPython libraries
 
 This is more involved since the advent of the pycopy fork of MicroPython.
-[This doc](./micropip/README.md) describes the issues and provides two
-utilities for users of official MicroPython firmware to simplify installation.
+[This doc](./micropip/README.md) describes the issues and provides a utility
+to simplify installation for users of official MicroPython firmware.
 
 # Fastbuild
 

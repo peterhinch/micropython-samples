@@ -12,9 +12,9 @@ Libraries may be installed by copying files from the appropriate library
 repository to the target device. However this requires some attention to detail
 where there are dependencies or where modules are organised as Python packages.
 
-Each fork has applications for installing library and user contributed modules
-modelled on Python's `pip`. These handle dependencies and build the correct
-directory structure on the target.
+Each version has a tool known as `upip` for installing library and user
+contributed modules modelled on Python's `pip`. This handles dependencies and
+builds the correct directory structure on the target.
 
 Note that `pip` and `pip3` cannot be used for MicroPython modules. This is
 because the file format is nonstandard. The file format was chosen to enable
@@ -26,9 +26,7 @@ the installer to run on targets with minimal resources.
  1. [Contents](./README.md#1-contents)  
  2. [Users of Pycopy firmware](./README.md#2-users-of-pycopy-firmware)  
  3. [Users of official MicroPython](./README.md#3-users-of-official-micropython)  
-  3.1 [The installers](./README.md#31-the-installers)  
-   3.1.1 [upip_m](./README.md#311-upip_m) upip replacement runs on target hardware  
-   3.1.2 [micropip](./README.md#312-micropip) Runs on a PC  
+  3.1 [micropip](./README.md#31-micropip) Runs on a PC  
  4. [Overriding built in library modules](./README.md#4-overriding-built-in-library-modules)  
 
 ###### [Main README](../README.md)
@@ -39,9 +37,8 @@ The library for the `pycopy` fork may be found [here](https://github.com/pfalcon
 Library modules located on [PyPi](https://pypi.org/) are correct for the
 `pycopy` firmware.
 
-The preferred installation tool is `upip.py` which may be found in the `tools`
-directory of MicroPython. It is installed by default on network enabled
-hardware such as Pyboard D, ESP8266 and ESP32.
+The `upip` tool may be found in the `tools` directory of `pycopy`. This version
+should be used as it installs exclusively from PyPi.
 
 For hardware which is not network enabled, `upip` may be run under the Unix
 build of MicroPython to install to an arbitrary directory on a PC. The
@@ -54,43 +51,25 @@ Usage of `upip` is documented in the
 # 3. Users of official MicroPython
 
 The library at [micropython-lib](https://github.com/micropython/micropython-lib)
-is compatible with the official firmware. Unfortunately for users of official
-firmware its README is misleading, not least because the advocated `upip`
-module may produce an incorrect result. This is because it installs from
-[PyPi](https://pypi.org/) and some modules there require the `pycopy` firmware.
+is compatible with the official firmware. As of version 1.11 the included
+version of `upip` will install the correct library module for use with this
+firmware, searching for modules in the official library before searching
+[PyPi](https://pypi.org/).
 
-Two (unofficial) utilities are provided for users of the official firmware.
-Where a library module is to be installed, these will locate a compatible
-version. User contributed modules located on PyPi will be handled as normal.
- * `upip_m.py` A modified version of `upip.py`. For network enabled targets.
- * `micropip.py` Installs modules to a PC for copying to the target device.
- This is primarily for non-networked targets and for targets with insufficient
- RAM to run `upip_m.py`. Requires CPython 3.2 or later.
+Users of non-networked hardware such as the Pyboard 1.x can use `upip` with the
+Unix build of MicroPython to install a library module to an arbitrary directory
+on a PC, from where the files and directories can be copied to the target
+hardware. This approach has the drawback of requiring the Unix build, which has
+to be built from source.
 
-## 3.1 The installers
+For those unable or unwilling to do this, `micropip.py` in this repo may be
+employed.
 
-These have the same invocation details as `upip` and the
-[official docs](http://docs.micropython.org/en/latest/reference/packages.html)
-should be consulted for usage information.
+## 3.1 micropip
 
-### 3.1.1 upip_m
-
-The file `upip_m.py` should be copied to the target device. If `upip` is not
-available on the target `upip_utarfile.py` must also be copied.
-
-Alternatively and more efficiently these files may be frozen as bytecode. The
-method of doing this is [documented here](http://docs.micropython.org/en/latest/reference/packages.html).
-
-Users of the ESP8266 are unlikely to be able to use `upip_m` unless it is
-frozen as bytecode. An alternative is to use `micropip.py` to install to a PC
-and then to use [rshell](https://github.com/dhylands/rshell) or other utility
-to copy the directory structure to the device.
-
-### 3.1.2 micropip
-
-This is a version of `upip_m` which runs under Python 3.2 or above. Library and
-user modules are installed to the PC for transfer to the target. It is cross
-platform and has been tested under Linux, Windows and OSX.
+This runs under Python 3.2 or above. Library and user modules are installed to
+the PC for transfer to the target. It is cross-platform and has been tested
+under Linux, Windows and OSX.
 
 Help may be accessed with
 
