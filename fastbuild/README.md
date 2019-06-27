@@ -4,9 +4,7 @@ These scripts are intended to speed and simplify rebuilding firmware from
 source notably where pyboards of different types are in use, or when
 frozen bytecode necessitates repeated compilation and deployment. In
 particular `buildpyb` will detect the attached Pyboard type, build the
-appropriate firmware, put the board into DFU mode and deploy it, before
-launching `rshell`. The latter step may be removed if `rshell` is not in
-use.
+appropriate firmware, put the board into DFU mode and deploy it.
 
 The scripts should be run as your normal user and can proceed without user
 interaction.
@@ -79,8 +77,9 @@ Close and restart the terminal session before running the scripts.
 
 ### Build script: `buildpyb`  
 
-This checks the attached pyboard. If it's a V1.0, V1.1 or Lite it builds the
-correct firmware and deploys it. Otherwise it produces an error message.
+This checks the attached pyboard. If it's a V1.0, V1.1 or Lite it or a Pyboard
+D series it builds the correct firmware and deploys it. Otherwise it produces
+an error message.
 
 Optional argument `--clean` - if supplied does a `make clean` to delete
 all files produced by the previous build before proceeding.

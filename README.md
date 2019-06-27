@@ -11,7 +11,7 @@ to simplify installation for users of official MicroPython firmware.
 # Fastbuild
 
 Scripts for building MicroPython for various target hardware types and for
-updating your local source. See [docs](./fastbuild/README.md)
+updating your local source. Now detects and builds for Pyboard D. See [docs](./fastbuild/README.md)
 
 # PicoWeb
 

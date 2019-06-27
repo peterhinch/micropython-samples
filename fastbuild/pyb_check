@@ -2,8 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Called from buildpyb
-# Arg: expected board type
-# exit status 0 if hardware matches board type else 1
+# Arg: device (e.g. '/dev/pyboard')
 
 import sys
 import os, os.path
@@ -11,26 +10,24 @@ mp = os.getenv('MPDIR')
 sys.path.append(''.join((mp, '/tools')))
 import pyboard
 
-errmsg = 'Must supply board type PYBV10 PYBV11 PYBLITEV10'
-d = {'PYBV11' : b'PYBv1.1', 'PYBV10' : b'PYBv1.0', 'PYBLITEV10' : b'PYBLITEv1.0'}
-
-device = os.getenv('MPDEVICE')
-
+errmsg = 'Usage pyb_check device'
+d = {b'PYBv1.1' : 'PYBV11', b'PYBv1.0' : 'PYBV10', b'PYBLITEv1.0' : 'PYBLITEV10',
+    b'PYBD-SF2W' : 'PYBD_SF2', b'PYBD-SF3W' : 'PYBD_SF3', b'PYBD-SF6W' : 'PYBD_SF6'}
 
 def main():
     if len(sys.argv) < 2:
-        print(errmsg)
+        print(errmsg, file=sys.stderr)
         sys.exit(1)
+    device = sys.argv[1]
     if not os.path.exists(device):
+        print('Device {} does not exist'.format(device), file=sys.stderr)
         sys.exit(1)
     pybd = pyboard.Pyboard(device)
     pybd.enter_raw_repl()
     hardware = pybd.exec('import os; print(os.uname()[4].split(' ')[0])').strip()
     pybd.exit_raw_repl()
-    board = d[sys.argv[1]]
-    if board == hardware:
-        sys.exit(0)
-    sys.exit(1)
+    if hardware in d:
+        print(d[hardware])
 
 if __name__ == "__main__":
     main()

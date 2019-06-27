@@ -7,20 +7,7 @@
 MPDEVICE='/dev/pyboard'
 
 # Determine board type
-BOARD=""
-if pyb_check $MPDEVICE PYBV11
-then
-    BOARD="PYBV11"
-fi
-if pyb_check $MPDEVICE PYBV10 
-then
-    BOARD="PYBV10"
-fi
-if pyb_check $MPDEVICE PYBLITEV10
-then
-    BOARD="PYBLITEV10"
-fi
-echo Building for $BOARD
+BOARD=$(pyb_check $MPDEVICE)
 
 # Check for user override of frozen directory
 if [ $FROZEN_DIR ]
@@ -32,6 +19,7 @@ fi
 
 if [ $BOARD ]
 then
+    echo Building for $BOARD
     cd $MPDIR/ports/stm32
     if [ $# -eq 1 ] && [ $1 = "--clean" ]
     then
@@ -40,13 +28,11 @@ then
     if make -j 8 BOARD=$BOARD FROZEN_MPY_DIR=$FROZEN_DIR && pyb_boot $MPDEVICE
     then
         sleep 1
-        make BOARD=$BOARD FROZEN_MPY_DIR=$FROZEN_DIR deploy
-        cd -
-        sleep 1
-        rshell
+        make PYTHON=python3 BOARD=$BOARD deploy
     else
         echo Build failure
     fi
+    cd -
 else
     echo Incorrect board type
 fi
