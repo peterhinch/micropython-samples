@@ -13,6 +13,9 @@ cd ../ports/stm32
 make BOARD=PYBV11 clean
 make BOARD=PYBV10 clean
 make BOARD=PYBLITEV10 clean
+make BOARD=PYBD_SF2 clean
+make BOARD=PYBD_SF3 clean
+make BOARD=PYBD_SF6 clean
 cd ../esp8266
 make clean
 cd ../unix
