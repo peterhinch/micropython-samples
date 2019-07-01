@@ -72,7 +72,7 @@ class DS3231:
                 secs = utime.mktime(result)
                 utime.localtime(secs)
             else:
-                if sys.platform == 'pyboard':
+                if sys.platform == 'pyboard' or sys.platform == 'esp8266':
                     rtc.datetime((YY, MM, DD, wday, hh, mm, ss, 0))
                 else:
                     rtc.init((YY, MM, DD, hh, mm, ss))
