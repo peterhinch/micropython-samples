@@ -12,7 +12,8 @@ import pyboard
 
 errmsg = 'Usage pyb_check device'
 d = {b'PYBv1.1' : 'PYBV11', b'PYBv1.0' : 'PYBV10', b'PYBLITEv1.0' : 'PYBLITEV10',
-    b'PYBD-SF2W' : 'PYBD_SF2', b'PYBD-SF3W' : 'PYBD_SF3', b'PYBD-SF6W' : 'PYBD_SF6'}
+    b'PYBD-SF2W' : 'PYBD_SF2', b'PYBD-SF3W' : 'PYBD_SF3', b'PYBD-SF6W' : 'PYBD_SF6',
+    b'PYBD_SF2W' : 'PYBD_SF2', b'PYBD_SF3W' : 'PYBD_SF3', b'PYBD_SF6W' : 'PYBD_SF6',}
 
 def main():
     if len(sys.argv) < 2:
