@@ -8,6 +8,10 @@ This repo aims to clarify the installation process. Paul Sokolovsky's Picoweb
 code is unchanged. The demos are trivially changed to use IP '0.0.0.0' and port
 80.
 
+The Picoweb version in this repo is no longer current, and subsequent versions
+are no longer compatible with official firmware. See section 5 below if you
+want to run the latest version.
+
 Note that the ESP8266 requires the use of frozen bytecode: see [ESP8266](./PICOWEB.md#3-ESP8266)
 for installation instructions.
 
@@ -136,3 +140,21 @@ See [the PicoWeb docs](https://github.com/pfalcon/picoweb)
 
 Note that to run these demos on platforms other than the Unix build you may
 want to change IP and port as above.
+
+# 5. Picoweb versions
+
+At the time of writing (Sept 2019) Paul Sokolovsky has released an update to
+support Unicode strings. This is incompatible with official firmware. The
+difference is small and easily fixed, however it is likely that future versions
+will acquire further incompatibilities. I do not plan to maintain a compatible
+`Picoweb-copy` fork; hopefully someone will accept this task.
+
+The issues are discussed [in this forum thread](https://forum.micropython.org/viewtopic.php?f=18&t=6002).
+
+Options are:
+ 1. Use the version in this repo.
+ 2. Use the latest version and adapt it.
+ 3. Use the Pycopy firmware (requires compilation).
+ 4. Abandon Picoweb and use an alternative web framework.
+
+These are discussed in detail in the above forum thread.
