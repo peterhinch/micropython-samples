@@ -9,8 +9,8 @@ code is unchanged. The demos are trivially changed to use IP '0.0.0.0' and port
 80.
 
 The Picoweb version in this repo is no longer current, and subsequent versions
-are no longer compatible with official firmware. See section 5 below if you
-want to run the latest version.
+are no longer compatible with official firmware. See [Picoweb versions](./PICOWEB.md#5-picoweb-versions) if you
+want to run a version newer than that supplied here.
 
 Note that the ESP8266 requires the use of frozen bytecode: see [ESP8266](./PICOWEB.md#3-ESP8266)
 for installation instructions.
