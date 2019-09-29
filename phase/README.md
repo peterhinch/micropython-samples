@@ -107,14 +107,15 @@ integer number of cycles are captured. Thus averaging is used to remove the
 double frequency component.
 
 The function `demod()` returns the phase difference in radians. The sample
-arrays are globals `bufout` and `bufin`. The `freq` arg is the frequency and is
-used to provide phase compensation for the delay mentioned in section 2.1.
+arrays are globals `bufout` and `bufin`. The `freq` arg is the ADC sampling
+frequency and is used to provide phase compensation for the delay mentioned in
+section 2.1.
 
 The arg `nsamples` is the number of samples per cycle of the sinewave. As
 described above it can be any integer multiple of 4.
 
 ```python
-from math import sqrt, pi
+from math import sqrt, pi, sin, cos
 import cmath
 _ROOT2 = sqrt(2)
 
@@ -153,3 +154,9 @@ def demod(freq, nsamples):
     c *= cos(theta) - 1j * sin(theta)
     return cmath.phase(c)
 ```
+Note that the phase compensation figure of 1.8μs is based on empirical
+measurement on a Pyboard 1.x. The easiest way to measure the time difference
+between samples is to measure the phase error between identical fast sinewaves.
+This was done by feeding the same signal into both ADC's (with compensation
+disabled) and measuring the reported phase difference. Then  
+T = θ/(2πf) where f is the signal frequency.  
