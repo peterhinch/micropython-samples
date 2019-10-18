@@ -124,6 +124,11 @@ The set and the array are different ways of viewing a bitmap implemented as a
 bytearray: e.g. if max_value is 255 the bytearray occupies 32 bytes allocated by
 the constructor.
 
+# Functors and singletons
+
+Two simple class decorators for objects useful in hardware interfacing.
+Documented [here](./functor_singleton/README.md).
+
 # A design for a hardware power meter
 
 This uses a Pyboard to measure the power consumption of mains powered devices. 

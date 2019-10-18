@@ -15,7 +15,7 @@ fi
 if make -j 8
 then
     sleep 1
-    esptool.py --port /dev/ttyUSB0 --baud 115200 write_flash --verify --flash_size=detect -fm dio 0 build/firmware-combined.bin
+    esptool.py --port /dev/ttyUSB0 --baud 115200 write_flash --verify --flash_size=detect -fm dio 0 build-GENERIC/firmware-combined.bin
     cd -
     sleep 4
     rshell -p /dev/ttyUSB0 --editor nano --buffer-size=30
