@@ -28,7 +28,7 @@ then
     if make -j 8 BOARD=$BOARD FROZEN_MPY_DIR=$FROZEN_DIR FROZEN_MANIFEST= && pyb_boot $MPDEVICE
     then
         sleep 1
-        make PYTHON=python3 BOARD=$BOARD deploy
+        make PYTHON=python3 BOARD=$BOARD FROZEN_MPY_DIR=$FROZEN_DIR FROZEN_MANIFEST= deploy
     else
         echo Build failure
     fi

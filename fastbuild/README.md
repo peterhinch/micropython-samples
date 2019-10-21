@@ -18,14 +18,18 @@ and `pyb_check` to determine the type of attached board. These use the
 `pyboard.py` module in the source tree to execute scripts on the attached
 board.
 
+21st Oct 2019  
+Script modified to ignore the new FROZEN_MANIFEST system. It continues to work
+without needing any change to the file layout. When some docs for the manifest
+appear I will amend the script and this doc.
+
 ###### [Main README](../README.md)
 
 ### Optional Edits
 
 In the `buildpyb` script you may wish to edit the `-j 8` argument to `make`.
 This radically speeds build on a multi core PC. Empirically 8 gave the fastest
-build on my Core i7 4/8 core laptop: adjust to suit your PC. You may also want
-to remove the call to `rshell` if you don't plan on using it.
+build on my Core i7 4/8 core laptop: adjust to suit your PC.
 
 This script defaults to a frozen modules directory `stmhal/modules`. This may
 be overridden by creating an environment variable FROZEN_DIR: a recent update
