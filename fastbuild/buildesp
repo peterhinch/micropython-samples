@@ -1,5 +1,6 @@
 #! /bin/bash
 cd /mnt/qnap2/data/Projects/MicroPython/micropython/ports/esp8266
+MANIFEST='/mnt/qnap2/Scripts/manifests/esp8266_manifest.py'
 
 if [ $# -eq 1 ] && [ $1 = "--clean" ]
 then
@@ -12,10 +13,10 @@ then
     esptool.py  --port /dev/ttyUSB0 erase_flash
 fi
 
-if make -j 8
+if make -j 8 FROZEN_MANIFEST=$MANIFEST
 then
     sleep 1
-    esptool.py --port /dev/ttyUSB0 --baud 115200 write_flash --verify --flash_size=detect -fm dio 0 build-GENERIC/firmware-combined.bin
+    esptool.py --port /dev/ttyUSB0 --baud 115200 write_flash --flash_size=detect -fm dio 0 build-GENERIC/firmware-combined.bin
     cd -
     sleep 4
     rshell -p /dev/ttyUSB0 --editor nano --buffer-size=30

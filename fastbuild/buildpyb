@@ -5,9 +5,18 @@
 # Also requires the pyboard.py utility to be on the path (micropython/tools/pyboard.py)
 
 MPDEVICE='/dev/pyboard'
-
+MANIFESTS='/mnt/qnap2/Scripts/manifests'
 # Determine board type
 BOARD=$(pyb_check $MPDEVICE)
+# Currently have only two manifest variants for V1.x and D
+if [[ $BOARD == 'PYBV11' || $BOARD == 'PYBV10' || $BOARD == 'PYBLITEV10' ]]
+then
+    MANIFEST=$MANIFESTS/pyb_v1_manifest.py
+fi
+if [[ $BOARD == 'PYBD_SF2' || $BOARD == 'PYBD_SF3' || $BOARD == 'PYBD_SF6' ]]
+then
+    MANIFEST=$MANIFESTS/pyb_d_manifest.py
+fi
 
 # Check for user override of frozen directory
 if [ $FROZEN_DIR ]
@@ -25,10 +34,10 @@ then
     then
         make BOARD=$BOARD clean
     fi
-    if make -j 8 BOARD=$BOARD FROZEN_MPY_DIR=$FROZEN_DIR FROZEN_MANIFEST= && pyb_boot $MPDEVICE
+    if make -j 8 BOARD=$BOARD FROZEN_MANIFEST=$MANIFEST && pyb_boot $MPDEVICE
     then
         sleep 1
-        make PYTHON=python3 BOARD=$BOARD FROZEN_MPY_DIR=$FROZEN_DIR FROZEN_MANIFEST= deploy
+        make PYTHON=python3 BOARD=$BOARD FROZEN_MANIFEST=$MANIFEST deploy
     else
         echo Build failure
     fi

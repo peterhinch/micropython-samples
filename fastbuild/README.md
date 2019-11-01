@@ -18,25 +18,52 @@ and `pyb_check` to determine the type of attached board. These use the
 `pyboard.py` module in the source tree to execute scripts on the attached
 board.
 
-21st Oct 2019  
-Script modified to ignore the new FROZEN_MANIFEST system. It continues to work
-without needing any change to the file layout. When some docs for the manifest
-appear I will amend the script and this doc.
+The scripts will require minor edits to reflect your directory structure.
 
 ###### [Main README](../README.md)
 
-### Optional Edits
+# Frozen modules and manifests
 
-In the `buildpyb` script you may wish to edit the `-j 8` argument to `make`.
-This radically speeds build on a multi core PC. Empirically 8 gave the fastest
-build on my Core i7 4/8 core laptop: adjust to suit your PC.
+The method of specifying modules to be frozen has changed (as of Oct 2019).
+The files and directories to be frozen are now specified in a file with the
+default name `manifest.py`. This may be found in `/ports/stm32/boards` or the
+eqivalent for other ports.
 
-This script defaults to a frozen modules directory `stmhal/modules`. This may
-be overridden by creating an environment variable FROZEN_DIR: a recent update
-enabled the directory for frozen to be located anywhere in the filesystem,
-allowing project specific directories.
+In practice it can be advantageous to override the default. You might want to
+freeze a different set of files depending on the specific board or project.
+This is done by issuing
+```
+make BOARD=$BOARD FROZEN_MANIFEST=$MANIFEST
+```
+where `BOARD` specifies the target (e.g. 'PYBV11') and `MANIFEST` specifies the
+path to the manifest file (e.g. '~/my_manifest.py').
 
-In `buildnew` you may wish to delete the unix make commands.
+A simple manifest file comprises `freeze` calls with one or two args. The first
+is a directory specifier. If the second exists it can specify a single file or
+more, by passing an iterable. Consider the following manifest file:
+```python
+freeze('$(MPY_DIR)/drivers/dht', 'dht.py')
+freeze('$(MPY_DIR)/tools', ('upip.py', 'upip_utarfile.py'))
+freeze('/path/to/pyb_d_modules')
+```
+Taking the lines in order:
+ 1. The single file argument freezes the file 'dht.py' found in the MicroPython
+ source tree `drivers` directory.
+ 2. Passing an iterable causes the two specified files to be frozen.
+ 3. Passing a directory without arguments causes all files and subdirectories
+ to be frozen. Assume '../pyb_d_modules' contains a file `rats.py` and a
+ subdirectory `foo` containing `bar.py`. Then `help('modules')` will show
+ `rats` and `foo/bar`. This means that Python packages are frozen correctly.
+
+On Linux symlinks are handled as you would expect.
+
+# The build scripts
+
+### Optional Edit (all scripts)
+
+In these scripts you may wish to edit the `-j 8` argument to `make`. This
+radically speeds build on a multi core PC. Empirically 8 gave the fastest build
+on my Core i7 4/8 core laptop: adjust to suit your PC.
 
 ### Dependencies and setup (on PC)
 
@@ -53,6 +80,18 @@ cp 49-micropython.rules /etc/udev/rules.d
 pip3 install rshell
 ```
 
+The build scripts expect an environment variable MPDIR holding the path to the
+MicroPython source tree. To set this up, as normal user issue (edited for your
+path to the MicroPython source tree):
+
+```
+cd ~
+echo export MPDIR='/mnt/qnap2/data/Projects/MicroPython/micropython' >> .bashrc
+echo >> .bashrc
+```
+
+Close and restart the terminal session before proceding.
+
 Verify that `pyboard.py` works. To do this, close and restart the terminal
 session. Run Python3, paste the following and check that the red LED lights:
 
@@ -67,23 +106,18 @@ pyb.exec('pyb.LED(1).on()')
 pyb.exit_raw_repl()
 ```
 
-The build scripts expect an environment variable MPDIR holding the path to the
-MicroPython source tree. To set this up, as normal user issue (edited for your
-path to the MicroPython source tree):
-
-```
-cd ~
-echo export MPDIR='/mnt/qnap2/data/Projects/MicroPython/micropython' >> .bashrc
-echo >> .bashrc
-```
-
-Close and restart the terminal session before running the scripts.
-
 ### Build script: `buildpyb`  
 
 This checks the attached pyboard. If it's a V1.0, V1.1 or Lite it or a Pyboard
 D series it builds the correct firmware and deploys it. Otherwise it produces
 an error message.
+
+It freezes a different set of files depending on whether the board is a Pyboard
+V1.x or a Pyboard D. It can readily be adapted for finer-grain control or to
+produce project-specific builds.
+
+You will need to change the `MANIFESTS` variable which is the directory
+specifier for my manifest files.
 
 Optional argument `--clean` - if supplied does a `make clean` to delete
 all files produced by the previous build before proceeding.
@@ -93,7 +127,14 @@ all files produced by the previous build before proceeding.
 Report state of master branch, update sources and issue `make clean` for
 Pyboard variants and ESP8266. Builds cross compiler and unix port.
 
+If you don't use the Unix build you may wish to delete the unix make commands.
+
 ### ESP8266 Build
 
 `buildesp` A script to build and deploy ESP8266 firmware. Accepts optional
-`--clean` argument.
+`--clean` or `--erase` arguments. Both perform a `make clean` but the second
+also erases the ESP8266 flash.
+
+You will need to change the `MANIFEST` variable which is the directory
+specifier for my esp8266 manifest file.
+
