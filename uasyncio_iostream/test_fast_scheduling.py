@@ -1,8 +1,8 @@
-# iotest6.py Test fast_io PR
+# test_fast_scheduling.py Test fast_io PR
 # https://github.com/micropython/micropython-lib/pull/287
 
 # Test is designed to quantify the difference between fast and normal I/O without
-# recourse to electronic testgear.
+# recourse to electronic testgear. Run on Pyboard.
 
 # The MyIO class supports .readline() which updates a call counter and clears the
 # .ready_rd flag. This is set by a timer (emulating the arrival of data from
@@ -79,8 +79,8 @@ def test(fast=False):
     loop.run_until_complete(myior.killer())
 
 print('Test case of I/O competing with zero delay tasks.')
-print('fast_io False: approx I/O count 25, dummy count 510.')
-print('fast_io True: approx I/O count 510, dummy count 510.')
-print('New uasyncio: I/O count 46, dummy 509.')
+print('fast False, uasyncio V2: approx I/O count 25, dummy count 510.')
+print('fast False, new uasyncio: I/O count 46, dummy 509.')
+print('fast True, new uasyncio: approx I/O count 509, dummy count 509.')
 print('Run test() to check I/O performance at normal priority.')
 print('Run test(True) to check I/O performance at high priority.')
