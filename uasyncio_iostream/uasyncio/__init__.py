@@ -6,10 +6,12 @@ MIT license; Copyright (c) 2019 Damien P. George
 from time import ticks_ms as ticks, ticks_diff, ticks_add
 import sys, select
 
-################################################################################
-# Queue class
+type_genf = type((lambda: (yield)))  # Type of a generator function upy iss #3241
 
-class Queue:
+################################################################################
+# Task Queue class renamed to avoid conflict with Queue class
+
+class TQueue:
     def __init__(self):
         self.next = None
         self.last = None
@@ -85,7 +87,7 @@ class Task:
     def __iter__(self):
         if not hasattr(self, 'waiting'):
             # Lazily allocated head of linked list of Tasks waiting on completion of this task
-            self.waiting = Queue()
+            self.waiting = TQueue()
         return self
     def send(self, v):
         if not self.coro:
@@ -106,14 +108,15 @@ class Task:
         if hasattr(self.data, 'waiting'):
             self.data.waiting.remove(self)
         else:
-            _queue.remove(self)
-        _queue.push_error(self, CancelledError)
+            tqueue.remove(self)
+        tqueue.push_error(self, CancelledError)
         return True
 
 # Create and schedule a new task from a coroutine
 def create_task(coro):
+    assert not isinstance(coro, type_genf), 'Coroutine arg expected.'  # upy issue #3241
     t = Task(coro)
-    _queue.push_head(t)
+    tqueue.push_head(t)
     return t
 
 # "Yield" once, then raise StopIteration
@@ -134,7 +137,7 @@ class SingletonGenerator:
 # Pause task execution for the given time (integer in milliseconds, uPy extension)
 # Use a SingletonGenerator to do it without allocating on the heap
 def sleep_ms(t, sgen=SingletonGenerator()):
-    _queue.push_sorted(cur_task, ticks_add(ticks(), t))
+    tqueue.push_sorted(cur_task, ticks_add(ticks(), t))
     sgen.state = 1
     return sgen
 
@@ -165,7 +168,7 @@ async def wait_for(aw, timeout):
         # Ignore CancelledError from aw, it's probably due to timeout
         pass
     finally:
-        _queue.remove(cancel_task)
+        tqueue.remove(cancel_task)
     if cancel_task.coro is None:
         # Cancel task ran to completion, ie there was a timeout
         raise TimeoutError
@@ -190,72 +193,6 @@ async def gather(*aws, return_exceptions=False):
             else:
                 raise er
     return ts
-
-################################################################################
-# Lock (optional component)
-
-# Lock class for primitive mutex capability
-class Lock:
-    def __init__(self):
-        self.state = 0 # 0=unlocked; 1=unlocked but waiting task pending resume; 2=locked
-        self.waiting = Queue() # Queue of Tasks waiting to acquire this Lock
-    def locked(self):
-        return self.state == 2
-    def release(self):
-        if self.state != 2:
-            raise RuntimeError
-        if self.waiting.next:
-            # Task(s) waiting on lock, schedule first Task
-            _queue.push_head(self.waiting.pop_head())
-            self.state = 1
-        else:
-            # No Task waiting so unlock
-            self.state = 0
-    async def acquire(self):
-        if self.state != 0 or self.waiting.next:
-            # Lock unavailable, put the calling Task on the waiting queue
-            self.waiting.push_head(cur_task)
-            # Set calling task's data to double-link it
-            cur_task.data = self
-            try:
-                yield
-            except CancelledError:
-                if self.state == 1:
-                    # Cancelled while pending on resume, schedule next waiting Task
-                    self.state = 2
-                    self.release()
-                raise
-        # Lock available, set it as locked
-        self.state = 2
-        return True
-    async def __aenter__(self):
-        return await self.acquire()
-    async def __aexit__(self, exc_type, exc, tb):
-        return self.release()
-
-################################################################################
-# Event (optional component)
-
-# Event class for primitive events that can be waited on, set, and cleared
-class Event:
-    def __init__(self):
-        self.state = 0 # 0=unset; 1=set
-        self.waiting = Queue() # Queue of Tasks waiting on completion of this event
-    def set(self):
-        # Event becomes set, schedule any tasks waiting on it
-        while self.waiting.next:
-            _queue.push_head(self.waiting.pop_head())
-        self.state = 1
-    def clear(self):
-        self.state = 0
-    async def wait(self):
-        if self.state == 0:
-            # Event not set, put the calling task on the event's waiting queue
-            self.waiting.push_head(cur_task)
-            # Set calling task's data to this event that it waits on, to double-link it
-            cur_task.data = self
-            yield
-        return True
 
 ################################################################################
 # General streams
@@ -308,15 +245,15 @@ class IOQueue:
             #print('poll', s, sm, ev, err)
             if ev & select.POLLIN or (err and sm[0] is not None):
                 if fast:
-                    _queue.push_priority(sm[0])
+                    tqueue.push_priority(sm[0])
                 else:
-                    _queue.push_head(sm[0])
+                    tqueue.push_head(sm[0])
                 sm[0] = None
             if ev & select.POLLOUT or (err and sm[1] is not None):
                 if fast:
-                    _queue.push_priority(sm[0])
+                    tqueue.push_priority(sm[1])
                 else:
-                    _queue.push_head(sm[0])
+                    tqueue.push_head(sm[1])
                 sm[1] = None
             if sm[0] is None and sm[1] is None:
                 self._dequeue(s)
@@ -434,7 +371,7 @@ async def start_server(cb, host, port, backlog=5):
 # Main run loop
 
 # Queue of Task instances
-_queue = Queue()
+tqueue = TQueue()
 
 # Task queue and poller for stream IO
 _io_queue = IOQueue()
@@ -445,15 +382,15 @@ def run_until_complete(main_task=None):
     excs_all = (CancelledError, Exception) # To prevent heap allocation in loop
     excs_stop = (CancelledError, StopIteration) # To prevent heap allocation in loop
     while True:
-        # Wait until the head of _queue is ready to run
+        # Wait until the head of tqueue is ready to run
         dt = 1
         while dt > 0:
             dt = -1
-            if _queue.next:
-                # A task waiting on _queue
-                if isinstance(_queue.next.data, int):
+            if tqueue.next:
+                # A task waiting on tqueue
+                if isinstance(tqueue.next.data, int):
                     # "data" is time to schedule task at
-                    dt = max(0, ticks_diff(_queue.next.data, ticks()))
+                    dt = max(0, ticks_diff(tqueue.next.data, ticks()))
                 else:
                     # "data" is an exception to throw into the task
                     dt = 0
@@ -464,7 +401,7 @@ def run_until_complete(main_task=None):
             _io_queue.wait_io_event(dt)
 
         # Get next task to run and continue it
-        t = _queue.pop_head()
+        t = tqueue.pop_head()
         cur_task = t
         try:
             # Continue running the coroutine, it's responsible for rescheduling itself
@@ -482,7 +419,7 @@ def run_until_complete(main_task=None):
             waiting = False
             if hasattr(t, 'waiting'):
                 while t.waiting.next:
-                    _queue.push_head(t.waiting.pop_head())
+                    tqueue.push_head(t.waiting.pop_head())
                     waiting = True
                 t.waiting = None # Free waiting queue head
             _io_queue.remove(t) # Remove task from the IO queue (if it's on it)
@@ -491,6 +428,9 @@ def run_until_complete(main_task=None):
             if not waiting and not isinstance(er, excs_stop):
                 print('task raised exception:', t.coro)
                 sys.print_exception(er)
+
+StreamReader = Stream
+StreamWriter = Stream  # CPython 3.8 compatibility
 
 ################################################################################
 # Legacy uasyncio compatibility
@@ -508,9 +448,6 @@ Stream.aclose = Stream.wait_closed
 Stream.awrite = stream_awrite
 Stream.awritestr = stream_awrite # TODO explicitly convert to bytes?
 
-StreamReader = Stream
-StreamWriter = Stream
-
 class Loop:
     def create_task(self, coro):
         return create_task(coro)
@@ -524,3 +461,5 @@ class Loop:
 
 def get_event_loop(runq_len=0, waitq_len=0):
     return Loop()
+
+version = (3, 0, 0)
