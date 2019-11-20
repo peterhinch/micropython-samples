@@ -26,8 +26,8 @@ These have been adapted to work efficiently with the new version.
 
 # Other primitives
 
- 1. Message: Awaitable `Event` subclass with a data payload.
- 2. Barrier: Multiple tasks wait until all reach a Barrier instance. Or some tasks
+ 1. `Message`: Awaitable `Event` subclass with a data payload.
+ 2. `Barrier`: Multiple tasks wait until all reach a Barrier instance. Or some tasks
  wait until others have triggered the Barrier instance.
 
 # Test scripts
