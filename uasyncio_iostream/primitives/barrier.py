@@ -1,4 +1,4 @@
-# barrier.py MicroPython optimised version
+# Generic Barrier class: runs under CPython 3.8
 
 # A Barrier synchronises N coros. In normal use each issues await barrier.
 # Execution pauses until all other participant coros are waiting on it.
@@ -6,12 +6,9 @@
 # execution of all participants resumes.
 # .trigger enables a coro to signal it has passed the barrier without waiting.
 
-try:
-    import asyncio
-    raise RuntimeError('This version of barrier is MicroPython specific')
-except ImportError:
-    import uasyncio
+import asyncio
 
+# Ignore "coroutine '_g' was never awaited" warning.
 async def _g():
     pass
 type_coro = type(_g())
@@ -19,10 +16,12 @@ type_coro = type(_g())
 # If a callback is passed, run it and return.
 # If a coro is passed initiate it and return.
 # coros are passed by name i.e. not using function call syntax.
+
 def launch(func, tup_args):
     res = func(*tup_args)
     if isinstance(res, type_coro):
-        uasyncio.create_task(res)
+        asyncio.create_task(res)
+
 
 
 class Barrier():
@@ -30,33 +29,28 @@ class Barrier():
         self._participants = participants
         self._func = func
         self._args = args
-        self.waiting = uasyncio.TQueue()  # Linked list of Tasks waiting on completion of barrier
         self._reset(True)
+
+    def __await__(self):
+        self._update()
+        if self._at_limit():  # All other threads are also at limit
+            if self._func is not None:
+                launch(self._func, self._args)
+            self._reset(not self._down)  # Toggle direction to release others
+            return
+
+        direction = self._down
+        while True:  # Wait until last waiting thread changes the direction
+            if direction != self._down:
+                return
+            yield
 
     def trigger(self):
         self._update()
-        if self._at_limit():  # All other coros are also at limit
+        if self._at_limit():  # All other threads are also at limit
             if self._func is not None:
                 launch(self._func, self._args)
-            self._reset(not self._down)  # Toggle direction and release others
-            while self.waiting.next:
-                uasyncio.tqueue.push_head(self.waiting.pop_head())
-
-    def __iter__(self):  # MicroPython
-        self._update()
-        if self._at_limit():  # All other coros are also at limit
-            if self._func is not None:
-                launch(self._func, self._args)
-            self._reset(not self._down)  # Toggle direction and release others
-            while self.waiting.next:
-                uasyncio.tqueue.push_head(self.waiting.pop_head())
-            return
-        direction = self._down
-        # Other tasks have not reached barrier, put the calling task on the barrier's waiting queue
-        self.waiting.push_head(uasyncio.cur_task)
-        # Set calling task's data to this barrier that it waits on, to double-link it
-        uasyncio.cur_task.data = self
-        yield
+            self._reset(not self._down)  # Toggle direction to release others
 
     def _reset(self, down):
         self._down = down

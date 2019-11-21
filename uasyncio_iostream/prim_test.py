@@ -23,13 +23,22 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-import uasyncio as asyncio
-import uasyncio.lock
-import uasyncio.event
-import uasyncio.barrier
-import uasyncio.semaphore
-import uasyncio.condition
-from uasyncio.queue import Queue  # Name collision in __init__.py
+try:
+    import asyncio
+except ImportError:
+    # Specific imports under MicroPython to conserve RAM
+    import uasyncio as asyncio
+    import uasyncio.lock
+    import uasyncio.event
+    import uasyncio.semaphore
+    import uasyncio.condition
+    import uasyncio.queue
+    from uasyncio.barrier import Barrier  # MicroPython optimised
+else:
+    from primitives.barrier import Barrier  # CPython generic
+from primitives.message import Message  # Portable
+
+
 
 def print_tests():
     st = '''Available functions:
@@ -69,7 +78,7 @@ async def event_wait(message, ack_event, n):
     ack_event.set()
 
 async def run_ack():
-    message = asyncio.Message()
+    message = Message()
     ack1 = asyncio.Event()
     ack2 = asyncio.Event()
     count = 0
@@ -121,7 +130,7 @@ Cleared message
 I've seen attack ships burn on the shoulder of Orion...
 Time to die...
 ''', 10)
-    asyncio.run(ack_coro(10))
+    asyncio.get_event_loop().run_until_complete(ack_coro(10))
 
 # ************ Test Message class ************
 
@@ -132,7 +141,7 @@ async def wait_message(message):
     print('Got message {}'.format(msg))
 
 async def run_message_test():
-    message = asyncio.Message()
+    message = Message()
     asyncio.create_task(wait_message(message))
     await asyncio.sleep(1)
     message.set('Hello world')
@@ -143,7 +152,7 @@ def message_test():
 Waiting for message
 Got message Hello world
 ''', 2)
-    asyncio.run(run_message_test())
+    asyncio.get_event_loop().run_until_complete(run_message_test())
 
 # ************ Test Lock and Event classes ************
 
@@ -199,11 +208,14 @@ got event
 Event status OK
 Tasks complete
 ''', 5)
-    asyncio.run(run_event_test())
+    asyncio.get_event_loop().run_until_complete(run_event_test())
 
 # ************ Barrier test ************
 
-async def killer(duration):
+async def main(duration):
+    barrier = Barrier(3, callback, ('Synch',))
+    for _ in range(3):
+        asyncio.create_task(report(barrier))
     await asyncio.sleep(duration)
 
 def callback(text):
@@ -221,10 +233,7 @@ def barrier_test():
 3 3 3 Synch
 4 4 4 Synch
 ''')
-    barrier = asyncio.Barrier(3, callback, ('Synch',))
-    for _ in range(3):
-        asyncio.create_task(report(barrier))
-    asyncio.run(killer(2))
+    asyncio.get_event_loop().run_until_complete(main(2))
 
 # ************ Semaphore test ************
 
@@ -239,7 +248,7 @@ async def run_sema(n, sema, barrier):
 
 async def run_sema_test(bounded):
     num_coros = 5
-    barrier = asyncio.Barrier(num_coros + 1)
+    barrier = Barrier(num_coros + 1)
     if bounded:
         semaphore = asyncio.BoundedSemaphore(3)
     else:
@@ -291,7 +300,7 @@ run_sema 4 has released semaphore
 
 Exact sequence of acquisition may vary when 3 and 4 compete for semaphore.'''
     printexp(exp, 3)
-    asyncio.run(run_sema_test(bounded))
+    asyncio.get_event_loop().run_until_complete(run_sema_test(bounded))
 
 # ************ Condition test ************
 
@@ -343,20 +352,20 @@ async def cond04(n, cond, barrier):
 async def cond_go():
     cond = asyncio.Condition()
     ntasks = 7
-    barrier = asyncio.Barrier(ntasks + 1)
+    barrier = Barrier(ntasks + 1)
     t1 = asyncio.create_task(cond01_new(cond))
     t3 = asyncio.create_task(cond03_new())
     for n in range(ntasks):
         asyncio.create_task(cond02(n, cond, barrier))
     await barrier  # All instances of cond02 have completed
     # Test wait_for
-    barrier = asyncio.Barrier(2)
+    barrier = Barrier(2)
     asyncio.create_task(cond04(99, cond, barrier))
     await barrier
     # cancel continuously running coros.
     t1.cancel()
     t3.cancel()
-    await asyncio.sleep_ms(0)
+    await asyncio.sleep(0)
     print('Done.')
 
 def condition_test():
@@ -378,7 +387,7 @@ cond04 99 Awaiting notification and predicate.
 cond04 99 triggered. tim = 9
 Done.
 ''', 13)
-    asyncio.run(cond_go())
+    asyncio.get_event_loop().run_until_complete(cond_go())
 
 # ************ Queue test ************
 
@@ -395,7 +404,7 @@ async def mtq(myq):
         await asyncio.sleep(0.2)
 
 async def queue_go():
-    myq = Queue(5)
+    myq = asyncio.Queue(5)
     asyncio.create_task(fillq(myq))
     await mtq(myq)
 
@@ -418,4 +427,4 @@ Retrieved 5 from queue
 Retrieved 6 from queue
 Retrieved 7 from queue
 ''', 3)
-    asyncio.run(queue_go())
+    asyncio.get_event_loop().run_until_complete(queue_go())

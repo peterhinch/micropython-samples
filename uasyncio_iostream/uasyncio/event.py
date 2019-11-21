@@ -24,28 +24,3 @@ class Event:
         return True
 
 uasyncio.Event = Event
-
-# A coro waiting on a message issues msg = await Message_instance
-# A coro rasing the message issues event.set(msg)
-# When all waiting coros have run
-# Message.clear() should be issued
-class Message(uasyncio.Event):
-    def __init__(self, delay_ms=0):
-        super().__init__()
-        self._data = None
-
-    def clear(self):
-        super().clear()
-
-    def __iter__(self):
-        await self.wait()
-        return self._data
-
-    def set(self, data=None):
-        super().set()
-        self._data = data
-
-    def value(self):
-        return self._data
-
-uasyncio.Message = Message
