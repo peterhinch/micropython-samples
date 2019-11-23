@@ -19,8 +19,8 @@ This archive contains suggestions for changes to new `uasyncio`:
 
 # CPython-compatible synchronisation primitives
 
-The ones I implemented are adapted to work efficiently with the new version.
-All are separate modules to conserve RAM.
+These aim to work efficiently with the new version. All are separate modules to
+conserve RAM.
 
  1. `Event`: just moved to separate module.
  2. `Lock`: Kevin Köck's solution.
@@ -30,7 +30,7 @@ All are separate modules to conserve RAM.
 
 # Other primitives
 
-Included as examples of user-contributed primitives.
+Included as examples of user-contributed primitives - see final section.
 
  1. `Message`: Awaitable `Event` subclass with a data payload.
  2. `Barrier`: Multiple tasks wait until all reach a Barrier instance. Or some
@@ -61,3 +61,16 @@ is loosely based on
 
 MicroPython optimised primitives are in `uasyncio/`. Primitives compatible with
 `asyncio` are in `primitives/`.
+
+# Future uasyncio implementations
+
+If part of `uasyncio` is to be implemented in C, it would be good if the following
+capabilities were retained to facilitate writing efficient add-on modules, e.g.
+`Message` and `Barrier` classes:
+ 1. The ability to subclass the `asyncio` compatible primitives.
+ 2. The ability to access `uasyncio`'s task queue and to instantiate task queues
+ (as per the `Event` and `Barrier` classes).
+ 3. Some means of creating waitable classes (e.g. `__iter__`).
+
+The mechanism for doing these things might change, but it would be a shame to lose
+the capability.
