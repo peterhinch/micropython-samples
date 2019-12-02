@@ -46,7 +46,7 @@ class Lock(uasyncio.Primitive):
             raise RuntimeError("Lock is not acquired.")
         self._locked = False
         # Lock becomes available. If task(s) are waiting on it save task which will
-        self.awt = self.run_next()  # get lock and schedule that task
+        self._awt = self.run_next()  # get lock and schedule that task
 
     async def __aexit__(self, *args):
         return self.release()
