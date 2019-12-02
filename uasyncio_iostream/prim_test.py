@@ -407,9 +407,19 @@ async def queue_go():
     myq = asyncio.Queue(5)
     asyncio.create_task(fillq(myq))
     await mtq(myq)
+    t = asyncio.create_task(fillq(myq))
+    await asyncio.sleep(1)
+    print('Queue filled. Cancelling fill task. Queue should be full.')
+    t.cancel()
+    await mtq(myq)
+    t = asyncio.create_task(myq.get())
+    await asyncio.sleep(1)
+    print('Cancelling attempt to get from empty queue.')
+    t.cancel()
+    print('Queue size:', myq.qsize())
 
 def queue_test():
-    printexp('''Running (runtime = 3s):
+    printexp('''Running (runtime = 7s):
 Waiting to put item 0 on queue
 Waiting to put item 1 on queue
 Waiting to put item 2 on queue
@@ -426,5 +436,19 @@ Retrieved 4 from queue
 Retrieved 5 from queue
 Retrieved 6 from queue
 Retrieved 7 from queue
-''', 3)
+Waiting to put item 0 on queue
+Waiting to put item 1 on queue
+Waiting to put item 2 on queue
+Waiting to put item 3 on queue
+Waiting to put item 4 on queue
+Waiting to put item 5 on queue
+Queue filled. Cancelling fill task. Queue should be full.
+Retrieved 0 from queue
+Retrieved 1 from queue
+Retrieved 2 from queue
+Retrieved 3 from queue
+Retrieved 4 from queue
+Cancelling attempt to get from empty queue.
+Queue size: 0
+''', 7)
     asyncio.get_event_loop().run_until_complete(queue_go())

@@ -28,8 +28,7 @@ class Queue:
     def __init__(self, maxsize=0):
         self.maxsize = maxsize
         self._queue = deque((), maxsize)
-        self.p_tasks = uasyncio.TQueue() # Queue of Tasks waiting to put to queue
-        self.g_tasks = uasyncio.TQueue() # Queue of Tasks waiting to get from queue
+        self.waiting = uasyncio.TQueue()  # Linked list of Tasks waiting on queue
 
     def _get(self):
         return self._queue.popleft()
@@ -38,17 +37,13 @@ class Queue:
         if not self._queue:
             # Queue is empty, put the calling Task on the waiting queue
             task = uasyncio.cur_task
-            self.g_tasks.push_head(task)
+            self.waiting.push_head(task)
             # Set calling task's data to double-link it
             task.data = self
-            try:
-                yield
-            except asyncio.CancelledError:
-                self.g_tasks.remove(task)
-                raise
-        if self.p_tasks.next:
+            yield
+        if self.waiting.next:
             # Task(s) waiting to put on queue, schedule first Task
-            uasyncio.tqueue.push_head(self.p_tasks.pop_head())
+            uasyncio.tqueue.push_head(self.waiting.pop_head())
         return self._get()
 
     def get_nowait(self):  # Remove and return an item from the queue.
@@ -64,17 +59,13 @@ class Queue:
         if self.qsize() >= self.maxsize and self.maxsize:
             # Queue full, put the calling Task on the waiting queue
             task = uasyncio.cur_task
-            self.p_tasks.push_head(task)
+            self.waiting.push_head(task)
             # Set calling task's data to double-link it
             uasyncio.cur_task.data = self
-            try:
-                yield
-            except asyncio.CancelledError:
-                self.p_tasks.remove(task)
-                raise
-        if self.g_tasks.next:
+            yield
+        if self.waiting.next:
             # Task(s) waiting to get from queue, schedule first Task
-            uasyncio.tqueue.push_head(self.g_tasks.pop_head())
+            uasyncio.tqueue.push_head(self.waiting.pop_head())
         self._put(val)
 
     def put_nowait(self, val):  # Put an item into the queue without blocking.
