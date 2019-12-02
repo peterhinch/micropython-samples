@@ -2,7 +2,7 @@ import uasyncio
 import uasyncio.lock
 import uasyncio.event
 
-class Condition():
+class Condition:
     def __init__(self, lock=None):
         self.lock = uasyncio.Lock() if lock is None else lock
         self.events = []

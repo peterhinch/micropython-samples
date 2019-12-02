@@ -25,12 +25,12 @@ def launch(func, tup_args):
         uasyncio.create_task(res)
 
 
-class Barrier():
+class Barrier(uasyncio.Primitive):
     def __init__(self, participants, func=None, args=()):
+        super().__init__()
         self._participants = participants
         self._func = func
         self._args = args
-        self.waiting = uasyncio.TQueue()  # Linked list of Tasks waiting on completion of barrier
         self._reset(True)
 
     def trigger(self):
@@ -39,8 +39,7 @@ class Barrier():
             if self._func is not None:
                 launch(self._func, self._args)
             self._reset(not self._down)  # Toggle direction and release others
-            while self.waiting.next:
-                uasyncio.tqueue.push_head(self.waiting.pop_head())
+            self.run_all()
 
     def __iter__(self):  # MicroPython
         self._update()
@@ -48,14 +47,11 @@ class Barrier():
             if self._func is not None:
                 launch(self._func, self._args)
             self._reset(not self._down)  # Toggle direction and release others
-            while self.waiting.next:
-                uasyncio.tqueue.push_head(self.waiting.pop_head())
+            self.run_all()
             return
         direction = self._down
         # Other tasks have not reached barrier, put the calling task on the barrier's waiting queue
-        self.waiting.push_head(uasyncio.cur_task)
-        # Set calling task's data to this barrier that it waits on, to double-link it
-        uasyncio.cur_task.data = self
+        self.save_current()
         yield
 
     def _reset(self, down):

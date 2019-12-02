@@ -23,12 +23,12 @@ class QueueFull(Exception):
 # interrupted between calling qsize() and doing an operation on the Queue.
 
 
-class Queue:
+class Queue(uasyncio.Primitive):
 
     def __init__(self, maxsize=0):
+        super().__init__()
         self.maxsize = maxsize
         self._queue = deque((), maxsize)
-        self.waiting = uasyncio.TQueue()  # Linked list of Tasks waiting on queue
 
     def _get(self):
         return self._queue.popleft()
@@ -36,14 +36,9 @@ class Queue:
     async def get(self):  #  Usage: item = await queue.get()
         if not self._queue:
             # Queue is empty, put the calling Task on the waiting queue
-            task = uasyncio.cur_task
-            self.waiting.push_head(task)
-            # Set calling task's data to double-link it
-            task.data = self
+            self.save_current()
             yield
-        if self.waiting.next:
-            # Task(s) waiting to put on queue, schedule first Task
-            uasyncio.tqueue.push_head(self.waiting.pop_head())
+        self.run_next()  # Task(s) waiting to put on queue, schedule first Task
         return self._get()
 
     def get_nowait(self):  # Remove and return an item from the queue.
@@ -58,14 +53,9 @@ class Queue:
     async def put(self, val):  # Usage: await queue.put(item)
         if self.qsize() >= self.maxsize and self.maxsize:
             # Queue full, put the calling Task on the waiting queue
-            task = uasyncio.cur_task
-            self.waiting.push_head(task)
-            # Set calling task's data to double-link it
-            uasyncio.cur_task.data = self
+            self.save_current()
             yield
-        if self.waiting.next:
-            # Task(s) waiting to get from queue, schedule first Task
-            uasyncio.tqueue.push_head(self.waiting.pop_head())
+        self.run_next()  # Task(s) waiting to get from queue, schedule first Task
         self._put(val)
 
     def put_nowait(self, val):  # Put an item into the queue without blocking.

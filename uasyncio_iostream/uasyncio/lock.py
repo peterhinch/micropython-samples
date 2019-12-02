@@ -7,10 +7,10 @@ import uasyncio
 import uasyncio
 
 
-class Lock:
+class Lock(uasyncio.Primitive):
     def __init__(self):
+        super().__init__()
         self._locked = False
-        self.waiting = uasyncio.TQueue()  # Linked list of Tasks waiting on completion of this event
         self._awt = None  # task that is going to acquire the lock. Needed to prevent race
         # condition between pushing the next waiting task and the task actually acquiring
         # the lock because during that time another newly started task could acquire the
@@ -21,8 +21,7 @@ class Lock:
         if self._locked or self._awt:
             # Lock set or just released but has tasks waiting on it,
             # put the calling task on the Lock's waiting queue and yield
-            self.waiting.push_head(uasyncio.cur_task)
-            uasyncio.cur_task.data = self
+            self.save_current()
             try:
                 yield
             except uasyncio.CancelledError:
@@ -46,10 +45,8 @@ class Lock:
         if not self._locked:
             raise RuntimeError("Lock is not acquired.")
         self._locked = False
-        self._awt = self.waiting.next  # Task which will get lock
-        if self.waiting.next:
-            # Lock becomes available, schedule next task waiting on it
-            uasyncio.tqueue.push_head(self.waiting.pop_head())
+        # Lock becomes available. If task(s) are waiting on it save task which will
+        self.awt = self.run_next()  # get lock and schedule that task
 
     async def __aexit__(self, *args):
         return self.release()

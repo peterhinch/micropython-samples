@@ -1,13 +1,15 @@
 # Changes to usayncio
 
-This archive contains suggestions for changes to new `uasyncio`:
+This archive contains suggestions for changes to new `uasyncio`. Item 3 below
+added 2 Dec.
 
  1. Implement as a Python package.
  2. Implement synchronisation primitives as package modules to conserve RAM.
- 3. Add `.priority` method to `Stream` class. Enables I/O to be handled at high
+ 3. `Primitive` class has methods common to most synchronisation primitives.
+ 4. Add `.priority` method to `Stream` class. Enables I/O to be handled at high
  priority on a per-device basis.
- 4. Rename task queue class `TQueue` to avoid name clash with Queue primitive.
- 5. Rename task queue instance to `tqueue` as it is used by primitives.
+ 5. Rename task queue class `TQueue` to avoid name clash with Queue primitive.
+ 6. Rename task queue instance to `tqueue` as it might be used by primitives.
 
 ## Minor changes
 

@@ -9,6 +9,26 @@ import sys, select
 type_genf = type((lambda: (yield)))  # Type of a generator function upy iss #3241
 
 ################################################################################
+# Primitive class embodies methods common to most synchronisation primitives
+
+class Primitive:
+    def __init__(self):
+        self.waiting = TQueue()  # Linked list of Tasks waiting on completion
+    def run_next(self):
+        awt = self.waiting.next
+        if awt:  # Schedule next task waiting on primitive
+            tqueue.push_head(self.waiting.pop_head())
+        return awt
+    def run_all(self):
+        while self.waiting.next:  # Schedule all tasks waiting on primitive
+            tqueue.push_head(self.waiting.pop_head())
+    def save_current(self):  # Postpone currently running task
+        self.waiting.push_head(cur_task)
+        # Set calling task's data to this event that it waits on, to double-link it
+        cur_task.data = self
+
+
+################################################################################
 # Task Queue class renamed to avoid conflict with Queue class
 
 class TQueue:
@@ -462,4 +482,4 @@ class Loop:
 def get_event_loop(runq_len=0, waitq_len=0):
     return Loop()
 
-version = (3, 0, 0)
+version = (3, 0, 1)
