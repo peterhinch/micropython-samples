@@ -24,7 +24,7 @@ added 2 Dec, task queue name reverted to `_queue` as this can now be private.
 These aim to work efficiently with the new version. All are separate modules to
 conserve RAM. Items 1-4 use classes based on `uasyncio.Primitive`.
 
- 1. `Event`: just moved to separate module.
+ 1. `Event`: Moved to separate module.
  2. `Lock`: Kevin Köck's solution.
  3. `Queue`: Paul's solution adapted for efficiency.
  4. `Semaphore`: Also implements `BoundedSemaphore`.
@@ -35,8 +35,10 @@ conserve RAM. Items 1-4 use classes based on `uasyncio.Primitive`.
 Included as examples of user-contributed primitives - see final section.
 
  1. `Message`: Awaitable `Event` subclass with a data payload.
- 2. `Barrier`: Multiple tasks wait until all reach a Barrier instance. Or some
- tasks wait until others have triggered the Barrier instance.
+ 2. `Barrier`: Multiple tasks wait until all are either waiting on a Barrier
+ instance or have triggered the instance without waiting. Similar to  `gather`
+ without the controlling coro: a barrier is shared between peers and may be
+ used in loops.
 
 # Test scripts
 
@@ -67,11 +69,10 @@ MicroPython optimised primitives are in `uasyncio/`. Primitives compatible with
 # Future uasyncio implementations
 
 If part of `uasyncio` is to be implemented in C, it would be good if the following
-capabilities were retained to facilitate writing efficient add-on modules, e.g.
-`Message` and `Barrier` classes:
+capabilities were retained to facilitate writing efficient add-on modules along the
+lines of the `Message` and `Barrier` classes:
  1. The ability to subclass the `asyncio` compatible primitives.
- 2. The ability to access `uasyncio`'s task queue and to instantiate task queues
- (as per the `Event` and `Barrier` classes).
+ 2. The ability to subclass `uasyncio.Primitive` (if you implement it).
  3. Some means of creating waitable classes (e.g. `__iter__`).
 
 The mechanism for doing these things might change, but it would be a shame to lose
