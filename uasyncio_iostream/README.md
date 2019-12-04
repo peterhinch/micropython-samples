@@ -73,7 +73,52 @@ capabilities were retained to facilitate writing efficient add-on modules along 
 lines of the `Message` and `Barrier` classes:
  1. The ability to subclass the `asyncio` compatible primitives.
  2. The ability to subclass `uasyncio.Primitive` (if you implement it).
- 3. Some means of creating waitable classes (e.g. `__iter__`).
+ 3. Some means of creating awaitable classes (e.g. `__iter__`).
 
 The mechanism for doing these things might change, but it would be a shame to lose
 the capability.
+
+# Suggestion
+
+Implement `wait_for_ms` as per V2.
+
+# Awaitable classes
+
+I reviewed the code samples in my tutorial: with minor changes to remove event
+loop methods they will run under CPython 3.8 and the new uasyncio without
+version-specific code. The one exception remains awaitable classes. The `Foo`
+class works under both versions but isn't pretty. I guess this is a minor
+problem: a similar hack is required for V2 and nobody has complained.
+```python
+up = False  # Running under MicroPython?
+try:
+    import uasyncio as asyncio
+    up = True  # Or can use sys.implementation.name
+except ImportError:
+    import asyncio
+
+async def times_two(n):  # Coro to await
+    await asyncio.sleep(1)
+    return 2 * n
+
+class Foo():
+    def __await__(self):
+        res = 1
+        for n in range(5):
+            print('__await__ called')
+            if up:  # MicroPython
+                res = yield from times_two(res)
+            else:  # CPython
+                res = yield from times_two(res).__await__()
+        return res
+
+    __iter__ = __await__  # MicroPython compatibility
+
+async def bar():
+    foo = Foo()  # foo is awaitable
+    print('waiting for foo')
+    res = await foo  # Retrieve value
+    print('done', res)
+
+asyncio.run(bar())
+```
