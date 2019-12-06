@@ -76,14 +76,13 @@ MicroPython optimised primitives are in `uasyncio/`. Primitives compatible with
 # 6. Future uasyncio implementations
 
 If part of `uasyncio` is to be implemented in C, it would be good if the following
-capabilities were retained to facilitate writing efficient add-on modules along the
-lines of the `Message` and `Barrier` classes:
+capabilities were retained:
  1. The ability to subclass the `asyncio` compatible primitives.
- 2. The ability to subclass `uasyncio.Primitive` (if you implement it).
- 3. Some means of creating awaitable classes (e.g. `__iter__`).
-
-The mechanism for doing these things might change, but it would be a shame to lose
-the capability.
+ 2. The ability to subclass `uasyncio.Primitive` (or provide other access to that
+ functionality).
+ 3. A means of replacing the timebase by one based on the RTC for low power
+ applications.
+ 4. A means of creating awaitable classes (e.g. `__iter__`).
 
 # 7. Revisiting topics discussed via email
 
