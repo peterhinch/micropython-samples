@@ -59,6 +59,8 @@ Hopefully these are self-documenting on import.
  I/O scheduling. Runs on Pyboard.
  3. `ms_timer.py` and `ms_timer_test.py` A practical use of priority scheduling to
  implement a timer with higher precision than `asyncio.sleep_ms`. Runs on Pyboard.
+ 4. `test_can.py` Demonstrates differences in behaviour between CPython 3.8 and
+ MicroPython. See code comments.
 
 # 5. CPython compatibility of user primitives
 
