@@ -7,6 +7,7 @@ from time import ticks_ms as ticks, ticks_diff, ticks_add
 import sys, select
 
 type_genf = type((lambda: (yield)))  # Type of a generator function upy iss #3241
+_exc_message = 'Task exception was never retrieved'
 
 ################################################################################
 # Primitive class embodies methods common to most synchronisation primitives
@@ -390,6 +391,20 @@ async def start_server(cb, host, port, backlog=5):
 ################################################################################
 # Main run loop
 
+_context = {"message":   _exc_message,
+            "exception": None,
+            "future":    None}
+
+
+def _exc_handler(loop, context):
+    print(context["message"])
+    print("future:",context["future"],"coro=",context["future"].coro)
+    # missing traceback
+    sys.print_exception(context["exception"])
+
+# set default exception handler
+exc_handler = _exc_handler
+
 # Queue of Task instances
 _queue = TQueue()
 
@@ -443,11 +458,12 @@ def run_until_complete(main_task=None):
                     waiting = True
                 t.waiting = None # Free waiting queue head
             _io_queue.remove(t) # Remove task from the IO queue (if it's on it)
-            t.coro = None # Indicate task is done
             # Print out exception for detached tasks
             if not waiting and not isinstance(er, excs_stop):
-                print('task raised exception:', t.coro)
-                sys.print_exception(er)
+                _context["exception"] = er
+                _context["future"] = t
+                Loop.call_exception_handler(_context)
+            t.coro = None  # Indicate task is done
 
 StreamReader = Stream
 StreamWriter = Stream  # CPython 3.8 compatibility
@@ -469,17 +485,34 @@ Stream.awrite = stream_awrite
 Stream.awritestr = stream_awrite # TODO explicitly convert to bytes?
 
 class Loop:
-    def create_task(self, coro):
+    @staticmethod
+    def create_task(coro):
         return create_task(coro)
-    def run_forever(self):
+    @staticmethod
+    def run_forever():
         run_until_complete()
         # TODO should keep running until .stop() is called, even if there're no tasks left
-    def run_until_complete(self, aw):
+    @staticmethod
+    def run_until_complete(aw):
         return run_until_complete(_promote_to_task(aw))
+    @staticmethod
     def close(self):
         pass
+    @staticmethod
+    def set_exception_handler(handler):
+        global exc_handler
+        exc_handler = handler
+    @staticmethod
+    def get_exception_handler():
+        return exc_handler
+    @classmethod
+    def default_exception_handler(cls,context):
+        exc_handler(cls,context)
+    @classmethod
+    def call_exception_handler(cls, context):
+        exc_handler(cls,context)
 
 def get_event_loop(runq_len=0, waitq_len=0):
     return Loop()
 
-version = (3, 0, 1)
+version = (3, 0, 2)
