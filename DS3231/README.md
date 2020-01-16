@@ -28,10 +28,6 @@ local time (`utime.localtime()`) is based on the RTC time. Changes to local
 time don't propagate to the RTC which must explicitly be set. This holds for
 the Pyboard, ESP8266 and ESP32.
 
-The official ESP32 port currently lacks support for the RTC so the Loboris port
-should be used for this purpose. The driver supports both but if the official
-port is used only the local time can be updated from the DS3231.
-
 ## 1.1 The DS3231 class
 
 Constructor:  

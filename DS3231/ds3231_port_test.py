@@ -7,7 +7,12 @@
 from machine import Pin, I2C
 import utime
 import sys
+import uos
 from ds3231_port import DS3231
+
+# If powering the DS3231 from a Pyboard D 3V3 output:
+if uos.uname().machine.split(' ')[0][:4] == 'PYBD':
+    Pin.board.EN_3V3.value(1)
 
 # A Pyboard test
 #from pyb import RTC
