@@ -9,18 +9,11 @@ import machine
 import sys
 DS3231_I2C_ADDR = 104
 
-class DS3231Exception(OSError):
-    pass
-
-if sys.platform == 'pyboard':
-    import pyb
-    rtc = pyb.RTC()
-else:
-    try:
-        rtc = machine.RTC()
-    except:  # Official ESP32 port
-        print('warning: machine module does not support the RTC.')
-        rtc = None
+try:
+    rtc = machine.RTC()
+except:
+    print('Warning: machine module does not support the RTC.')
+    rtc = None
 
 def bcd2dec(bcd):
     return (((bcd & 0xf0) >> 4) * 10 + (bcd & 0x0f))
@@ -37,11 +30,11 @@ class DS3231:
         self.ds3231 = i2c
         self.timebuf = bytearray(7)
         if DS3231_I2C_ADDR not in self.ds3231.scan():
-            raise DS3231Exception("DS3231 not found on I2C bus at %d" % DS3231_I2C_ADDR)
+            raise RuntimeError("DS3231 not found on I2C bus at %d" % DS3231_I2C_ADDR)
 
-    def get_time(self, set_rtc = False):
+    def get_time(self, set_rtc=False):
         if set_rtc:
-            self.await_transition()      # For accuracy set RTC immediately after a seconds transition
+            self.await_transition()  # For accuracy set RTC immediately after a seconds transition
         else:
             self.ds3231.readfrom_mem_into(DS3231_I2C_ADDR, 0, self.timebuf) # don't wait
         return self.convert(set_rtc)
@@ -72,10 +65,7 @@ class DS3231:
                 secs = utime.mktime(result)
                 utime.localtime(secs)
             else:
-                if sys.platform == 'pyboard' or sys.platform == 'esp8266':
-                    rtc.datetime((YY, MM, DD, wday, hh, mm, ss, 0))
-                else:
-                    rtc.init((YY, MM, DD, hh, mm, ss))
+                rtc.datetime((YY, MM, DD, wday, hh, mm, ss, 0))
         return result
 
     def save_time(self):
