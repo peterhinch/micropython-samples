@@ -51,7 +51,8 @@ Public methods:
 
 # 2. The Pyboard driver
 
-The principal reason to use this driver is to calibrate the Pyboard's RTC. 
+The principal reason to use this driver is to calibrate the Pyboard's RTC. This
+does not yet support the Pyboard D.
 
 This assumes that the DS3231 is connected to the hardware I2C port on the `X`
 or `Y` side of the board, and that the Pyboard's RTC is set to the correct time
@@ -85,3 +86,7 @@ Public methods:
  calibration factor and applies it to the Pyboard. It returns the calibration
  factor which may be stored in a file if the calibration needs to survive an
  outage of all power sources.
+ 4. `getcal(minutes=5, cal=0, verbose=True)` Measures the performance of the
+ Pyboard RTC against the DS3231. If `cal` is specified, the calibration factor
+ is applied before the test is run. The default is to zero the calibration and
+ return the required factor.
