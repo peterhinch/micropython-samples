@@ -96,13 +96,37 @@ class DS3231:
     # one-seond boundaries and using ticks_ms() to time the RTC.
     # For a 10 minute measurement +-1ms corresponds to 1.7ppm or 53s/yr. Longer
     # runtimes improve this, but the DS3231 is "only" good for +-2ppm over 0-40C.
-    def rtc_test(self, runtime=600, ppm=False):
-        factor = 1000000 if ppm else 31557600  # seconds per year
-        self.await_transition()  # Start on transition
-        rtc_start = utime.ticks_ms()  # and get RTC time NOW
-        ds3231_start = utime.mktime(self.convert())
+    def rtc_test(self, runtime=600, ppm=False, verbose=True):
+        if rtc is None:
+            raise RuntimeError('machine.RTC does not exist')
+        verbose and print('Waiting {} minutes for result'.format(runtime//60))
+        factor = 1_000_000 if ppm else 114_155_200  # seconds per year
+
+        self.await_transition()  # Start on transition of DS3231. Record time in .timebuf
+        t = utime.ticks_ms()  # Get system time now
+        ss = rtc.datetime()[6]  # Seconds from system RTC
+        while ss == rtc.datetime()[6]:
+            pass
+        ds = utime.ticks_diff(utime.ticks_ms(), t)  # ms to transition of RTC
+        ds3231_start = utime.mktime(self.convert())  # Time when transition occurred
+        t = rtc.datetime()
+        rtc_start = utime.mktime((t[0], t[1], t[2], t[4], t[5], t[6], t[3] - 1, 0))  # y m d h m s wday 0
+
         utime.sleep(runtime)  # Wait a while (precision doesn't matter)
-        self.await_transition()  
-        d_rtc = utime.ticks_diff(utime.ticks_ms(), rtc_start)
-        d_ds3231 = 1000 * (utime.mktime(self.convert()) - ds3231_start)
-        return (d_ds3231 - d_rtc) * factor / d_ds3231
+
+        self.await_transition()  # of DS3231 and record the time
+        t = utime.ticks_ms()  # and get system time now
+        ss = rtc.datetime()[6]  # Seconds from system RTC
+        while ss == rtc.datetime()[6]:
+            pass
+        de = utime.ticks_diff(utime.ticks_ms(), t)  # ms to transition of RTC
+        ds3231_end = utime.mktime(self.convert())  # Time when transition occurred
+        t = rtc.datetime()
+        rtc_end = utime.mktime((t[0], t[1], t[2], t[4], t[5], t[6], t[3] - 1, 0))  # y m d h m s wday 0
+
+        d_rtc = 1000 * (rtc_end - rtc_start) + de - ds  # ms recorded by RTC
+        d_ds3231 = 1000 * (ds3231_end - ds3231_start)  # ms recorded by DS3231
+        ratio = (d_ds3231 - d_rtc) / d_ds3231
+        ppm = ratio * 1_000_000
+        verbose and print('DS3231 leads RTC by {:4.1f}ppm {:4.1f}mins/yr'.format(ppm, ppm*1.903))
+        return ratio * factor
