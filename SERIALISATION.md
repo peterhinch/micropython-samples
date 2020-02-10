@@ -108,7 +108,23 @@ Decoded data (partial): test
 more
 ```
 Consequently encoded strings may be separated with `'\n'` before saving and
-reading may be done using `readline` methods.
+reading may be done using `readline` methods as in this code fragment where
+`u` is a UART instance:
+
+```python
+s = ujson.dumps(data)
+# pickle produces a bytes object whereas ujson produces a string
+# In the case of ujson it is probably wise to convert to bytes
+u.write(s.encode())
+# Pickle:
+# u.write(s)
+u.write(b'\n')
+
+# receiver
+s = u.readline()
+v = ujson.loads(s)  # ujson can cope with bytes object
+# ujson and pickle can cope with trailing newline.
+```
 
 # 3. ustruct
 
