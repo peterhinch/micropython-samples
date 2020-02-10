@@ -18,6 +18,12 @@ updating your local source. Now detects and builds for Pyboard D. See [docs](./f
 [Easy installation](./PICOWEB.md) guide. Simplify installing this on
 MicroPython hardware platforms under official MicroPython firmware.
 
+# Serialisation
+
+[A discussion](./SERIALISATION.md) of the need for serialisation and of the
+relative characteristics of four libraries available to MicroPython. Includes a
+tutorial on a Protocol Buffer library.
+
 # SSD1306
 
 A means of rendering multiple larger fonts to the SSD1306 OLED display. The
