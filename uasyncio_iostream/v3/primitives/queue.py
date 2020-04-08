@@ -2,7 +2,6 @@
 # Code is based on Paul Sokolovsky's work.
 # This is a temporary solution until uasyncio V3 gets an efficient official version
 
-from ucollections import deque
 import uasyncio as asyncio
 
 
@@ -15,35 +14,24 @@ class QueueEmpty(Exception):
 class QueueFull(Exception):
     pass
 
-# A queue, useful for coordinating producer and consumer coroutines.
-
-# If maxsize is less than or equal to zero, the queue size is infinite. If it
-# is an integer greater than 0, then "await put()" will block when the
-# queue reaches maxsize, until an item is removed by get().
-
-# Unlike the standard library Queue, you can reliably know this Queue's size
-# with qsize(), since your single-threaded uasyncio application won't be
-# interrupted between calling qsize() and doing an operation on the Queue.
-
-
 class Queue:
 
     def __init__(self, maxsize=0):
         self.maxsize = maxsize
-        self._queue = deque((), maxsize)
+        self._queue = []
 
     def _get(self):
-        return self._queue.popleft()
+        return self._queue.pop(0)
 
     async def get(self):  #  Usage: item = await queue.get()
-        while not self._queue:
+        while self.empty():
             # Queue is empty, put the calling Task on the waiting queue
             await asyncio.sleep_ms(0)
         return self._get()
 
     def get_nowait(self):  # Remove and return an item from the queue.
         # Return an item if one is immediately available, else raise QueueEmpty.
-        if not self._queue:
+        if self.empty():
             raise QueueEmpty()
         return self._get()
 
@@ -66,7 +54,7 @@ class Queue:
         return len(self._queue)
 
     def empty(self):  # Return True if the queue is empty, False otherwise.
-        return not self._queue
+        return len(self._queue) == 0
 
     def full(self):  # Return True if there are maxsize items in the queue.
         # Note: if the Queue was initialized with maxsize=0 (the default),
