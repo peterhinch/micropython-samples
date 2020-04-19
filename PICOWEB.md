@@ -2,7 +2,9 @@
 
 This has regularly caused dificulty on the forum.
 
-The target hardware is assumed to be running official MicroPython firmware.
+The target hardware is assumed to be running official MicroPython firmware. This
+has now been tested with a daily build of official firmware which now includes
+uasyncio V3. It is therefore compatible with official uasyncio V2 and V3.
 
 This repo aims to clarify the installation process. Paul Sokolovsky's Picoweb
 code is unchanged. The demos are trivially changed to use IP '0.0.0.0' and port
