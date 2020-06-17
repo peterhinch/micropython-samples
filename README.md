@@ -13,6 +13,11 @@ to simplify installation for users of official MicroPython firmware.
 Scripts for building MicroPython for various target hardware types and for
 updating your local source. Now detects and builds for Pyboard D. See [docs](./fastbuild/README.md)
 
+# ESP32
+
+Pinout diagram for the reference board with notes and warnings about reserved
+pins etc. See [this doc](./ESP32/ESP32-Devkit-C-pinout.pdf).
+
 # PicoWeb
 
 [Easy installation](./PICOWEB.md) guide. Simplify installing this on
