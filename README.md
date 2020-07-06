@@ -2,33 +2,35 @@
 A place for assorted code ideas for MicroPython. Most are targeted at the
 Pyboard variants.
 
+# 0. Index
+
  1. [Installation guides](./README.md#1-installation-guides)  
   1.1 [Installing MicroPython libraries](./README.md#11-installing-micropython-libraries)  
   1.2 [Fastbuild](./README.md#12-fastbuild) Build scripts and udev rules  
-  1.3 [Installing PicoWeb](./README.md#13-installing-picoweb)  
+  1.3 [Installing PicoWeb](./README.md#13-installing-picoweb) For users of official firmware  
   1.4 [Buildcheck](./README.md#14-buildcheck) Check firmware build date  
  2. [Hardware information and drivers](./README.md#2-hardware-information-and-drivers)  
-  2.1 [ESP32](./README.md#21-esp32)  
+  2.1 [ESP32](./README.md#21-esp32) Pinout and notes on the reference board  
   2.2 [SSD1306](./README.md#22-ssd1306) Write large fonts to the SSD1306  
   2.3 [Pyboard D](./README.md#23-pyboard-d) Assorted scraps of information  
   2.4 [DS3231 precision RTC](./README.md#24-ds3231-precision-rtc) Use cheap hardware to calibrate Pyboard RTC  
  3. [Essays](./README.md#3-essays) General thoughts  
   3.1 [Resilient](./README.md#31-resilient) A guide to writing resilient WiFi code  
-  3.2 [Serialisation](./README.md#32-serialisation) MicroPython's four serialisation libraries  
-  3.3 [Measurement of relative timing and phase of fast analog signals](./README.md#33-measurement-of-relative-timing-and-phase-of-fast-analog-signals)  
+  3.2 [Serialisation](./README.md#32-serialisation) Review of MicroPython's four serialisation libraries  
+  3.3 [Measurement of relative timing and phase of fast analog signals](./README.md#33-measurement-of-relative-timing-and-phase-of-fast-analog-signals) For Pyboard.  
  4. [Code samples](./README.md#4-code-samples) Samples prefixed Pyboard are Pyboard specific  
   4.1 [Pyboard Mutex](./README.md#41-pyboard-mutex) Share data between threads and ISR's.  
   4.2 [Pyboard watchdog](./README.md#42-pyboard-watchdog) Access a Pyboard hardware WDT  
   4.3 [Software Watchdog](./README.md#43-software-watchdog) Cross-platform soft WDT  
   4.4 [Reverse](./README.md#44-reverse) Reversal algorithms for bytearrays  
-  4.5 [Timed function](./README.md#45-timed-function)  
-  4.6 [ESP8266 MQTT benchmark](./README.md#46-esp8266-mqtt-benchmark) Test performance of official library  
+  4.5 [Timed function](./README.md#45-timed-function) Time execution with a decorator  
+  4.6 [ESP8266 MQTT benchmark](./README.md#46-esp8266-mqtt-benchmark) Test performance of MQTT with official library  
   4.7 [Rotary incremental encoder](./README.md#47-rotary-incremental-encoder) Fast, simple, proven algorithm  
   4.8 [A pseudo random number generator](./README.md#48-a-pseudo-random-number-generator)  
-  4.9 [Verifying incrementing sequences](./README.md#49-verifying-incrementing-sequences)  
+  4.9 [Verifying incrementing sequences](./README.md#49-verifying-incrementing-sequences) Test communications drivers  
   4.10 [Bitmaps](./README.md#410-bitmaps) Non-allocating ways to access bitmaps  
-  4.11 [Functors and singletons](./README.md#411-functors-and-singletons)  
-  4.12 [A Pyboard power meter](./README.md#412-a-pyboard-power-meter)  
+  4.11 [Functors and singletons](./README.md#411-functors-and-singletons) Useful decorators  
+  4.12 [A Pyboard power meter](./README.md#412-a-pyboard-power-meter) One of my own projects  
 
 # 1. Installation guides
 
@@ -88,6 +90,8 @@ from the DS3231. Calibration to high precision may be achieved in five minutes.
 
 The drivers are [documented here](./DS3231/README.md).
 
+##### [Index](./README.md#0-index)
+
 # 3. Essays
 
 ## 3.1 Resilient
@@ -105,6 +109,8 @@ tutorial on a Protocol Buffer library.
 
 This describes ways of using the Pyboard to perform precision measurements of
 analog signals of up to around 50KHz. It is documented [here](./phase/README.md).
+
+##### [Index](./README.md#0-index)
 
 # 4. Code samples
 
@@ -136,6 +142,8 @@ bit words.
 
 Time a function's execution using a [decorator](./timed_function/timed_func.py)
 and implement timeouts using a [closure](./timed_function/timeout.py).
+
+##### [Index](./README.md#0-index)
 
 ## 4.6 ESP8266 MQTT benchmark
 
@@ -184,7 +192,13 @@ See [random.py](./random/random.py) for usage and timing documentation.
 
 ## 4.9 Verifying incrementing sequences
 
+When testing communications applications it is often necessary to check for
+missing, duplicated, or out-of-order messages. To do this, the transmitter test
+script ensures that messages include an incrementing message number. The
+receiver script verifies the sequence. [The CheckMid class](./sequence/check_mid.py)
+does this, also detecting transmitter reboots
 
+##### [Index](./README.md#0-index)
 
 ## 4.10 Bitmaps
 
@@ -233,6 +247,8 @@ Unlike simple commercial devices it performs a true vector (phasor) measurement
 enabling it to provide information on power factor and to work with devices
 which generate as well as consume power. It uses the official LCD160CR display
 as a touch GUI interface. It is documented [here](./power/README.md).
+
+##### [Index](./README.md#0-index)
 
 # License
 
