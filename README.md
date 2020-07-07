@@ -227,12 +227,10 @@ may readily be added as required.
 Two simple class decorators for objects useful in hardware interfacing.
 Documented [here](./functor_singleton/README.md).
 
-Singletons denote classes for which only a single instance will ever occur.
-They are contentious in some circles, on the grounds that the single instance
-guarantee may be violated in a specification change. They can be useful in
-hardware contexts where a chip design is unlikely suddenly to change.
-Singletons denoting hardware interfaces avoid globals and the need to pass
-references around.
+Singletons denote classes for which only a single instance can ever occur.
+They can be useful for hardware interface classes. Their use avoids the need
+for a global instance: the sole instance may be retrieved efficiently from
+anywhere in the code.
 
 A functor is a class which is accessed via function call syntax. There is only
 one instance, like a singleton. Initial access calls the constructor, with
