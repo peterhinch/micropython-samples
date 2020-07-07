@@ -38,19 +38,22 @@ make BOARD=$BOARD FROZEN_MANIFEST=$MANIFEST
 where `BOARD` specifies the target (e.g. 'PYBV11') and `MANIFEST` specifies the
 path to the manifest file (e.g. '~/my_manifest.py').
 
-A simple manifest file comprises `freeze` calls with one or two args. The first
-is a directory specifier. If the second exists it can specify a single file or
-more, by passing an iterable. Consider the following manifest file:
+A manifest file comprises `include` and `freeze` statements. The latter have
+one or two args. The first is a directory specifier. If the second exists it
+can specify a single file or more, by passing an iterable. Consider the
+following manifest file:
 ```python
+include("$(MPY_DIR)/ports/stm32/boards/PYBD_SF2/manifest.py")
 freeze('$(MPY_DIR)/drivers/dht', 'dht.py')
 freeze('$(MPY_DIR)/tools', ('upip.py', 'upip_utarfile.py'))
 freeze('/path/to/pyb_d_modules')
 ```
 Taking the lines in order:
- 1. The single file argument freezes the file 'dht.py' found in the MicroPython
+ 1. This includes another manifest file located in the source tree.
+ 2. The single file argument freezes the file 'dht.py' found in the MicroPython
  source tree `drivers` directory.
- 2. Passing an iterable causes the two specified files to be frozen.
- 3. Passing a directory without arguments causes all files and subdirectories
+ 3. Passing an iterable causes the two specified files to be frozen.
+ 4. Passing a directory without arguments causes all files and subdirectories
  to be frozen. Assume '../pyb_d_modules' contains a file `rats.py` and a
  subdirectory `foo` containing `bar.py`. Then `help('modules')` will show
  `rats` and `foo/bar`. This means that Python packages are frozen correctly.
