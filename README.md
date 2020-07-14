@@ -134,7 +134,9 @@ comments in [the test script](./soft_wdt/swdt_tests.py).
 
 ## 4.4 Reverse
 
-Fast [reverse](./reverse/reverse.py) a bytearray in Arm Thumb assembler.  
+Fast [reverse](./reverse/reverse.py) a bytearray in Arm Thumb assembler: this
+reverses the byte order of the array so `[1,2,3,4]` becomes `[4,3,2,1]`.  
+
 Also includes cross-platform Python code to bit-reverse (fast-ish) 8, 16 and 32
 bit words.
 

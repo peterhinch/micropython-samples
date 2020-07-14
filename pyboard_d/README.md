@@ -52,11 +52,26 @@ wl.config(antenna=value)  # 0 internal 1 external
 wl.config(txpower=value)  # In dbm
 ```
 
-## Variants
+## Flash memory
 
-I am aware of two variants distinguished by the sticker on top of the CPU.  
- 1. SF2W (blue). This has about 178K of free RAM and 2MB of Flash.
- 2. SF6W (red). This has 432K of free RAM. Also has 2MB Flash.
+The SF2W and SF3W have 512KiB of internal flash, the SF6W has 2048KiB. All
+have two external 2048KiB flash chips, one for the filesystem and the other for
+executable code (it can be memory mapped). On SF2W and SF3W, if you freeze a
+lot of code the firmware can become too big for the internal flash. To put
+frozen code in external flash, edit the file
+`ports/stm32/boards/PYBD_SF2/f722_qspi.ld` (or the corresponding one for
+`PYBD_SF3` to add the line `*frozen_content.o(.text* .rodata*)`:
+```
+     .text_ext :
+     {
+         . = ALIGN(4);
+         *frozen_content.o(.text* .rodata*)
+         *lib/btstack/*(.text* .rodata*)
+         *lib/mbedtls/*(.text* .rodata*)
+         . = ALIGN(512);
+         *(.big_const*)
+
+```
 
 ## Bootloader
 
