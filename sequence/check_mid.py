@@ -12,18 +12,24 @@
 # message is missing after n have been received, it is assumed lost.
 
 class CheckMid:
-    def __init__(self, buff=5):
+    def __init__(self, buff=10):
         self._buff = buff
         self._mids = set()
         self.miss = 0  # Count missing message ID's
         self.dupe = 0  # Duplicates
         self.oord = 0  # Received out of order
-        self.bcnt = 0  # Reboot count
+        self.bcnt = 0  # Client reboot count. Running totals over reboots:
+        self.tot_miss = 0  # Missing
+        self.tot_dupe = 0  # Dupes
+        self.tot_oord = 0  # Out of order
 
     def __call__(self, mid):
         mids = self._mids
         if mid <= 1 and len(mids) > 1:  # Target has rebooted
             self._mids.clear()
+            self.tot_miss += self.miss
+            self.tot_dupe += self.dupe
+            self.tot_oord += self.oord
             self.miss = 0
             self.dupe = 0
             self.oord = 0
