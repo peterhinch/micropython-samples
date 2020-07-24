@@ -73,6 +73,9 @@ frozen code in external flash, edit the file
 
 ```
 
+There is a [small performance penalty](https://forum.micropython.org/viewtopic.php?f=16&t=8767#p49507)
+in doing this of around 10%.
+
 ## Bootloader
 
 To put the board in booloader mode, either execute pyb.bootloader(), or hold
