@@ -171,7 +171,7 @@ def url_open(url):
 # Now searches official library first before looking on PyPi for user packages
 def get_pkg_metadata(name):
     try:
-        f = url_open("https://micropython.org/resources/upi/%s/json" % name)
+        f = url_open("https://micropython.org/pi/%s/json" % name)
     except:
         f = url_open("https://pypi.org/pypi/%s/json" % name)
     s = read_lines(f)
