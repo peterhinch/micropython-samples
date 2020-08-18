@@ -11,10 +11,10 @@ Pyboard variants.
   1.4 [Buildcheck](./README.md#14-buildcheck) Check firmware build date  
  2. [Hardware information and drivers](./README.md#2-hardware-information-and-drivers)  
   2.1 [ESP32](./README.md#21-esp32) Pinout and notes on the reference board  
-  2.2 [SSD1306](./README.md#22-ssd1306) Write large fonts to the SSD1306  
-  2.3 [Pyboard D](./README.md#23-pyboard-d) Assorted scraps of information  
-  2.4 [DS3231 precision RTC](./README.md#24-ds3231-precision-rtc) Use cheap hardware to calibrate Pyboard RTC  
- 3. [Essays](./README.md#3-essays) General thoughts  
+  2.2 [SSD1306](./README.md#22-ssd1306) Write large fonts to the SSD1306.  
+  2.3 [Pyboard D](./README.md#23-pyboard-d) Assorted scraps of information.  
+  2.4 [DS3231 precision RTC](./README.md#24-ds3231-precision-rtc) Use cheap hardware to calibrate Pyboard RTC.  
+ 3. [Essays](./README.md#3-essays) General thoughts.  
   3.1 [Resilient](./README.md#31-resilient) A guide to writing resilient WiFi code  
   3.2 [Serialisation](./README.md#32-serialisation) Review of MicroPython's four serialisation libraries  
   3.3 [Measurement of relative timing and phase of fast analog signals](./README.md#33-measurement-of-relative-timing-and-phase-of-fast-analog-signals) For Pyboard.  
@@ -25,12 +25,13 @@ Pyboard variants.
   4.4 [Reverse](./README.md#44-reverse) Reversal algorithms for bytearrays  
   4.5 [Timed function](./README.md#45-timed-function) Time execution with a decorator  
   4.6 [ESP8266 MQTT benchmark](./README.md#46-esp8266-mqtt-benchmark) Test performance of MQTT with official library  
-  4.7 [Rotary incremental encoder](./README.md#47-rotary-incremental-encoder) Fast, simple, proven algorithm  
+  4.7 [Rotary incremental encoder](./README.md#47-rotary-incremental-encoder) Fast, simple, proven algorithm.  
   4.8 [A pseudo random number generator](./README.md#48-a-pseudo-random-number-generator)  
-  4.9 [Verifying incrementing sequences](./README.md#49-verifying-incrementing-sequences) Test communications drivers  
-  4.10 [Bitmaps](./README.md#410-bitmaps) Non-allocating ways to access bitmaps  
-  4.11 [Functors and singletons](./README.md#411-functors-and-singletons) Useful decorators  
-  4.12 [A Pyboard power meter](./README.md#412-a-pyboard-power-meter) One of my own projects  
+  4.9 [Verifying incrementing sequences](./README.md#49-verifying-incrementing-sequences) Test communications drivers.  
+  4.10 [Bitmaps](./README.md#410-bitmaps) Non-allocating ways to access bitmaps.  
+  4.11 [Functors and singletons](./README.md#411-functors-and-singletons) Useful decorators.  
+  4.12 [Quaternions](./README.md#412-quaternions) Scale, move and rotate 3D objects with minimal mathematics.  
+  4.13 [A Pyboard power meter](./README.md#413-a-pyboard-power-meter) One of my own projects.  
 
 # 1. Installation guides
 
@@ -240,7 +241,20 @@ subsequent accesses being via `__call__`. As an object it can retain state. As
 an example, a functor might have a continuously running task: successive calls
 modify the behaviour of the task.
 
-# 4.12 A pyboard power meter
+## 4.12 Quaternions
+
+Quaternions have a reputation for being mathematically difficult. Surely true
+if you intend using them to write Maxwell's equations; if your ambitions are
+limited to manipulating three dimensional objects or processing IMU data they
+can be remarkably simple.
+
+The `Quaternion` class lets you create, move, transform and rotate 3D objects
+with no maths beyond familiarity with an `xyz` coordinate system. Includes a
+demo where a wireframe cube rotates in response to movements of a BNo055 IMU,
+plus a demo of moving wireframe graphics. Neither demo uses trig functions.
+See [the docs](./QUATERNIONS.md).
+
+## 4.13 A pyboard power meter
 
 This uses a Pyboard to measure the power consumption of mains powered devices. 
 Unlike simple commercial devices it performs a true vector (phasor) measurement
