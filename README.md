@@ -174,7 +174,7 @@ encountered.
 These were written for encoders producing TTL outputs. For switches, adapt the
 pull definition to provide a pull up or pull down as required.
 
-The [encoder_portable.py](./encoders/encoder_portable) version should work on
+The [encoder_portable.py](./encoders/encoder_portable.py) version should work on
 all MicroPython platforms. Tested on ESP8266. Note that interrupt latency on
 the ESP8266 limits performance. ESP32 has similar limitations.
 
