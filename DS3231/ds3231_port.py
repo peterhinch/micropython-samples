@@ -130,3 +130,14 @@ class DS3231:
         ppm = ratio * 1_000_000
         verbose and print('DS3231 leads RTC by {:4.1f}ppm {:4.1f}mins/yr'.format(ppm, ppm*1.903))
         return ratio * factor
+
+
+    def __twos_complement(self, input_value: int, num_bits: int) -> int:
+        mask = 2 ** (num_bits - 1)
+        return -(input_value & mask) + (input_value & ~mask)
+
+
+    def get_temperature(self):
+        t = self.ds3231.readfrom_mem(DS3231_I2C_ADDR, 0x11, 2)
+        i = t[0] << 8 | t[1]
+        return self.__twos_complement(i >> 6, 10) * 0.25
