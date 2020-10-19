@@ -93,8 +93,9 @@ To fix this, edit `/flash/boot.py` so that the `usb_mode` line reads:
 ```python
 pyb.usb_mode('VCP')
 ```
-Then use a tool like [rshell](https://github.com/dhylands/rshell) to access the
-filesystem.
+On reboot the Pyboard will no longer appear as a mass storage device on the PC.
+Various tools are available to manage the device's storage via USB. I use
+[rshell](https://github.com/dhylands/rshell).
 
 # 2. Hardware information and drivers
 
