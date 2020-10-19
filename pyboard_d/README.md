@@ -6,7 +6,7 @@ so I expect to remove this guide soon.
 ## LED's
 
 The board has one RGB led. Each colour is addressed as pyb.LED(n) where n is in
-range 1 to 3.
+range 1 (R) to 3 (B).
 
 ## Accel
 
@@ -76,14 +76,40 @@ frozen code in external flash, edit the file
 There is a [small performance penalty](https://forum.micropython.org/viewtopic.php?f=16&t=8767#p49507)
 in doing this of around 10%.
 
-## Bootloader
+## Bootloader and boot options
 
-To put the board in booloader mode, either execute pyb.bootloader(), or hold
-down USR during reset and letting go of USR when the LED shines white.
-The red LED then flashes once a second indicating bootloader mode.
-- then upload the DFU as usual: tools/pydfu.py -u `firmware`
+You can boot into special modes by holding down the usr button and briefly
+pressing reset. The LED flashes in sequence: red, green, blue, white. The boot
+mode is determined by the color showing at the time when you release the usr
+button.
+
+ 1. red: Normal
+ 2. green: safe boot (don't execute boot.py or main.py)
+ 3. blue: factory reset. Re-initialises the filesystem on /flash wiping any
+ user files. Does not affect the SD card.
+ 4. white: bootloader mode for firmware update. The red LED then flashes once a
+ second indicating bootloader mode.
+
+You can also put the board in booloader mode by executing pyb.bootloader().
+
+Once in booloader mode upload the firmware as usual:
+```bash
+tools/pydfu.py -u `path_to_firmware`
+```
 
 ## Code emitters
 
-Based on quick tests the Native, Viper and inline Arm Thumb assembler features
-are supported.
+Native, Viper and inline Arm Thumb assembler features are supported.
+
+## SD Card
+
+Unlike the Pyboard 1.x this is not mounted by default. To auto-mount it,
+include the following in `boot.py`:
+
+```python
+import sys, os, pyb
+
+if pyb.SDCard().present():
+    os.mount(pyb.SDCard(), '/sd')
+    sys.path[1:1] = ['/sd', '/sd/lib']
+```

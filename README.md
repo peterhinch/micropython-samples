@@ -1,6 +1,11 @@
 # micropython-samples
-A place for assorted code ideas for MicroPython. Most are targeted at the
-Pyboard variants.
+The first part of this repo contains assorted code ideas for MicroPython. Many
+are targeted at Pyboard variants. Some are intended as pointers to programmers
+rather than being complete. Egregious bugs will be fixed but I may not accept
+feature requests.
+
+[Section 5](./README.md#5-module-index) is an index to complete applications
+and modules which are documented and supported.
 
 # 0. Index
 
@@ -12,7 +17,7 @@ Pyboard variants.
  2. [Hardware information and drivers](./README.md#2-hardware-information-and-drivers)  
   2.1 [ESP32](./README.md#21-esp32) Pinout and notes on the reference board  
   2.2 [SSD1306](./README.md#22-ssd1306) Write large fonts to the SSD1306.  
-  2.3 [Pyboard D](./README.md#23-pyboard-d) Assorted scraps of information.  
+  2.3 [Pyboard D](./README.md#23-pyboard-d) Some information remains absent or hard to find in the docs.  
   2.4 [DS3231 precision RTC](./README.md#24-ds3231-precision-rtc) Use cheap hardware to calibrate Pyboard RTC.  
  3. [Essays](./README.md#3-essays) General thoughts.  
   3.1 [Resilient](./README.md#31-resilient) A guide to writing resilient WiFi code  
@@ -20,11 +25,11 @@ Pyboard variants.
   3.3 [Measurement of relative timing and phase of fast analog signals](./README.md#33-measurement-of-relative-timing-and-phase-of-fast-analog-signals) For Pyboard.  
  4. [Code samples](./README.md#4-code-samples) Samples prefixed Pyboard are Pyboard specific  
   4.1 [Pyboard Mutex](./README.md#41-pyboard-mutex) Share data between threads and ISR's.  
-  4.2 [Pyboard watchdog](./README.md#42-pyboard-watchdog) Access a Pyboard hardware WDT  
-  4.3 [Software Watchdog](./README.md#43-software-watchdog) Cross-platform soft WDT  
-  4.4 [Reverse](./README.md#44-reverse) Reversal algorithms for bytearrays  
-  4.5 [Timed function](./README.md#45-timed-function) Time execution with a decorator  
-  4.6 [ESP8266 MQTT benchmark](./README.md#46-esp8266-mqtt-benchmark) Test performance of MQTT with official library  
+  4.2 [Pyboard watchdog](./README.md#42-pyboard-watchdog) Access a Pyboard hardware WDT.  
+  4.3 [Software Watchdog](./README.md#43-software-watchdog) Cross-platform soft WDT.  
+  4.4 [Reverse](./README.md#44-reverse) Reversal algorithms for bytearrays.  
+  4.5 [Timed function](./README.md#45-timed-function) Time execution with a decorator.  
+  4.6 [ESP8266 MQTT benchmark](./README.md#46-esp8266-mqtt-benchmark) Test performance of MQTT with official library.  
   4.7 [Rotary incremental encoder](./README.md#47-rotary-incremental-encoder) Fast, simple, proven algorithm.  
   4.8 [A pseudo random number generator](./README.md#48-a-pseudo-random-number-generator)  
   4.9 [Verifying incrementing sequences](./README.md#49-verifying-incrementing-sequences) Test communications drivers.  
@@ -32,6 +37,17 @@ Pyboard variants.
   4.11 [Functors and singletons](./README.md#411-functors-and-singletons) Useful decorators.  
   4.12 [Quaternions](./README.md#412-quaternions) Scale, move and rotate 3D objects with minimal mathematics.  
   4.13 [A Pyboard power meter](./README.md#413-a-pyboard-power-meter) One of my own projects.  
+ 5. [Module Index](./README.md#5-module-index) Supported code. Device drivers, GUI's, utilities.  
+  5.1 [uasyncio](./README.md#51-uasyncio)  
+  5.2 [Memory Device Drivers](./README.md#52-memory-device-drivers)  
+  5.3 [Inertial Measurement Units](./README.md#53-inertial-measurement-units)__
+  5.4 [Other hardware drivers](./README.md#54-other-hardware-drivers)  
+  5.5.[Communications](./README.md#55-communications)  
+  5.6 [Displays](./README.md#56-displays) Fonts, graphics, GUIs and display drivers  
+  5.7 [Pyboard micropower](./README.md#57-pyboard-micropower)__
+  5.8 [Pyboard DSP]((./README.md#58-pyboard-dsp)  
+  5.9 [rshell](./README.md#59-rshell) Fork of rshell with text macros.  
+  5.10 [Hard to categorise](./README.md#510-hard-to-categorise)  
 
 # 1. Installation guides
 
@@ -78,7 +94,8 @@ be found as part of [this repository](https://github.com/peterhinch/micropython-
 
 ## 2.3 Pyboard D
 
-Assorted [information](./pyboard_d/README.md) not yet in the official docs).
+Assorted [information](./pyboard_d/README.md) not yet in the official docs or
+hard to find.
 
 ## 2.4 DS3231 precision RTC
 
@@ -244,15 +261,15 @@ modify the behaviour of the task.
 ## 4.12 Quaternions
 
 Quaternions have a reputation for being mathematically difficult. Surely true
-if you intend using them to write Maxwell's equations; if your ambitions are
-limited to manipulating three dimensional objects or processing IMU data they
-can be remarkably simple.
+if you intend using them to write Maxwell's equations (as per Maxwell). If your
+ambitions are limited to manipulating three dimensional objects or processing
+IMU data they can be remarkably simple.
 
-The `Quaternion` class lets you create, move, transform and rotate 3D objects
-with no maths beyond familiarity with an `xyz` coordinate system. Includes a
-demo where a wireframe cube rotates in response to movements of a BNo055 IMU,
-plus a demo of moving wireframe graphics. Neither demo uses trig functions.
-See [the docs](./QUATERNIONS.md).
+The `Quaternion` class lets you create, move, transform and rotate 3D objects.
+They assume no maths beyond familiarity with an `xyz` coordinate system.
+Includes a demo where a wireframe cube rotates in response to movements of a
+BNo055 IMU, plus a demo of moving wireframe graphics. Neither demo uses trig
+functions. See [the docs](./QUATERNIONS.md).
 
 ## 4.13 A pyboard power meter
 
@@ -261,6 +278,127 @@ Unlike simple commercial devices it performs a true vector (phasor) measurement
 enabling it to provide information on power factor and to work with devices
 which generate as well as consume power. It uses the official LCD160CR display
 as a touch GUI interface. It is documented [here](./power/README.md).
+
+##### [Index](./README.md#0-index)
+
+# 5. Module index
+
+This index references applications and device drivers that I have developed, in
+some cases as collaborations. This is acknowledged in their respective docs.
+
+Unlike the code samples these are fully documented and supported.
+
+## 5.1 uasyncio
+
+[Tutorial](https://github.com/peterhinch/micropython-async/blob/master/v3/docs/TUTORIAL.md)  
+[Drivers](https://github.com/peterhinch/micropython-async/blob/master/v3/docs/DRIVERS.md)
+Asynchronous device drivers for switches, pushbuttons and ADC's. Also has
+information on interfacing interrupts to uasyncio.  
+[Schedule](https://github.com/peterhinch/micropython-async/blob/master/v3/docs/SCHEDULE.md)
+Schedule events at specified times and dates.  
+[HTU21D](https://github.com/peterhinch/micropython-async/blob/master/v3/docs/HTU21D.md)
+Asynchronous driver for this temperature and humidity sensor.  
+[I2C Slave](https://github.com/peterhinch/micropython-async/tree/master/v3/docs)
+Uses the Pyboard's I2C slave mode to implement a full duplex asynchronous
+link. Principal use case is for ESP8266 which has only one UART.  
+[GPS](https://github.com/peterhinch/micropython-async/blob/master/v3/docs/GPS.md)
+See [section 5.4](./README.md#54-other-hardware-drivers).  
+
+## 5.2 Memory device drivers
+
+[EEPROM](https://github.com/peterhinch/micropython_eeprom) Support for EEPROM,
+FRAM and Flash chips and modules. In all cases devices or sets of devices can
+be configured as a single memory array supporting access either as an array of
+bytes or as a filesystem.  
+
+## 5.3 Inertial Measurement Units
+
+[BNo055](https://github.com/micropython-IMU/micropython-bno055) In my view the
+best IMU as it performs internal sensor fusion.  
+[MPU9x50](https://github.com/micropython-IMU/micropython-mpu9x50) Driver for
+the popular InvenSense MPU9250, MPU9150, MPU6050 devices.  
+[BMP180](https://github.com/micropython-IMU/micropython-bmp180) Driver for the
+Bosch BMP180 pressure/temperature sensor.  
+[Fusion](https://github.com/micropython-IMU/micropython-fusion) Sensor fusion:
+combine IMU readings to produce heading, pitch and roll or Quaternion data.  
+[Quaternions](./README.md#412-quaternions) The proper way to deal with 3D
+rotations. Amazingly requires less maths than Euler angles.  
+
+## 5.4 Other hardware drivers
+
+[Asynchronous GPS driver](https://github.com/peterhinch/micropython-async/blob/master/v3/docs/GPS.md)  
+[Thermal IR](https://github.com/peterhinch/micropython-amg88xx) Support for the
+Adafruit 3538 thermal camera. Includes optional bicubic interpolation.  
+[Audio](https://github.com/peterhinch/micropython-vs1053) High quality audio
+I/O with the Adafruit VS1053 board. Synchronous and asynchronous options.  
+[IR remotes](https://github.com/peterhinch/micropython_ir) Support for various
+infra red protocols in receiver or transmitter ('blaster') applications.  
+[433MHz remote](https://github.com/peterhinch/micropython_remote) Supports
+433MHz remote controlled wall sockets. Captures the signal enabling replay so
+that mains devices may safely be controlled at low cost.  
+[BME280](https://github.com/peterhinch/mpy_bme280_esp8266) A bugfix fork of an
+abandoned project. Supports the BME280 combined temperature, pressure and
+humidity sensor on ESP8266.  
+
+## 5.5 Communications
+
+[Asynchronous MQTT](https://github.com/peterhinch/micropython-mqtt/blob/master/mqtt_as/README.md)
+This improves on official MQTT drivers by recovering from WiFi outages and
+offering asynchronous operation.  
+[IOT](https://github.com/peterhinch/micropython-iot) An IOT solution. Provides
+a socket-like interface between WiFi clients and a server with wired ethernet.
+The interface is resilient in the presence of WiFi outages. The server (e.g.
+Raspberry Pi) does any internet work, improving security.  
+[Radio](https://github.com/peterhinch/micropython-radio) Simplify use of the
+officially supported NRF24l01 radio.  
+
+## 5.6 Displays
+
+Fonts, graphics, GUIs and display drivers.
+
+All GUIs except e-paper are based on uasyncio. Where touch is supported a
+callback-based interface is used.
+
+[font-to-py](https://github.com/peterhinch/micropython-font-to-py) Converts
+industry standard font files to Python source which may be frozen as bytecode.
+Files use minimal RAM when frozen.  
+[writer](https://github.com/peterhinch/micropython-font-to-py/blob/master/writer/WRITER.md)
+A simple way to render text to displays where the driver is subclassed from
+`framebuf`.  
+[nano-gui](https://github.com/peterhinch/micropython-nano-gui) Simple GUI for
+displays where the driver is subclassed from `framebuf`. Repo includes display
+drivers e.g. for common OLED displays.  
+[LCD160CR](https://github.com/peterhinch/micropython-lcd160cr-gui) Touch GUI
+for the official display module.  
+[TFT-GUI](https://github.com/peterhinch/micropython-tft-gui) A fast touch GUI
+for large displays based on SSD1963 controller with XPT2046 touch controller.  
+[RA8875-GUI](https://github.com/peterhinch/micropython_ra8875) Touch GUI for
+large displays based on the RA8875 controller (e.g. from Adafruit).  
+[e-paper](https://github.com/peterhinch/micropython-epaper) GUI for the
+Embedded Artists 2.7 inch e-paper display. Pyboard only.  
+
+## 5.7 Pyboard micropower
+
+[micropower](https://github.com/peterhinch/micropython-micropower) Support for
+low power applications on Pyboard 1.x and Pyboard D.  
+
+## 5.8 Pyboard DSP
+
+[fourier](https://github.com/peterhinch/micropython-fourier) DFT using Arm
+Thumb assembler. Primarily for processing data received on an ADC.  
+[Filters](https://github.com/peterhinch/micropython-filters) FIR filters
+using ARM Thumb assembler. Using an online utility you can go from a graph
+of required frequency response to a filter implementation.  
+
+## 5.9 rshell
+
+[rshell](https://github.com/peterhinch/rshell) is a fork of Dave Hylands'
+excellent utility. My fork adds text macros to improve its power and
+usability, notably when maintaining complex Python packages.  
+
+## 5.10 Hard to categorise
+
+[data to py](https://github.com/peterhinch/micropython_data_to_py)
 
 ##### [Index](./README.md#0-index)
 
