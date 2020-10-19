@@ -14,6 +14,7 @@ and modules which are documented and supported.
   1.2 [Fastbuild](./README.md#12-fastbuild) Build scripts and udev rules  
   1.3 [Installing PicoWeb](./README.md#13-installing-picoweb) For users of official firmware  
   1.4 [Buildcheck](./README.md#14-buildcheck) Check firmware build date  
+  1.5 [Pyboard USB pitfall](./README.md#15-pyboard-usb-pitfall) Read this if you're new to Pyboards  
  2. [Hardware information and drivers](./README.md#2-hardware-information-and-drivers)  
   2.1 [ESP32](./README.md#21-esp32) Pinout and notes on the reference board  
   2.2 [SSD1306](./README.md#22-ssd1306) Write large fonts to the SSD1306.  
@@ -78,6 +79,22 @@ PR's with updated versions of PicoWeb are welcome.
 
 Raise an [exception](./buildcheck/buildcheck.py) if a firmware build is earlier
 than a given date.
+
+## 1.5 Pyboard USB pitfall
+
+By default the Pyboard's `/flash/boot.py` enables MSC (mass storage) mode. This
+makes the Pyboard look like a USB stick, making its filesystem visible to the
+PC. This helpful feature ignores a fundamental flaw which leads to filesystem
+corruption. This is because the USB standard requires mass storage devices to
+behave like disks with static content. By contrast a Pyboard can independently
+modify the "disk" contents causing chaos.
+
+To fix this, edit `/flash/boot.py` so that the `usb_mode` line reads:
+```python
+pyb.usb_mode('VCP')
+```
+Then use a tool like [rshell](https://github.com/dhylands/rshell) to access the
+filesystem.
 
 # 2. Hardware information and drivers
 
