@@ -38,16 +38,16 @@ and modules which are documented and supported.
   4.12 [Quaternions](./README.md#412-quaternions) Scale, move and rotate 3D objects with minimal mathematics.  
   4.13 [A Pyboard power meter](./README.md#413-a-pyboard-power-meter) One of my own projects.  
  5. [Module Index](./README.md#5-module-index) Supported code. Device drivers, GUI's, utilities.  
-  5.1 [uasyncio](./README.md#51-uasyncio)  
-  5.2 [Memory Device Drivers](./README.md#52-memory-device-drivers)  
-  5.3 [Inertial Measurement Units](./README.md#53-inertial-measurement-units)__
+  5.1 [uasyncio](./README.md#51-uasyncio) Tutorial and drivers for asynchronous coding.  
+  5.2 [Memory Device Drivers](./README.md#52-memory-device-drivers) Drivers for nonvolatile memory devices.  
+  5.3 [Inertial Measurement Units](./README.md#53-inertial-measurement-units) Gravity, gyro and magnetic sensors.  
   5.4 [Other hardware drivers](./README.md#54-other-hardware-drivers)  
   5.5.[Communications](./README.md#55-communications)  
   5.6 [Displays](./README.md#56-displays) Fonts, graphics, GUIs and display drivers  
-  5.7 [Pyboard micropower](./README.md#57-pyboard-micropower)__
-  5.8 [Pyboard DSP]((./README.md#58-pyboard-dsp)  
+  5.7 [Pyboard micropower](./README.md#57-pyboard-micropower)  
+  5.8 [Pyboard DSP](./README.md#58-pyboard-dsp) Fourier transforms and filters.  
   5.9 [rshell](./README.md#59-rshell) Fork of rshell with text macros.  
-  5.10 [Hard to categorise](./README.md#510-hard-to-categorise)  
+  5.10 [Hard to categorise](./README.md#510-hard-to-categorise) Other modules.  
 
 # 1. Installation guides
 
@@ -398,7 +398,9 @@ usability, notably when maintaining complex Python packages.
 
 ## 5.10 Hard to categorise
 
-[data to py](https://github.com/peterhinch/micropython_data_to_py)
+[data to py](https://github.com/peterhinch/micropython_data_to_py) Convert
+arbitrary objects to Python files which may be frozen as bytecode. Can be
+used to freeze images for display.  
 
 ##### [Index](./README.md#0-index)
 
