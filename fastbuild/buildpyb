@@ -30,11 +30,16 @@ if [ $BOARD ]
 then
     echo Building for $BOARD
     cd $MPDIR/ports/stm32
+    if [ $# -eq 1 ] && [ $1 = "--minimal" ]
+    then
+        MANIFEST=$MANIFESTS/minimal_manifest.py
+        make BOARD=$BOARD clean
+    fi
     if [ $# -eq 1 ] && [ $1 = "--clean" ]
     then
         make BOARD=$BOARD clean
     fi
-    if make -j 8 BOARD=$BOARD FROZEN_MANIFEST=$MANIFEST && pyb_boot $MPDEVICE
+    if make -j 8 BOARD=$BOARD FROZEN_MANIFEST=$MANIFEST MICROPY_VFS_LFS2=1 && pyb_boot $MPDEVICE
     then
         sleep 1
         make PYTHON=python3 BOARD=$BOARD FROZEN_MANIFEST=$MANIFEST deploy

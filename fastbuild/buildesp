@@ -10,7 +10,13 @@ fi
 if [ $# -eq 1 ] && [ $1 = "--erase" ]
 then
     make clean
-    esptool.py  --port /dev/ttyUSB0 erase_flash
+    if esptool.py  --port /dev/ttyUSB0 erase_flash
+    then
+        echo Flash erased OK
+    else
+        echo Connection failure
+        exit 1
+    fi
 fi
 
 if make -j 8 FROZEN_MANIFEST=$MANIFEST

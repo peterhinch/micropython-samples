@@ -4,7 +4,7 @@
 cd $MPDIR
 echo Working...
 git checkout master
-git pull origin master
+git pull origin master --tags
 git submodule update --init
 cd mpy-cross
 make clean
