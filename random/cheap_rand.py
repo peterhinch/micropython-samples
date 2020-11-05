@@ -1,5 +1,6 @@
 # pseudorandom numbers for MicroPython. ISR friendly version.
 # Probably poor quality numbers but useful in test scripts
+# Based on xorshift32 here https://en.wikipedia.org/wiki/Xorshift
 
 # Author: Peter Hinch
 # Copyright Peter Hinch 2020 Released under the MIT license
