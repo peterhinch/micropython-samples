@@ -32,7 +32,7 @@ and modules which are documented and supported.
   4.5 [Timed function](./README.md#45-timed-function) Time execution with a decorator.  
   4.6 [ESP8266 MQTT benchmark](./README.md#46-esp8266-mqtt-benchmark) Test performance of MQTT with official library.  
   4.7 [Rotary incremental encoder](./README.md#47-rotary-incremental-encoder) Fast, simple, proven algorithm.  
-  4.8 [A pseudo random number generator](./README.md#48-a-pseudo-random-number-generator)  
+  4.8 [Pseudo random number generators](./README.md#48-pseudo-random-number-generators)  
   4.9 [Verifying incrementing sequences](./README.md#49-verifying-incrementing-sequences) Test communications drivers.  
   4.10 [Bitmaps](./README.md#410-bitmaps) Non-allocating ways to access bitmaps.  
   4.11 [Functors and singletons](./README.md#411-functors-and-singletons) Useful decorators.  
@@ -213,7 +213,7 @@ The [encoder_portable.py](./encoders/encoder_portable.py) version should work on
 all MicroPython platforms. Tested on ESP8266. Note that interrupt latency on
 the ESP8266 limits performance. ESP32 has similar limitations.
 
-## 4.8 A pseudo random number generator
+## 4.8 Pseudo random number generators
 
 On the Pyboard V1.1, true random numbers may be generated rapidly with
 `pyb.rng()` which uses a hardware random number generator on the
@@ -226,7 +226,12 @@ number generator is seeded with an arbitrary initial value. On each call to the
 function it will return a random number, but (given the same seed) the sequence
 of numbers following initialisation will always be the same.
 
-See [random.py](./random/random.py) for usage and timing documentation.
+See [random.py](./random/random.py) for usage and timing documentation. The
+[yasmarang generator](./random/yasmarang.py) is also included, along with my
+own [cheap random](./random/cheap_rand.py). The latter constrains calculations
+to 30 bits, allowing its use in an ISR. It comes with no guarantees of random
+quality and the only statistical test is that the mean converges on the right
+value. 
 
 ## 4.9 Verifying incrementing sequences
 
