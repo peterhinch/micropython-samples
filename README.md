@@ -231,7 +231,7 @@ See [random.py](./random/random.py) for usage and timing documentation. The
 own [cheap random](./random/cheap_rand.py). The latter constrains calculations
 to 30 bits, allowing its use in an ISR. It comes with no guarantees of random
 quality and the only statistical test is that the mean converges on the right
-value. 
+value. None of these generators are suitable for cryptography.
 
 ## 4.9 Verifying incrementing sequences
 
@@ -259,7 +259,8 @@ The constraint `0 <= value <= max_value` applies where `max_value` is a
 constructor arg. The `max_value` arg defines the size of the underlying
 bytearray. For example if `max_value` is 255, the bytearray will use 32 bytes.
 The constraint applies to member values of a set, and to index values of a
-boolean array.
+boolean array. So the set will be capable of storing integers from 0 to 255,
+and the array will accept indices in the same range.
 
 These classes are lightweight. For example the `IntSet` class does not include
 all the dunder (magic) methods required to match the native `set` class. These
@@ -390,7 +391,7 @@ A simple way to render text to displays where the driver is subclassed from
 `framebuf`.  
 [nano-gui](https://github.com/peterhinch/micropython-nano-gui) Simple GUI for
 displays where the driver is subclassed from `framebuf`. Repo includes display
-drivers e.g. for common OLED displays.  
+drivers for various displays including TFT, OLED, ePaper and Sharp.  
 [LCD160CR](https://github.com/peterhinch/micropython-lcd160cr-gui) Touch GUI
 for the official display module.  
 [TFT-GUI](https://github.com/peterhinch/micropython-tft-gui) A fast touch GUI
@@ -398,7 +399,8 @@ for large displays based on SSD1963 controller with XPT2046 touch controller.
 [RA8875-GUI](https://github.com/peterhinch/micropython_ra8875) Touch GUI for
 large displays based on the RA8875 controller (e.g. from Adafruit).  
 [e-paper](https://github.com/peterhinch/micropython-epaper) GUI for the
-Embedded Artists 2.7 inch e-paper display. Pyboard only.  
+Embedded Artists 2.7 inch e-paper display. Pyboard only. Sadly these displays
+are now obsolete.  
 
 ## 5.7 Pyboard micropower
 
