@@ -219,12 +219,16 @@ On the Pyboard V1.1, true random numbers may be generated rapidly with
 `pyb.rng()` which uses a hardware random number generator on the
 microcontroller.
 
-There are two use cases for the pseudo random number generator. Firstly on
-platforms lacking a hardware generator (e.g. the Pyboard Lite). And secondly
-where repeatable results are required, for example in testing. A pseudo random
-number generator is seeded with an arbitrary initial value. On each call to the
-function it will return a random number, but (given the same seed) the sequence
-of numbers following initialisation will always be the same.
+There are a few use-cases for pseudo random number generators. Some platforms
+lack a hardware generator (e.g. the Pyboard Lite) and some ports don't support
+`uos.urandom`. There is also a case for running a RNG in an interrupt service
+routine.
+
+Pseudo random number generators provide repeatable sequences of numbers which
+can be an advantage, for example in testing. The RNG is seeded with an initial
+value. On each call to the function it will return a random number, but (given
+the same seed) the sequence of numbers following initialisation will always be
+the same.
 
 See [random.py](./random/random.py) for usage and timing documentation. The
 [yasmarang generator](./random/yasmarang.py) is also included, along with my
