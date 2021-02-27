@@ -423,7 +423,9 @@ of required frequency response to a filter implementation.
 
 [rshell](https://github.com/peterhinch/rshell) is a fork of Dave Hylands'
 excellent utility. My fork adds text macros to improve its power and
-usability, notably when maintaining complex Python packages.  
+usability, notably when maintaining complex Python packages. The fork includes
+documentation, but [these notes](./RSHELL_MACROS.md) provide a usage example
+where each project has its own set of automatically loaded macros.__
 
 ## 5.10 Hard to categorise
 
