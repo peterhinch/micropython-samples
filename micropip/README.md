@@ -1,7 +1,7 @@
-# Contents
+# 0. Contents
 
  1. [Installing MicroPython library modules](./README.md#1-installing-micropython-library-modules)  
- 2. [micropip](./README.md#2-micropip) Runs on a PC  
+ 2. [micropip](./README.md#2-micropip) upip alternative runs on a PC under CPython  
  3. [Overriding built in library modules](./README.md#3-overriding-built-in-library-modules)  
 
 # 1. Installing MicroPython library modules
@@ -18,8 +18,8 @@ documentation.
 
 Libraries on [PyPi](https://pypi.org/) may or may not be compatible with
 official firmware. This is resolved by official `upip` (and its `micropip`
-derivative): it first searches the official library. Only if no match is found
-does it install from PyPi. For this and other reasons, `pip` and `pip3` should
+derivative). These first search the official library. Only if no match is found
+do they install from PyPi. For this and other reasons, `pip` and `pip3` should
 not be used to install MicroPython libraries. Use of `upip` is detailed in the
 [official docs](http://docs.micropython.org/en/latest/reference/packages.html).
 
@@ -28,8 +28,8 @@ Unix build of MicroPython to install a library module to an arbitrary directory
 on a PC, from where the files and directories can be copied to the target
 hardware. `upip` and its dependency `upip_utarfile` may be found in the `tools`
 directory of the source tree. This approach has the drawback of requiring the
-Unix build, which has to be built from source. Alternatively `micropip.py` in
-this repo may be employed, which runs under CPython.
+Unix build, which must be built from source. This may be avoided by using
+`micropip.py` in this repo which runs under CPython.
 
 Alternatively libraries may be installed by copying files from the MicroPython
 library repository to the target device. However this requires some attention
@@ -54,12 +54,12 @@ or
 ```
 python3 -m micropip --help
 ```
-Example invocation line:
+Example invocation line to install the `copy` module to a PC:
 ```
-$ micropip.py install -p ~/rats micropython-uasyncio
+$ micropip.py install -p ~/rats micropython-copy
 ```
 
-###### [Contents](./README.md#1-contents)
+###### [Contents](./README.md#0-contents)
 
 # 3. Overriding built in library modules
 
@@ -90,6 +90,6 @@ This has the following outcome:
 Now modules in the filesystem will be compiled and executed in preference to
 those frozen as bytecode.
 
-###### [Contents](./README.md#1-contents)
+###### [Contents](./README.md#0-contents)
 
 ###### [Main README](../README.md)
