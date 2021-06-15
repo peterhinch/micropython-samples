@@ -102,7 +102,8 @@ Various tools are available to manage the device's storage via USB. I use
 ## 2.1 ESP32
 
 Pinout diagram for the reference board with notes and warnings about reserved
-pins etc. See [this doc](./ESP32/ESP32-Devkit-C-pinout.pdf).
+pins etc. See [this doc](./ESP32/ESP32-Devkit-C-pinout.pdf). See also this
+excellent [resource](https://randomnerdtutorials.com/esp32-pinout-reference-gpios/).
 
 ## 2.2 SSD1306
 
