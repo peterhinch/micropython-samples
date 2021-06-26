@@ -394,9 +394,13 @@ Files use minimal RAM when frozen.
 [writer](https://github.com/peterhinch/micropython-font-to-py/blob/master/writer/WRITER.md)
 A simple way to render text to displays where the driver is subclassed from
 `framebuf`.  
-[nano-gui](https://github.com/peterhinch/micropython-nano-gui) Simple GUI for
-displays where the driver is subclassed from `framebuf`. Repo includes display
-drivers for various displays including TFT, OLED, ePaper and Sharp.  
+[nano-gui](https://github.com/peterhinch/micropython-nano-gui) Simple output
+only GUI for displays where the driver is subclassed from `framebuf`. Repo
+includes display drivers for various displays including TFT, OLED, ePaper and
+Sharp. Supports a range of hosts with low RAM usage.  
+[micro-gui](https://github.com/peterhinch/micropython-micro-gui) Derived from
+nano-gui and supporting the same displays and hosts, this provides for user
+input via pushbuttons or a navigation joystick.  
 [LCD160CR](https://github.com/peterhinch/micropython-lcd160cr-gui) Touch GUI
 for the official display module.  
 [TFT-GUI](https://github.com/peterhinch/micropython-tft-gui) A fast touch GUI
