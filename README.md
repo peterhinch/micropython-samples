@@ -385,8 +385,8 @@ officially supported NRF24l01 radio.
 
 Fonts, graphics, GUIs and display drivers.
 
-All GUIs except e-paper are based on uasyncio. Where touch is supported a
-callback-based interface is used.
+All GUIs except e-paper are based on uasyncio. Where input is supported a
+callback-based interface is povided.
 
 [font-to-py](https://github.com/peterhinch/micropython-font-to-py) Converts
 industry standard font files to Python source which may be frozen as bytecode.
