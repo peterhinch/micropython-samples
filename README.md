@@ -214,6 +214,10 @@ The [encoder_portable.py](./encoders/encoder_portable.py) version should work on
 all MicroPython platforms. Tested on ESP8266. Note that interrupt latency on
 the ESP8266 limits performance. ESP32 has similar limitations.
 
+See also [this asynchronous driver](https://github.com/peterhinch/micropython-async/blob/master/v3/docs/DRIVERS.md#6-quadrature-encoders)
+intended for control knobs based on quadrature switches like
+[this Adafruit product](https://www.adafruit.com/product/377).
+
 ## 4.8 Pseudo random number generators
 
 On the Pyboard V1.1, true random numbers may be generated rapidly with
