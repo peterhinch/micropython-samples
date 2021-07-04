@@ -198,17 +198,18 @@ connection details where possible.
 ## 4.7 Rotary Incremental Encoder
 
 Classes for handling incremental rotary position encoders. Note Pyboard timers
-can do this in hardware. These samples cater for cases where that solution
-can't be used. The [encoder_timed.py](./encoders/encoder_timed.py) sample
-provides rate information by timing successive edges. In practice this is
-likely to need filtering to reduce jitter caused by imperfections in the
-encoder geometry.
+can do this in hardware, as shown 
+[in this script](https://github.com/dhylands/upy-examples/blob/master/encoder.py)
+from Dave Hylands. These samples cater for cases where that solution can't be
+used. The [encoder_timed.py](./encoders/encoder_timed.py) sample provides rate
+information by timing successive edges. In practice this is likely to need
+filtering to reduce jitter caused by imperfections in the encoder geometry.
 
 There are other algorithms but this is the simplest and fastest I've
 encountered.
 
-These were written for encoders producing TTL outputs. For switches, adapt the
-pull definition to provide a pull up or pull down as required.
+These were written for encoders producing logic outputs. For switches, adapt
+the pull definition to provide a pull up or pull down as required.
 
 The [encoder_portable.py](./encoders/encoder_portable.py) version should work on
 all MicroPython platforms. Tested on ESP8266. Note that interrupt latency on
