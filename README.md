@@ -216,7 +216,14 @@ the ESP8266 limits performance. ESP32 has similar limitations.
 
 See also [this asynchronous driver](https://github.com/peterhinch/micropython-async/blob/master/v3/docs/DRIVERS.md#6-quadrature-encoders)
 intended for control knobs based on quadrature switches like
-[this Adafruit product](https://www.adafruit.com/product/377).
+[this Adafruit product](https://www.adafruit.com/product/377). There are two
+aspects to this. Firstly, the solutions in this repo run callbacks in an
+interrupt context. This is necessary in applications like NC machines where
+performance is paramount, but it can be problematic in applications for control
+knobs where a user adjustment can trigger complex application behavior. The
+asynchronous driver runs the callback in a `uasyncio` context. Secondly there
+can be practical timing and sensitivity issues with control knobs which the
+driver aims to address.
 
 ## 4.8 Pseudo random number generators
 
