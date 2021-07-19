@@ -5,7 +5,7 @@ There are three technologies that I am aware of:
  2. Magnetic.
  3. Mechanical (using switch contacts).
 
-All produce quadrature signals looking like this:
+All produce quadrature signals looking like this:  
 ![Image](./quadrature.jpg)  
 consequently the same code may be used regardless of encoder type.
 
