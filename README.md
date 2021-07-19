@@ -200,7 +200,7 @@ connection details where possible.
 These devices produce digital signals from a shaft's rotary motion in such a
 way that the absolute angle may be deduced. Specifically they measure
 incremental change: it is up to the code to keep track of absolute position, a
-task which has some pitfalls. [This doc](./encoders/ENCODER.md) discusses this
+task which has some pitfalls. [This doc](./encoders/ENCODERS.md) discusses this
 and points to some solutions in MicroPython code.
 
 ## 4.8 Pseudo random number generators
