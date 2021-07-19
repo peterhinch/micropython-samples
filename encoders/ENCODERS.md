@@ -9,10 +9,10 @@ All produce quadrature signals looking like this:
 ![Image](./quadrature.jpg)  
 consequently the same code may be used regardless of encoder type.
 
-They have two primary applications: control knobs for user input and shaft
-position and speed measurements on machines. For user input a mechanical
-device, being inexpensive, usually suffices. See
-[this Adafruit product](https://www.adafruit.com/product/377).
+They have two primary applications:
+ 1. Shaft position and speed measurements on machines.
+ 2. Control knobs for user input. For user input a mechanical device, being
+ inexpensive, usually suffices. See [this Adafruit product](https://www.adafruit.com/product/377).
 
 In applications such as NC machines longevity and reliability are paramount:
 this normally rules out mechanical devices. Rotational speed is also likely to
