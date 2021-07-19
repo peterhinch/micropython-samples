@@ -197,34 +197,11 @@ connection details where possible.
 
 ## 4.7 Rotary Incremental Encoder
 
-Classes for handling incremental rotary position encoders. Note Pyboard timers
-can do this in hardware, as shown 
-[in this script](https://github.com/dhylands/upy-examples/blob/master/encoder.py)
-from Dave Hylands. These samples cater for cases where that solution can't be
-used. The [encoder_timed.py](./encoders/encoder_timed.py) sample provides rate
-information by timing successive edges. In practice this is likely to need
-filtering to reduce jitter caused by imperfections in the encoder geometry.
-
-There are other algorithms but this is the simplest and fastest I've
-encountered.
-
-These were written for encoders producing logic outputs. For switches, adapt
-the pull definition to provide a pull up or pull down as required.
-
-The [encoder_portable.py](./encoders/encoder_portable.py) version should work on
-all MicroPython platforms. Tested on ESP8266. Note that interrupt latency on
-the ESP8266 limits performance. ESP32 has similar limitations.
-
-See also [this asynchronous driver](https://github.com/peterhinch/micropython-async/blob/master/v3/docs/DRIVERS.md#6-quadrature-encoders)
-intended for control knobs based on quadrature switches like
-[this Adafruit product](https://www.adafruit.com/product/377). There are two
-aspects to this. Firstly, the solutions in this repo run callbacks in an
-interrupt context. This is necessary in applications like NC machines where
-performance is paramount, but it can be problematic in applications for control
-knobs where a user adjustment can trigger complex application behavior. The
-asynchronous driver runs the callback in a `uasyncio` context. Secondly there
-can be practical timing and sensitivity issues with control knobs which the
-driver aims to address.
+These devices produce digital signals from a shaft's rotary motion in such a
+way that the absolute angle may be deduced. Specifically they measure
+incremental change: it is up to the code to keep track of absolute position, a
+task which has some pitfalls. [This doc](./encoders/ENCODER.md) discusses this
+and points to some solutions in MicroPython code.
 
 ## 4.8 Pseudo random number generators
 

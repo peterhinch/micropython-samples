@@ -1,6 +1,11 @@
+# encoder.py
+
+# Copyright (c) 2016-2021 Peter Hinch
+# Released under the MIT License (MIT) - see LICENSE file
+
 import pyb
 
-class Encoder(object):
+class Encoder:
     def __init__(self, pin_x, pin_y, reverse, scale):
         self.reverse = reverse
         self.scale = scale
