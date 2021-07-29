@@ -16,32 +16,79 @@ I2C or SPI. All these require the data to be presented as linear sequences of
 bytes. The problem is how to convert an arbitrary Python object to such a
 sequence, and how subsequently to restore the object.
 
-I am aware of four ways of achieving this, each with their own advantages and
-drawbacks. In two cases the encoded strings comprise ASCII characters, in the
-other two they are binary (bytes can take all possible values).
+There are numerous standards for achieving this, five of which are readily
+available to MicroPython. Each has its own advantages and drawbacks. In two
+cases the encoded strings aim to be human readable and comprise ASCII
+characters. In the others they comprise binary `bytes` objects where bytes can
+take all possible values. The following are the formats with MicroPython
+support:
 
  1. ujson (ASCII, official)
  2. pickle (ASCII, official)
  3. ustruct (binary, official)
- 4. protobuf [binary, unofficial](https://github.com/dogtopus/minipb)
+ 4. MessagePack [binary, unofficial](https://github.com/peterhinch/micropython-msgpack)
+ 5. protobuf [binary, unofficial](https://github.com/dogtopus/minipb)
 
-The first two are self-describing: the format includes a definition of its
+The `ujson` and `pickle` formats produce human-readable byte sequences. These
+aid debugging. The use of ASCII data means that a delimiter can be used to
+identify the end of a message. This is because it is possible to guarantee that
+the delimiter will never occur within a message. A delimiter cannot be used
+with binary formats because a message byte can take all possible values
+including that of the delimiter. The drawback of ASCII formats is inefficiency:
+the byte sequences are relatively long.
+
+Numbers 1, 2 and 4 are self-describing: the format includes a definition of its
 structure. This means that the decoding process can re-create the object in the
 absence of information on its structure, which may therefore change at runtime.
-Further, `ujson` and `pickle` produce human-readable byte sequences which aid
-debugging. The drawback is inefficiency: the byte sequences are relatively
-long. They are variable length. This means that the receiving process must be
-provided with a means to determine when a complete string has been received.
+Self describing formats inevitably are variable length. This means that the
+receiving process must be provided with a means to determine when a complete
+message has been received. In the case of ASCII formats a delimiter may be used
+but in the case of `MessagePack` this presents something of a challenge.
 
-The `ustruct` and `protobuf` solutions are binary formats: the byte sequences
-comprise binary data which is neither human readable nor self-describing.
-Binary sequences require that the receiver has information on their structure
-in order to decode them. In the case of `ustruct` sequences are of a fixed
-length which can be determined from the structure. `protobuf` sequences are
-variable length requiring handling discussed below.
+The `ustruct` format is binary: the byte sequence comprises binary data which
+is neither human readable nor self-describing. The problem of message framing
+is solved by hard coding a fixed message structure and length which is known to
+transmitter and receiver. In simple cases of fixed format data, `ustruct`
+provides a simple, efficient solution.
 
-The benefit of binary sequences is efficiency: sequence length is closer to the
-information-theoretic minimum, compared to the ASCII options.
+In `protobuf` and `MessagePack` messages are variable length; both can handle
+data whose length varies at runtime. `MessagePack` also allows the message
+structure to change at runtime. It is also extensible to enable the efficient
+coding of additional Python types or instances of user defined classes.
+
+The `protobuf` standard requires transmitter and receiver to share a schema
+which defines the message structure. Message length may change at runtime, but
+structure may not.
+
+## 1.1 Transmission over unreliable links
+
+Consider a system where a transmitter periodically sends messages to a receiver
+over a communication link. An aspect of the message framing problem arises if
+that link is unreliable, meaning that bytes may be lost or corrupted in
+transit. In the case of ASCII formats with a delimiter the receiver, once it
+has detected the problem, can discard characters until the delimiter is
+received and then wait for a complete message.
+
+In the case of binary formats it is generally impossible to re-synchronise to a
+continuous stream of data. In the case of regular bursts of data a timeout can
+be used. Otherwise "out of band" signalling is required where the receiver
+signals the transmitter to request retransmission.
+
+## 1.2 Concurrency
+
+In `uasyncio` systems the transmitter presents no problem. A message is created
+using synchronous code, then transmitted using asynchronous code typically with
+a `StreamWriter`. In the case of ASCII protocols a delimiter - usually `b"\n"`
+is appended.
+
+In the case of ASCII protocols the receiver can use `StreamReader.readline()`
+to await a complete message.
+
+`ustruct` also presents a simple case in that the number of expected bytes is
+known to the receiver which simply awaits that number.
+
+The variable length binary protocols present a difficulty in that the message
+length is unknown in advance. A solution is available for `MessagePack`.
 
 # 2. ujson and pickle
 
@@ -198,7 +245,47 @@ Output:
 (11, 22, b'the quick brown fox jumps over')
 ```
 
-# 4. Protocol Buffers
+# 4. MessagePack
+
+Of the binary formats this is the easiest to use and can be a "drop in"
+replacement for `ujson` as it supports the same four methods `dump`, `dumps`,
+`load` and `loads`. An application might initially be developed with `ujson`,
+the protocol being changed to `MessagePack` later. Creation of a `MessagePack`
+string can be done with:
+```python
+import umsgpack
+obj = [1.23, 2.56, 89000]
+msg = umsgpack.dumps(obj)  # msg is a bytes object 
+```
+Retrieval of the object is as follows:
+```python
+import umsgpack
+# Retrieve the message msg
+obj = umsgpack.dumps(msg)
+```
+An ingenious feature of the standard is its extensibility. This can be used to
+add support for additional Python types or user defined classes. This example
+shows `complex` data being supported as if it were a native type:
+```python
+import umsgpack
+from umsgpack_ext import mpext
+with open('data', 'wb') as f:
+   umsgpack.dump(mpext(1 + 4j), f)  # mpext() handles extension type
+```
+Reading back:
+```python
+import umsgpack
+import umsgpack_ext  # Decoder only needs access to this module
+with open('data', 'rb') as f:
+    z = umsgpack.load(f)
+print(z)  # z is complex
+```
+Please see [this repo](https://github.com/peterhinch/micropython-msgpack). The
+docs include references to the standard and to other implementations. The repo
+includes an asynchronous receiver which enables incoming messages to be decoded
+as they arrive while allowing other tasks to run concurrently.
+
+# 5. Protocol Buffers
 
 This is a [Google standard](https://developers.google.com/protocol-buffers/)
 described in [this Wikipedia article](https://en.wikipedia.org/wiki/Protocol_Buffers).
@@ -230,7 +317,7 @@ inner `tuple` are strings, with element 0 defining the field's key. Subsequent
 elements define the field's data type; in most cases the data type is defined
 by a single string.
 
-## 4.1 Installation
+## 5.1 Installation
 
 The library comprises a single file `minipb.py`. It has a dependency, the
 `logging` module `logging.py` which may be found in
@@ -238,7 +325,7 @@ The library comprises a single file `minipb.py`. It has a dependency, the
 On RAM constrained platforms `minipb.py` may be cross-compiled or frozen as
 bytecode for even lower RAM consumption.
 
-## 4.2 Data types
+## 5.2 Data types
 
 These are listed in
 [the docs](https://github.com/dogtopus/minipb/wiki/Schema-Representations).
@@ -256,14 +343,14 @@ a subset may be used which maps onto Python data types:
  other platforms with special firmware builds.
  7. 'X' An empty field.
 
-## 4.2.1 Required and Optional fields
+## 5.2.1 Required and Optional fields
 
 If a field is prefixed with `*` it is a `required` field, otherwise it is
 optional. The field must still exist in the data: the only difference is that
 a `required` field cannot be set to `None`. Optional fields can be useful,
 notably for boolean types which can then represent three states.
 
-## 4.3 Application design
+## 5.3 Application design
 
 The following is a minimal example which can be pasted at the REPL:
 ```python
@@ -287,7 +374,7 @@ being saved to a binary file, the file will need an index. Where data is to
 be transmitted over and interface each string should be prepended with a fixed
 length "size" field. The following example illustrates this.
 
-## 4.4 Transmitter/Receiver example
+## 5.4 Transmitter/Receiver example
 
 These examples can't be cut and pasted at the REPL as they assume `send(n)` and
 `receive(n)` functions which access the interface.
@@ -329,7 +416,7 @@ while True:
     # Do something with the received dict
 ```
 
-## 4.5 Repeating fields
+## 5.5 Repeating fields
 
 This feature enables variable length lists to be encoded. List elements must
 all be of the same (declared) data type. In this example the `value` and `txt`
@@ -357,13 +444,13 @@ tx = w.encode(data)
 rx = w.decode(tx)
 print(rx)
 ```
-### 4.5.1 Packed repeating fields
+### 5.5.1 Packed repeating fields
 
 The author of `minipb` [does not recommend](https://github.com/dogtopus/minipb/issues/6)
 their use. Their purpose appears to be in the context of fixed-length fields
 which are outside the scope of pure Python programming.
 
-## 4.6 Message fields (nested dicts)
+## 5.6 Message fields (nested dicts)
 
 The concept of message fields is a Protocol Buffer notion. In MicroPython
 terminology a message field contains a `dict` whose contents are defined by
@@ -404,7 +491,7 @@ print(rx)
 print(rx['nested'][2]['str2'])  # Access inner dict instances
 ```
 
-### 4.6.1 Recursion
+### 5.6.1 Recursion
 
 This is surely overkill in most MicroPython applications, but for the sake of
 completeness message fields can be recursive:
