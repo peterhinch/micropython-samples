@@ -40,10 +40,11 @@ the byte sequences are relatively long.
 Numbers 1, 2 and 4 are self-describing: the format includes a definition of its
 structure. This means that the decoding process can re-create the object in the
 absence of information on its structure, which may therefore change at runtime.
-Self describing formats inevitably are variable length. This means that the
-receiving process must be provided with a means to determine when a complete
-message has been received. In the case of ASCII formats a delimiter may be used
-but in the case of `MessagePack` this presents something of a challenge.
+Self describing formats inevitably are variable length. This is no problem
+where data is being saved to file, but if it is being communicated across a
+link the receiving process needs a means to determine when a complete message
+has been received. In the case of ASCII formats a delimiter may be used but in
+the case of `MessagePack` this presents something of a challenge.
 
 The `ustruct` format is binary: the byte sequence comprises binary data which
 is neither human readable nor self-describing. The problem of message framing

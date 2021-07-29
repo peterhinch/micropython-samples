@@ -22,7 +22,7 @@ and modules which are documented and supported.
   2.4 [DS3231 precision RTC](./README.md#24-ds3231-precision-rtc) Use cheap hardware to calibrate Pyboard RTC.  
  3. [Essays](./README.md#3-essays) General thoughts.  
   3.1 [Resilient](./README.md#31-resilient) A guide to writing resilient WiFi code  
-  3.2 [Serialisation](./README.md#32-serialisation) Review of MicroPython's four serialisation libraries  
+  3.2 [Serialisation](./README.md#32-serialisation) Review of MicroPython's five serialisation libraries  
   3.3 [Measurement of relative timing and phase of fast analog signals](./README.md#33-measurement-of-relative-timing-and-phase-of-fast-analog-signals) For Pyboard.  
  4. [Code samples](./README.md#4-code-samples) Samples prefixed Pyboard are Pyboard specific  
   4.1 [Pyboard Mutex](./README.md#41-pyboard-mutex) Share data between threads and ISR's.  
@@ -139,7 +139,7 @@ Probably applies to other WiFi connected MicroPython devices.
 ## 3.2 Serialisation
 
 [A discussion](./SERIALISATION.md) of the need for serialisation and of the
-relative characteristics of four libraries available to MicroPython. Includes a
+relative characteristics of five libraries available to MicroPython. Includes a
 tutorial on a Protocol Buffer library.
 
 ## 3.3 Measurement of relative timing and phase of fast analog signals
