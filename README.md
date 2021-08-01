@@ -369,7 +369,7 @@ The interface is resilient in the presence of WiFi outages. The server (e.g.
 Raspberry Pi) does any internet work, improving security.  
 [MessagePack](https://github.com/peterhinch/micropython-msgpack) Serialisation
 with usage almost identical to `ujson` but with message compression and other
-advantages.
+advantages.  
 [Radio](https://github.com/peterhinch/micropython-radio) Simplify use of the
 officially supported NRF24l01 radio.  
 
