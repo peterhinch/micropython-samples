@@ -24,7 +24,6 @@ class Encoder:
         self.forward = self.pin_x.value() ^ self.pin_y.value() ^ self.reverse ^ 1
         self._pos += 1 if self.forward else -1
 
-    @property
     def position(self):
         return self._pos*self.scale
 

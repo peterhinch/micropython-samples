@@ -92,6 +92,12 @@ hardware may need to be adapted to limit the rate at which signals can change,
 possibly with a CR low pass filter and a schmitt trigger. This clearly won't
 work if the pulse rate from actual shaft rotation exceeds this limit.
 
+In a careful test on a Pyboard 1.1 with an optical encoder pulses were
+occasionally missed. My guess is that, on rare occasions, pulses can arrive too
+fast for even hard IRQ's to keep track. For machine tool applications, the
+conclusion would seem to be that hardware decoding or possibly a rate limiting
+circuit is required.
+
 # Problem 3: Concurrency
 
 The presented code samples use interrupts in order to handle the potentially
