@@ -39,6 +39,7 @@ then
     then
         make BOARD=$BOARD clean
     fi
+    make submodules
     if make -j 8 BOARD=$BOARD FROZEN_MANIFEST=$MANIFEST MICROPY_VFS_LFS2=1 && pyb_boot $MPDEVICE
     then
         sleep 1

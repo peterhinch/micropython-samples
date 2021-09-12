@@ -20,6 +20,8 @@ board.
 
 The scripts will require minor edits to reflect your directory structure.
 
+Scripts updated 12 Sep 2021 to fix handling of submodules.
+
 ###### [Main README](../README.md)
 
 # Frozen modules and manifests
