@@ -79,6 +79,12 @@ to 20ppm. It can benefit from calibration. For this to work reliably on the D a
 firmware build later than V1.12 is required: use a daily build if a later
 release is not yet available.
 
+Note that, while the code will run on the Pyboard Lite, this device cannot be
+calibrated. This is because its RTC uses an inaccurate RC oscillator whose
+frequency is usually beyond the range of the chip's calibration capability.
+Even if this is not the case, the lack of stability of RC oscillators makes
+calibration a pointless exercise.
+
 The sample below assumes that the DS3231 is connected to the hardware I2C port
 via I2C(2) but any I2C may be used including soft I2C. Ensure that the Pyboard
 RTC is set to the correct time and date.
