@@ -104,7 +104,7 @@ be converted to legal JSON strings; this is a limitation of the
 
 The advantage of `pickle` is that it will accept any Python object except for
 instances of user defined classes. The extremely simple source may be found in
-[the official library](https://github.com/micropython/micropython-lib/tree/master/pickle).
+[the official library](https://github.com/micropython/micropython-lib/tree/master/python-stdlib/pickle).
 The strings produced are incompatible with CPython's `pickle`, but can be
 decoded in CPython by using the MicroPython decoder. There is a
 [bug](https://github.com/micropython/micropython/issues/2280) in the
