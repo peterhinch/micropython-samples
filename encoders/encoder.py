@@ -24,7 +24,9 @@ class Encoder:
         self.forward = self.pin_a.value() ^ self.pin_b.value() ^ self.reverse ^ 1
         self._pos += 1 if self.forward else -1
 
-    def position(self):
+    def position(self, value=None):
+        if value is not None:
+            self._pos = round(value / self.scale)
         return self._pos*self.scale
 
     def reset(self):
