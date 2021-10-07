@@ -10,7 +10,7 @@ from machine import Pin
 
 class Encoder:
     def __init__(self, pin_a, pin_b, scale=1):
-        self.scale = scale
+        self.scale = scale  # Optionally scale encoder rate to distance/angle
         self.forward = True
         self.pin_a = pin_a
         self.pin_b = pin_b
