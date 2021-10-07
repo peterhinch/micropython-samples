@@ -17,11 +17,11 @@ class Encoder:
         self.a_interrupt = pyb.ExtInt(pin_a, pyb.ExtInt.IRQ_RISING_FALLING, pyb.Pin.PULL_NONE, self.a_callback)
         self.b_interrupt = pyb.ExtInt(pin_b, pyb.ExtInt.IRQ_RISING_FALLING, pyb.Pin.PULL_NONE, self.b_callback)
 
-    def x_callback(self, line):
+    def a_callback(self, line):
         self.forward = self.pin_a.value() ^ self.pin_b.value() ^ self.reverse
         self._pos += 1 if self.forward else -1
 
-    def y_callback(self, line):
+    def b_callback(self, line):
         self.forward = self.pin_a.value() ^ self.pin_b.value() ^ self.reverse ^ 1
         self._pos += 1 if self.forward else -1
 

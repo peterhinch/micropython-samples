@@ -51,11 +51,11 @@ class Encoder:
             self.a_interrupt = pin_a.irq(trigger=Pin.IRQ_RISING | Pin.IRQ_FALLING, handler=self.a_callback)
             self.b_interrupt = pin_b.irq(trigger=Pin.IRQ_RISING | Pin.IRQ_FALLING, handler=self.b_callback)
 
-    def x_callback(self, pin):
+    def a_callback(self, pin):
         self.forward = pin() ^ self.pin_b()
         self._pos += 1 if self.forward else -1
 
-    def y_callback(self, pin):
+    def b_callback(self, pin):
         self.forward = self.pin_a() ^ pin() ^ 1
         self._pos += 1 if self.forward else -1
 

@@ -22,10 +22,10 @@ class Encoder:
             self.a_interrupt = pin_a.irq(trigger=Pin.IRQ_RISING | Pin.IRQ_FALLING, handler=self.a_callback)
             self.b_interrupt = pin_b.irq(trigger=Pin.IRQ_RISING | Pin.IRQ_FALLING, handler=self.b_callback)
 
-    def x_callback(self, pin):
+    def a_callback(self, pin):
         self._pos += 1 if (pin() ^ self.pin_b()) else -1
 
-    def y_callback(self, pin):
+    def b_callback(self, pin):
         self._pos += 1 if (self.pin_a() ^ pin() ^ 1) else -1
 
     def position(self, value=None):
