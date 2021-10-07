@@ -11,7 +11,6 @@ from machine import Pin
 class Encoder:
     def __init__(self, pin_a, pin_b, scale=1):
         self.scale = scale  # Optionally scale encoder rate to distance/angle
-        self.forward = True
         self.pin_a = pin_a
         self.pin_b = pin_b
         self._pos = 0
@@ -23,12 +22,10 @@ class Encoder:
             self.b_interrupt = pin_b.irq(trigger=Pin.IRQ_RISING | Pin.IRQ_FALLING, handler=self.b_callback)
 
     def x_callback(self, pin):
-        self.forward = pin() ^ self.pin_b()
-        self._pos += 1 if self.forward else -1
+        self._pos += 1 if (pin() ^ self.pin_b()) else -1
 
     def y_callback(self, pin):
-        self.forward = self.pin_a() ^ pin() ^ 1
-        self._pos += 1 if self.forward else -1
+        self._pos += 1 if (self.pin_a() ^ pin() ^ 1) else -1
 
     def position(self, value=None):
         if value is not None:
