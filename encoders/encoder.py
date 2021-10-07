@@ -5,6 +5,7 @@
 
 import pyb
 
+
 class Encoder:
     def __init__(self, pin_a, pin_b, reverse=0, scale=1):
         self.reverse = reverse
@@ -27,7 +28,7 @@ class Encoder:
     def position(self, value=None):
         if value is not None:
             self._pos = round(value / self.scale)
-        return self._pos*self.scale
+        return self._pos * self.scale
 
     def value(self):
         return self._pos

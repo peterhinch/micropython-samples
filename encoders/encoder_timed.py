@@ -6,6 +6,7 @@
 import utime
 from machine import Pin, disable_irq, enable_irq
 
+
 class EncoderTimed:
     def __init__(self, pin_a, pin_b, scale=1):
         self.scale = scale  # Optionally scale encoder rate to distance/angle
@@ -39,11 +40,11 @@ class EncoderTimed:
         tlast = self.tlast  # Cache current values
         tprev = self.tprev
         enable_irq(state)
-        if utime.ticks_diff(utime.ticks_us(), tlast) > 2_000_000: # It's stopped
+        if utime.ticks_diff(utime.ticks_us(), tlast) > 2_000_000:  # It's stopped
             result = 0.0
         else:
             try:
-                result = 1000000.0/(utime.ticks_diff(tlast, tprev))
+                result = 1000000.0 / (utime.ticks_diff(tlast, tprev))
             except ZeroDivisionError:
                 result = 0.0
         result *= self.scale
