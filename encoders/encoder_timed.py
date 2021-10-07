@@ -42,7 +42,10 @@ class EncoderTimed:
         if utime.ticks_diff(utime.ticks_us(), tlast) > 2_000_000: # It's stopped
             result = 0.0
         else:
-            result = 1000000.0/(utime.ticks_diff(tlast, tprev))
+            try:
+                result = 1000000.0/(utime.ticks_diff(tlast, tprev))
+            except ZeroDivisionError:
+                result = 0.0
         result *= self.scale
         return result if self.forward else -result
 
