@@ -7,29 +7,29 @@ import utime
 from machine import Pin, disable_irq, enable_irq
 
 class EncoderTimed:
-    def __init__(self, pin_x, pin_y, scale=1):
+    def __init__(self, pin_a, pin_b, scale=1):
         self.scale = scale  # Optionally scale encoder rate to distance/angle
         self.tprev = 0
         self.tlast = 0
         self.forward = True
-        self.pin_x = pin_x
-        self.pin_y = pin_y
+        self.pin_a = pin_a
+        self.pin_b = pin_b
         self._pos = 0
         try:
-            self.x_interrupt = pin_x.irq(trigger=Pin.IRQ_RISING | Pin.IRQ_FALLING, handler=self.x_callback, hard=True)
-            self.y_interrupt = pin_y.irq(trigger=Pin.IRQ_RISING | Pin.IRQ_FALLING, handler=self.y_callback, hard=True)
+            self.a_interrupt = pin_a.irq(trigger=Pin.IRQ_RISING | Pin.IRQ_FALLING, handler=self.a_callback, hard=True)
+            self.b_interrupt = pin_b.irq(trigger=Pin.IRQ_RISING | Pin.IRQ_FALLING, handler=self.b_callback, hard=True)
         except TypeError:
-            self.x_interrupt = pin_x.irq(trigger=Pin.IRQ_RISING | Pin.IRQ_FALLING, handler=self.x_callback)
-            self.y_interrupt = pin_y.irq(trigger=Pin.IRQ_RISING | Pin.IRQ_FALLING, handler=self.y_callback)
+            self.a_interrupt = pin_a.irq(trigger=Pin.IRQ_RISING | Pin.IRQ_FALLING, handler=self.a_callback)
+            self.b_interrupt = pin_b.irq(trigger=Pin.IRQ_RISING | Pin.IRQ_FALLING, handler=self.b_callback)
 
     def x_callback(self, line):
-        self.forward = self.pin_x.value() ^ self.pin_y.value()
+        self.forward = self.pin_a.value() ^ self.pin_b.value()
         self._pos += 1 if self.forward else -1
         self.tprev = self.tlast
         self.tlast = utime.ticks_us()
 
     def y_callback(self, line):
-        self.forward = self.pin_x.value() ^ self.pin_y.value() ^ 1
+        self.forward = self.pin_a.value() ^ self.pin_b.value() ^ 1
         self._pos += 1 if self.forward else -1
         self.tprev = self.tlast
         self.tlast = utime.ticks_us()

@@ -6,22 +6,22 @@
 import pyb
 
 class Encoder:
-    def __init__(self, pin_x, pin_y, reverse, scale):
+    def __init__(self, pin_a, pin_b, reverse, scale):
         self.reverse = reverse
         self.scale = scale
         self.forward = True
-        self.pin_x = pin_x
-        self.pin_y = pin_y
+        self.pin_a = pin_a
+        self.pin_b = pin_b
         self._pos = 0
-        self.x_interrupt = pyb.ExtInt(pin_x, pyb.ExtInt.IRQ_RISING_FALLING, pyb.Pin.PULL_NONE, self.x_callback)
-        self.y_interrupt = pyb.ExtInt(pin_y, pyb.ExtInt.IRQ_RISING_FALLING, pyb.Pin.PULL_NONE, self.y_callback)
+        self.a_interrupt = pyb.ExtInt(pin_a, pyb.ExtInt.IRQ_RISING_FALLING, pyb.Pin.PULL_NONE, self.a_callback)
+        self.b_interrupt = pyb.ExtInt(pin_b, pyb.ExtInt.IRQ_RISING_FALLING, pyb.Pin.PULL_NONE, self.b_callback)
 
     def x_callback(self, line):
-        self.forward = self.pin_x.value() ^ self.pin_y.value() ^ self.reverse
+        self.forward = self.pin_a.value() ^ self.pin_b.value() ^ self.reverse
         self._pos += 1 if self.forward else -1
 
     def y_callback(self, line):
-        self.forward = self.pin_x.value() ^ self.pin_y.value() ^ self.reverse ^ 1
+        self.forward = self.pin_a.value() ^ self.pin_b.value() ^ self.reverse ^ 1
         self._pos += 1 if self.forward else -1
 
     def position(self):
