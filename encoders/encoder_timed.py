@@ -51,6 +51,11 @@ class EncoderTimed:
             self._pos = round(value / self.scale)
         return self._pos * self.scale
 
+    def value(self):
+        return self._pos
+
+    def set_value(self, value):
+        self._pos = value
+
     def reset(self):
         self._pos = 0
-
