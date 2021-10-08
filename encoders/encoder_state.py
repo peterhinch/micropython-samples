@@ -13,7 +13,7 @@ class Encoder:
 
         self._pos = 0  # raw counter value
 
-        self._state = 0  # encoder state machine
+        self._state = 0  # encoder state transitions
         if x124 == 1:
             self._x = (0, 0, 1, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0)
         elif x124 == 2:

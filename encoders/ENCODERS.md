@@ -5,14 +5,16 @@ There are three technologies that I am aware of:
  2. Magnetic.
  3. Mechanical (using switch contacts).
 
-All produce quadrature signals looking like this:  
-![Image](./quadrature.jpg)  
+All produce quadrature signals looking like this:
+![Image](./quadrature.jpg)
 consequently the same code may be used regardless of encoder type.
 
 They have two primary applications:
  1. Shaft position and speed measurements on machines.
  2. Control knobs for user input. For user input a mechanical device, being
- inexpensive, usually suffices. See [this Adafruit product](https://www.adafruit.com/product/377).
+ inexpensive, usually suffices.
+ ![image](https://user-images.githubusercontent.com/70886343/100070110-34979280-2e42-11eb-95c3-d9f93ccd2d2d.png)
+ ![image](https://user-images.githubusercontent.com/70886343/136481028-a9066ee9-d531-4393-8799-ae64ae83eddf.png)
 
 In applications such as NC machines longevity and reliability are paramount:
 this normally rules out mechanical devices. Rotational speed is also likely to
@@ -23,7 +25,7 @@ there may be issues in devices with high interrupt latency such as ESP32,
 especially with SPIRAM.
 
 The ideal host, especially for precison applications, is a Pyboard. This is
-because Pyboard timers can decode in hardware, as shown 
+because Pyboard timers can decode in hardware, as shown
 [in this script](https://github.com/dhylands/upy-examples/blob/master/encoder.py)
 from Dave Hylands. Hardware decoding eliminates all concerns over interrupt
 latency or input pulse rates.
@@ -40,24 +42,21 @@ from machine import Pin
 class Encoder:
     def __init__(self, pin_a, pin_b, scale=1):
         self.scale = scale
-        self.forward = True
         self.pin_a = pin_a
         self.pin_b = pin_b
         self._pos = 0
         try:
-            self.a_interrupt = pin_a.irq(trigger=Pin.IRQ_RISING | Pin.IRQ_FALLING, handler=self.a_callback, hard=True)
-            self.b_interrupt = pin_b.irq(trigger=Pin.IRQ_RISING | Pin.IRQ_FALLING, handler=self.b_callback, hard=True)
+            pin_a.irq(trigger=Pin.IRQ_RISING | Pin.IRQ_FALLING, handler=self.a_callback, hard=True)
+            pin_b.irq(trigger=Pin.IRQ_RISING | Pin.IRQ_FALLING, handler=self.b_callback, hard=True)
         except TypeError:
-            self.a_interrupt = pin_a.irq(trigger=Pin.IRQ_RISING | Pin.IRQ_FALLING, handler=self.a_callback)
-            self.b_interrupt = pin_b.irq(trigger=Pin.IRQ_RISING | Pin.IRQ_FALLING, handler=self.b_callback)
+            pin_a.irq(trigger=Pin.IRQ_RISING | Pin.IRQ_FALLING, handler=self.a_callback)
+            pin_b.irq(trigger=Pin.IRQ_RISING | Pin.IRQ_FALLING, handler=self.b_callback)
 
     def a_callback(self, pin):
-        self.forward = pin() ^ self.pin_b()
-        self._pos += 1 if self.forward else -1
+        self._pos += 1 if (pin() ^ self.pin_b()) else -1
 
     def b_callback(self, pin):
-        self.forward = self.pin_a() ^ pin() ^ 1
-        self._pos += 1 if self.forward else -1
+        self._pos += 1 if (self.pin_a() ^ pin() ^ 1) else -1
 
     def position(self, value=None):
         if value is not None:
@@ -130,6 +129,13 @@ the rate at which callbacks occur.
  imperfections in the encoder geometry. With a mechanical knob turned by an
  anthropoid ape it's debatable whether it produces anything useful :)
  3. `encoder.py` An old Pyboard-specific version.
+ 4. `encoder_state.py` Interrupt based quadrature incremental encoder.
+ Allows to select the clock multiplier as x1, x2 or x4.
+ It uses encoder state transitions and rejects contact bounces - jitters.
+ The Encoder.value() is much more accurate.
+ Perfect work on ESP32 board, a deviation is 0 or ±1 or ±2 per revolution.
+ 5. `encoders_test.py` Try to test the above encoders.
+ Needs to be tested on other MicroPython boards.
 
 These were written for encoders producing logic outputs. For switches, adapt
 the pull definition to provide a pull up or pull down as required, or provide

@@ -3,7 +3,7 @@
 from time import sleep
 from machine import Pin
 
-# YOU MAY USE
+# YOU MAY TEST
 #from machine import Encoder  # encoder based on hardware counters from ESP32, mimxrt, STM32 ports
 #OR
 from encoder_state import Encoder
