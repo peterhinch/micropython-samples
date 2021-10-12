@@ -24,11 +24,11 @@ class Encoder:
             raise ValueError("x124 must be from [1, 2, 4]")
 
         try:
-            self.pin_a.irq(self.callback, hard=True)
-            self.pin_b.irq(self.callback, hard=True)
+            self.pin_a.irq(self._callback, hard=True)
+            self.pin_b.irq(self._callback, hard=True)
         except TypeError:
-            self.pin_a.irq(self.callback)
-            self.pin_b.irq(self.callback)
+            self.pin_a.irq(self._callback)
+            self.pin_b.irq(self._callback)
 
     def deinit(self):
         try:
@@ -47,7 +47,7 @@ class Encoder:
         return 'Encoder(A={}, B={}, scale={}, x124={})'.format(
             self.pin_a, self.pin_b, self.scale, self.x124)
 
-    def callback(self, pin):
+    def _callback(self, pin):
         self._state = ((self._state << 2) + (self.pin_a() << 1) + self.pin_b()) & 0xF
         self._pos += self._x[self._state]
 
