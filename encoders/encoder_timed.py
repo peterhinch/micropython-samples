@@ -2,7 +2,7 @@
 
 # Copyright (c) 2016-2021 Peter Hinch
 # Released under the MIT License (MIT) - see LICENSE file
-# Improvements provided by IhorNehrutsa 
+# Improvements provided by IhorNehrutsa
 
 import utime
 from machine import Pin, disable_irq, enable_irq
@@ -59,3 +59,5 @@ class EncoderTimed:
     def reset(self):
         self._pos = 0
 
+    def value(self):
+        return self._pos
