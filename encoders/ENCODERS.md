@@ -61,7 +61,7 @@ class Encoder:
 
     def position(self, value=None):
         if value is not None:
-            self._pos = value // self.scale
+            self._pos = round(value / self.scale)
         return self._pos * self.scale
 ```
 If the direction is incorrect, transpose the X and Y pins in the constructor

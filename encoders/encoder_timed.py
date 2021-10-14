@@ -2,6 +2,7 @@
 
 # Copyright (c) 2016-2021 Peter Hinch
 # Released under the MIT License (MIT) - see LICENSE file
+# Improvements provided by IhorNehrutsa 
 
 import utime
 from machine import Pin, disable_irq, enable_irq
@@ -9,8 +10,8 @@ from machine import Pin, disable_irq, enable_irq
 class EncoderTimed:
     def __init__(self, pin_x, pin_y, scale=1):
         self.scale = scale  # Optionally scale encoder rate to distance/angle
-        self.tprev = 0
-        self.tlast = 0
+        self.tprev = -1
+        self.tlast = -1
         self.forward = True
         self.pin_x = pin_x
         self.pin_y = pin_y
@@ -39,14 +40,20 @@ class EncoderTimed:
         tlast = self.tlast  # Cache current values
         tprev = self.tprev
         enable_irq(state)
-        if utime.ticks_diff(utime.ticks_us(), tlast) > 2_000_000: # It's stopped
-            result = 0.0
-        else:
-            result = 1000000.0/(utime.ticks_diff(tlast, tprev))
-        result *= self.scale
+        if self.tprev == -1:  # No valid times yet
+            return 0.0
+        dt = utime.ticks_diff(utime.ticks_us(), tlast)
+        if dt > 2_000_000: # Stopped
+            return 0.0
+        dt = utime.ticks_diff(tlast, tprev)
+        if dt == 0:  # Could happen on future rapid hardware
+            return 0.0
+        result = self.scale * 1_000_000.0/dt
         return result if self.forward else -result
 
-    def position(self):
+    def position(self, value=None):
+        if value is not None:
+            self._pos = round(value / self.scale)
         return self._pos * self.scale
 
     def reset(self):

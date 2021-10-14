@@ -32,5 +32,5 @@ class Encoder:
 
     def position(self, value=None):
         if value is not None:
-            self._pos = value // self.scale
+            self._pos = round(value / self.scale)  # # Improvement provided by @IhorNehrutsa 
         return self._pos * self.scale
