@@ -308,10 +308,13 @@ Unlike the code samples these are fully documented and supported.
 
 ## 5.1 uasyncio
 
-[Tutorial](https://github.com/peterhinch/micropython-async/blob/master/v3/docs/TUTORIAL.md)  
+[Tutorial](https://github.com/peterhinch/micropython-async/blob/master/v3/docs/TUTORIAL.md)
+Main focus: using uasyncio to drive and communicate with hardware devices.  
 [Drivers](https://github.com/peterhinch/micropython-async/blob/master/v3/docs/DRIVERS.md)
 Asynchronous device drivers for switches, pushbuttons and ADC's. Also has
 information on interfacing interrupts to uasyncio.  
+[Asynchronous monitor](https://github.com/peterhinch/micropython-monitor) Use a
+raspberry Pico and a logic analyser or scope to monitor asynchronous code.  
 [Schedule](https://github.com/peterhinch/micropython-async/blob/master/v3/docs/SCHEDULE.md)
 Schedule events at specified times and dates.  
 [HTU21D](https://github.com/peterhinch/micropython-async/blob/master/v3/docs/HTU21D.md)
