@@ -32,5 +32,7 @@ class Encoder:
     def reset(self):
         self._pos = 0
 
-    def value(self):
+    def value(self, value=None):
+        if value is not None:
+            self._pos = value
         return self._pos
