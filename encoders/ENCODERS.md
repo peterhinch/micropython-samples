@@ -129,7 +129,9 @@ the rate at which callbacks occur.
  practice this is likely to need filtering to reduce jitter caused by
  imperfections in the encoder geometry. With a mechanical knob turned by an
  anthropoid ape it's debatable whether it produces anything useful :)
- 3. `encoder.py` An old Pyboard-specific version.
+ 3. `encoder_rp2.py` Version specific to Raspberry Pico RP2 chip. This uses the
+ PIO and Viper code to achieve fast response - upto ~10K transitions/s.
+ 4. `encoder.py` An old Pyboard-specific version.
 
 These were written for encoders producing logic outputs. For switches, adapt
 the pull definition to provide a pull up or pull down as required, or provide
