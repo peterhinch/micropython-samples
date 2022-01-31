@@ -6,21 +6,12 @@
 
 # 1. Installing MicroPython library modules
 
-Paul Sokolovsky has forked the MicroPython project. This is the
-[pycopy fork](https://github.com/pfalcon/pycopy). The library for the `pycopy`
-fork may be found [here](https://github.com/pfalcon/micropython-lib).
-
-This guide is for users of official MicroPython firmware as found on
-[micropython.org](https://micropython.org/). The library at
-[micropython-lib](https://github.com/micropython/micropython-lib) is compatible
-with the official firmware. Users of pycopy should consult that project's
-documentation.
-
-Libraries on [PyPi](https://pypi.org/) may or may not be compatible with
-official firmware. This is resolved by official `upip` (and its `micropip`
-derivative). These first search the official library. Only if no match is found
-do they install from PyPi. For this and other reasons, `pip` and `pip3` should
-not be used to install MicroPython libraries. Use of `upip` is detailed in the
+There are various forks of MicroPython, consequently libraries on
+[PyPi](https://pypi.org/) may or may not be compatible with official firmware.
+This is resolved by official `upip` (and its `micropip` derivative). These
+first search the official library. Only if no match is found do they install
+from PyPi. For this and other reasons, `pip` and `pip3` should not be used to
+install MicroPython libraries. Use of `upip` is detailed in the
 [official docs](http://docs.micropython.org/en/latest/reference/packages.html).
 
 Users of non-networked hardware such as the Pyboard 1.x can use `upip` with the
@@ -32,9 +23,27 @@ Unix build, which must be built from source. This may be avoided by using
 `micropip.py` in this repo which runs under CPython.
 
 Alternatively libraries may be installed by copying files from the MicroPython
-library repository to the target device. However this requires some attention
-to detail where there are dependencies. Where modules are organised as Python
-packages the directory structure must be maintained.
+[library repository](https://github.com/micropython/micropython-lib) to the
+target device. However this requires some attention to detail where there are
+dependencies. Where modules are organised as Python packages the directory
+structure must be maintained.
+
+## 1.1 Installing unofficial packages
+
+PyPi hosts a wide variety of packages targeted at MicroPython. There is no
+guarantee of their compatibility with the official MicroPython codebase and it
+seems that some cannot even be downloaded by `upip`: e.g.
+[this issue](https://github.com/peterhinch/micropython-samples/issues/27)
+
+## 1.2 What micropip is and is not
+
+Official `upip` cannot run under CPython. The purpose of `micropip` is to be a
+straight port of `upip` for those who do not have access to the Unix build of
+MicroPython. It aims to replicate the functinality of `upip`. Hence requests
+for enhancements will be rejected. If `upip` is enhanced, I will port those
+changes to `micropip`. Secondly, if I receive a report that `micropip` cannot
+download a given unofficial package, I will check whether `upip` succceeds. If
+`upip` also fails, either the package is faulty or there is a bug in `upip`.
 
 ###### [Main README](../README.md)
 
