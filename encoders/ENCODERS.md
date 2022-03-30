@@ -85,20 +85,48 @@ succession of edges on one input line, with no transitions on the other. On
 mechanical encoders this may be caused by
 [contact bounce](http://www.ganssle.com/debouncing.htm). On any type it can
 result from vibration, where the encoder happens to stop at an angle exactly
-matching an edge. Code must be designed to accommodate this. The above sample
-does this. It is possible that the above latency issue may cause pulses to be
-missed, notably on platforms which don't support hard IRQ's. In such cases
-hardware may need to be adapted to limit the rate at which signals can change,
-possibly with a CR low pass filter and a schmitt trigger. This clearly won't
-work if the pulse rate from actual shaft rotation exceeds this limit.
+matching an edge. An arbitrarily long sequence of pulses on one line is the
+result; the frequency may be arbitrarily high. A correct algorithm must be
+able to cope with this: the outcome will be one digit of jitter in the output
+count but no systematic drift.
 
-In a careful test on a Pyboard 1.1 with an optical encoder pulses were
-occasionally missed. My guess is that, on rare occasions, pulses can arrive too
-fast for even hard IRQ's to keep track. For machine tool applications, the
-conclusion would seem to be that hardware decoding or possibly a rate limiting
-circuit is required.
+Contrary to common opinion a state table is not necessary to produce a correct
+algorithm: see the above sample for an example.
 
-# Problem 3: Concurrency
+# Problem 3: Synchronisation
+
+Decoders of all types including hardware implementations can fail if edges
+on one line occur at too high a rate: transitions can be missed leading to a
+gradual drift of measured count compared to actual position. The only solution
+to this is to limit the rate by pre-synchronising the digital signals to a
+clock.
+
+For mechanical encoders there can also be an issue with invalid logic levels
+caused by contact bounce: conditioning with a CR networks and a Schmitt trigger
+should be considered.
+
+For bit-perfect results a single level of clock synchronisation is inadequate
+because of metastability. Typically two levels are used. See
+[this Wikipedia article](url=https://en.wikipedia.org/wiki/Incremental_encoder#Clock_synchronization).
+
+The clock rate of a synchroniser for a software decoder must be chosen with
+regard to the worst-case latency of the host. The clock rate will then
+determine the maximum permissible rotation speed of the encoder.
+
+In practice bit-perfect results are often not required and simple software
+solutions are fine. In particular encoders used for user controls normally have
+some form of user feedback. The occasional missed pulse caused by fast contact
+bounce will not be noticed.
+
+Where bit-perfect results are required the simplest approach is to use a target
+which supports hardware decoding and which pre-synchronises the signals. STM32
+meets these criteria.
+
+In a careful test of a software decoder on a Pyboard 1.1 with an optical
+encoder pulses were occasionally missed. This suggests that on rare occasions
+pulses can arrive too fast for even hard IRQ's to keep track.
+
+# Problem 4: Concurrency
 
 The presented code samples use interrupts in order to handle the potentially
 high rate at which transitions can occur. The above script maintains a
