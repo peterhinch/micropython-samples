@@ -165,3 +165,49 @@ These were written for encoders producing logic outputs. For switches, adapt
 the pull definition to provide a pull up or pull down as required, or provide
 physical resistors. This is my preferred solution as the internal resistors on
 most platforms have a rather high value.
+
+# Algorithm
+
+Discussions on the MicroPython forum demonstrate a degree of confusion about
+the merits of different decoding algorithms and about contact debouncing. These
+notes aim to clarify the issues and to provide an explanation for the approach
+used in my code samples.
+
+Incremental encoders produce two signals `x` and `y`. Possible state changes
+are shown in this state diagram.  
+
+![Image](./state_diagram.png)  
+
+The truth table includes the previous (`xp` and `yp`) and current (`x` and `y`)
+values of the signals. It includes all logically possible cobinations of these
+signals. These include cases where no change occurs (marked `n`) and cases
+which are physically impossible (`x`). The latter arise because both signals
+cannot change state simultaneously.
+
+Decoding these four bits is a problem of combinatorial logic. All such problems
+may be solved by using the bits as addresses of a lookup table. In this case
+there would be two output bits signifying increment, decrement or do nothing.
+However, simplifications are possible if changes of `x` and `y` trigger
+interrupts.
+
+The truth table may then be split into two, one catering for cases where `x`
+has changed, and the other for `y` changes. The illegal cases are discarded and
+the "no change" cases will not trigger an interrupt. All cases in these tables
+cause a change in position and inspection shows that the direction is the
+`exclusive or` of the current `x` and `y` values, with opposite polarity for
+the `x` and `y` interrupts.
+
+## Debouncing
+
+Contact bounce or vibration effects cause an oscillating signal on one line.
+The state diagram shows that this is logically indistinguishable from a
+physical movement of the encoder backwards and forwards across one transition
+point. Consequently any valid decoding algorithm will register a change in
+position of one LSB forwards and backwards. There is no systematic drift, just
+one LSB of positional uncertainty.
+
+## Algorithm quality
+
+All valid solutions to a combinatorial logic problem are equivalent. The only
+ways in which one solution can be considered "better" than another are in
+qualities such as performance and code size.
