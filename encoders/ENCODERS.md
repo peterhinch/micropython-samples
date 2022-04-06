@@ -31,7 +31,7 @@ latency or input pulse rates.
 # 2. Basic encoder script
 
 This comes from `encoder_portable.py` in this repo. It uses the simplest and
-fastest algorithm I know. It should run on any MicrPython platform, but please
+fastest algorithm I know. It should run on any MicroPython platform, but please
 read the following notes as there are potential issues.
 
 ```python
@@ -40,7 +40,6 @@ from machine import Pin
 class Encoder:
     def __init__(self, pin_x, pin_y, scale=1):
         self.scale = scale
-        self.forward = True
         self.pin_x = pin_x
         self.pin_y = pin_y
         self._pos = 0
@@ -51,13 +50,13 @@ class Encoder:
             self.x_interrupt = pin_x.irq(trigger=Pin.IRQ_RISING | Pin.IRQ_FALLING, handler=self.x_callback)
             self.y_interrupt = pin_y.irq(trigger=Pin.IRQ_RISING | Pin.IRQ_FALLING, handler=self.y_callback)
 
-    def x_callback(self, pin):
-        self.forward = pin() ^ self.pin_y()
-        self._pos += 1 if self.forward else -1
+    def x_callback(self, pin_x):
+        forward = pin_x() ^ self.pin_y()
+        self._pos += 1 if forward else -1
 
-    def y_callback(self, pin):
-        self.forward = self.pin_x() ^ pin() ^ 1
-        self._pos += 1 if self.forward else -1
+    def y_callback(self, pin_y):
+        forward = self.pin_x() ^ pin_y() ^ 1
+        self._pos += 1 if forward else -1
 
     def position(self, value=None):
         if value is not None:
@@ -178,7 +177,7 @@ are shown in this state diagram.
 ![Image](./state_diagram.png)  
 
 The truth table includes the previous (`xp` and `yp`) and current (`x` and `y`)
-values of the signals. It includes all logically possible cobinations of these
+values of the signals. It includes all logically possible combinations of these
 signals. These include cases where no change occurs (marked `n`) and cases
 which are physically impossible (`x`). The latter arise because both signals
 cannot change state simultaneously.
@@ -223,7 +222,7 @@ the edge occurs and consequently varies in real time. Another ISR may be
 running. Higher priority interrupts may be pending service. In the case of soft
 IRQ's garbage collection may be in progress.
 
-Consider the fllowing ISR:
+Consider the following ISR:
 ```python
     def x_callback(self, pin_x):
         forward = pin_x() ^ self.pin_y()
