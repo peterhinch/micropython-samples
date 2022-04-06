@@ -1,4 +1,4 @@
-# Incremental encoders
+# 1. Incremental encoders
 
 There are three technologies that I am aware of:
  1. Optical.
@@ -28,7 +28,7 @@ because Pyboard timers can decode in hardware, as shown
 from Dave Hylands. Hardware decoding eliminates all concerns over interrupt
 latency or input pulse rates.
 
-# Basic encoder script
+# 2. Basic encoder script
 
 This comes from `encoder_portable.py` in this repo. It uses the simplest and
 fastest algorithm I know. It should run on any MicrPython platform, but please
@@ -67,7 +67,7 @@ class Encoder:
 If the direction is incorrect, transpose the X and Y pins in the constructor
 call.
 
-# Problem 1: Interrupt latency
+# 3. Problem 1: Interrupt latency
 
 By default, pin interrupts defined using the `machine` module are soft. This
 introduces latency if a line changes state when a garbage collection is in
@@ -78,7 +78,7 @@ Hard IRQ's present their own issues documented
 [here](https://docs.micropython.org/en/latest/reference/isr_rules.html) but
 the above script conforms with these rules.
 
-# Problem 2: Jitter
+# 4. Problem 2: Jitter
 
 The picture above is idealised. In practice it is possible to receive a
 succession of edges on one input line, with no transitions on the other. On
@@ -86,32 +86,33 @@ mechanical encoders this may be caused by
 [contact bounce](http://www.ganssle.com/debouncing.htm). On any type it can
 result from vibration, where the encoder happens to stop at an angle exactly
 matching an edge. An arbitrarily long sequence of pulses on one line is the
-result; the frequency may be arbitrarily high. A correct algorithm must be
-able to cope with this: the outcome will be one digit of jitter in the output
-count but no systematic drift.
+result. A correct algorithm must be able to cope with this: the outcome will be
+one digit of jitter in the output count but no systematic drift.
 
 Contrary to common opinion a state table is not necessary to produce a correct
-algorithm: see the above sample for an example.
+algorithm: see [section 7](./ENCODERS.md#7-algorithm).
 
-# Problem 3: Synchronisation
+In practice the frequency of such edges may be arbitrarily high. This imposes
+a need for synchronisation.
 
-Decoders of all types including hardware implementations can fail if edges
-on one line occur at too high a rate: transitions can be missed leading to a
-gradual drift of measured count compared to actual position. The only solution
-to this is to limit the rate by pre-synchronising the digital signals to a
-clock.
+## 4.1 Synchronisation
 
-For mechanical encoders there can also be an issue with invalid logic levels
-caused by contact bounce: conditioning with a CR networks and a Schmitt trigger
-should be considered.
-
-For bit-perfect results a single level of clock synchronisation is inadequate
-because of metastability. Typically two levels are used. See
+Decoders of all types (including hardware implementations) can fail if edges on
+one line occur at too high a rate: transitions can be missed leading to a
+gradual drift of measured count compared to actual position. With an encoder
+that produces good logic levels the solution is to limit the rate by
+pre-synchronising the digital signals to a clock. For bit-perfect results a
+single level of clock synchronisation is inadequate because of metastability.
+Typically two levels are used. See
 [this Wikipedia article](url=https://en.wikipedia.org/wiki/Incremental_encoder#Clock_synchronization).
 
 The clock rate of a synchroniser for a software decoder must be chosen with
 regard to the worst-case latency of the host. The clock rate will then
 determine the maximum permissible rotation speed of the encoder.
+
+Contact bounce on mechanical encoders can also result in invalid logic levels.
+This can cause a variety of unwanted results: conditioning with a CR network
+and a Schmitt trigger should be considered.
 
 In practice bit-perfect results are often not required and simple software
 solutions are fine. In particular encoders used for user controls normally have
@@ -122,23 +123,20 @@ Where bit-perfect results are required the simplest approach is to use a target
 which supports hardware decoding and which pre-synchronises the signals. STM32
 meets these criteria.
 
-In a careful test of a software decoder on a Pyboard 1.1 with an optical
-encoder pulses were occasionally missed. This suggests that on rare occasions
-pulses can arrive too fast for even hard IRQ's to keep track.
-
-# Problem 4: Concurrency
+# 5. Problem 3: Concurrency
 
 The presented code samples use interrupts in order to handle the potentially
 high rate at which transitions can occur. The above script maintains a
 position value `._pos` which can be queried at any time. This does not present
-concurrency issues. However some applications, notably in user interface
-designs, may require an encoder action to trigger complex behaviour. The
-obvious solution would be to adapt the script to do this by having the two ISR
-methods call a function. However the function would run in an interrupt context
-which (even with soft IRQ's) presents concurrency issues where an application's
-data can change at any point in the application's execution. Further, a complex
-function would cause the ISR to block for a long period with the potential for
-data loss.
+concurrency issues because changes to an integer are atomic.
+
+However some applications, notably in user interface designs, may require an
+encoder action to trigger complex behaviour. The obvious solution would be to
+adapt the script to do this by having the two ISR methods call a function. 
+However the function would run in an interrupt context which (even with soft
+IRQ's) presents concurrency issues where an application's data can change at
+any point in the application's execution. Further, a complex function would
+cause the ISR to block for a long period which is bad practice.
 
 A solution to this is an interface between the ISR's and `uasyncio` whereby the
 ISR's set a `ThreadSafeFlag`. This is awaited by a `uasyncio` `Task` which runs
@@ -150,7 +148,7 @@ This also handles the case where a mechanical encoder has a large number of
 states per revolution. The driver has the option to divide these down, reducing
 the rate at which callbacks occur.
 
-# Code samples
+# 6. Code samples
 
  1. `encoder_portable.py` Suitable for most purposes.
  2. `encoder_timed.py` Provides rate information by timing successive edges. In
@@ -163,15 +161,16 @@ the rate at which callbacks occur.
 
 These were written for encoders producing logic outputs. For switches, adapt
 the pull definition to provide a pull up or pull down as required, or provide
-physical resistors. This is my preferred solution as the internal resistors on
-most platforms have a rather high value.
+physical resistors. The latter is my preferred solution as the internal
+resistors on most platforms have a rather high value posing a risk of slow
+edges.
 
-# Algorithm
+# 7. Algorithm
 
 Discussions on the MicroPython forum demonstrate a degree of confusion about
 the merits of different decoding algorithms and about contact debouncing. These
 notes aim to clarify the issues and to provide an explanation for the approach
-used in my code samples.
+used in my code samples; also to describe the mechanism where errors occur.
 
 Incremental encoders produce two signals `x` and `y`. Possible state changes
 are shown in this state diagram.  
@@ -197,7 +196,7 @@ cause a change in position and inspection shows that the direction is the
 `exclusive or` of the current `x` and `y` values, with opposite polarity for
 the `x` and `y` interrupts.
 
-## Debouncing
+## 7.1 Debouncing
 
 Contact bounce or vibration effects cause an oscillating signal on one line.
 The state diagram shows that this is logically indistinguishable from a
@@ -206,8 +205,45 @@ point. Consequently any valid decoding algorithm will register a change in
 position of one LSB forwards and backwards. There is no systematic drift, just
 one LSB of positional uncertainty.
 
-## Algorithm quality
+## 7.2 Algorithm quality
 
 All valid solutions to a combinatorial logic problem are equivalent. The only
 ways in which one solution can be considered "better" than another are in
 qualities such as performance and code size.
+
+## 7.3 Interrupt issues
+
+As discussed above, any solution will have a limit to the rate at which edges
+can be tracked. This section describes the limits of a MicroPython
+interrupt-driven solution and the way in which incorrect counts can arise.
+
+Interrupts suffer from latency: there is a time delay between an edge occurring
+and the ISR executing. The magnitude depends on what is running at the moment
+the edge occurs and consequently varies in real time. Another ISR may be
+running. Higher priority interrupts may be pending service. In the case of soft
+IRQ's garbage collection may be in progress.
+
+Consider the fllowing ISR:
+```python
+    def x_callback(self, pin_x):
+        forward = pin_x() ^ self.pin_y()
+        self._pos += 1 if forward else -1
+```
+This is necessarily triggered by either edge on `pin_x`. While `.pin_y` should
+be stable when an edge occurs on `pin_x`, the state of `pin_x` may have changed
+by the time the latency has elapsed and the ISR reads its value. In this case
+the change will be registered with the wrong direction.
+
+Further, this second pin change will trigger another interrupt. The consequence
+of this depends on hardware and firmware implementations. The interrupt may be
+missed, it may execute after the first has completed, or re-entrancy may take
+place. However, by this time an error has already occurred as described above.
+There is nothing to gain by trying to fix this (e.g. by disabling interrupts in
+the ISR).
+
+In a careful test of a software decoder on a Pyboard 1.1 with an optical
+encoder pulses were occasionally missed. This confirms that, even with clean
+logic levels and hard IRQ's, on rare occasions pulses arrive too fast for the
+ISR to track.
+
+If bit-perfect results are required, hardware rate limiting must be applied.
