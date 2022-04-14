@@ -295,3 +295,7 @@ These can use the above circuits, but as they produce good logic levels an
 alternative is to use two d-type flip-flops on each channel, clocked using a
 signal from the host. Typically this might be produced by a PWM channel running
 continuously. Clock rate depends on the expected worst-case interrupt latency.
+
+This [Wikipedia image](https://en.wikipedia.org/wiki/Incremental_encoder#/media/File:2FF_synchronizer.gif)
+illustrates the idea, along with the metastability problem.
+
