@@ -1,5 +1,9 @@
 # 1. Incremental encoders
 
+These simple devices conceal a number of subtleties and have been the subject
+of lengthy debate in the MicroPython forum. This doc aims to resolve the issues
+and to offer tested solutions.
+
 There are three technologies that I am aware of:
  1. Optical.
  2. Magnetic.
@@ -63,8 +67,8 @@ class Encoder:
             self._pos = round(value / self.scale)
         return self._pos * self.scale
 ```
-If the direction is incorrect, transpose the X and Y pins in the constructor
-call.
+If the direction is incorrect, transpose the X and Y pins in hardware or in the
+constructor call.
 
 # 3. Problem 1: Interrupt latency
 
@@ -103,7 +107,7 @@ that produces good logic levels the solution is to limit the rate by
 pre-synchronising the digital signals to a clock. For bit-perfect results a
 single level of clock synchronisation is inadequate because of metastability.
 Typically two levels are used. See
-[this Wikipedia article](url=https://en.wikipedia.org/wiki/Incremental_encoder#Clock_synchronization).
+[this Wikipedia article](https://en.wikipedia.org/wiki/Incremental_encoder#Clock_synchronization).
 
 The clock rate of a synchroniser for a software decoder must be chosen with
 regard to the worst-case latency of the host. The clock rate will then
@@ -113,9 +117,10 @@ Contact bounce on mechanical encoders can also result in invalid logic levels.
 This can cause a variety of unwanted results: conditioning with a CR network
 and a Schmitt trigger should be considered.
 
-In practice bit-perfect results are often not required and simple software
-solutions are fine. In particular encoders used for user controls normally have
-some form of user feedback. The occasional missed pulse caused by fast contact
+In practice bit-perfect results are often not required: synchronisation can
+simply be ignored, relying on software to provide reasonably accurate tracking
+of position. Applications using encoders for user controls normally provide a
+form of user feedback. The occasional missed pulse caused by fast contact
 bounce will not be noticed.
 
 Where bit-perfect results are required the simplest approach is to use a target
@@ -137,6 +142,9 @@ IRQ's) presents concurrency issues where an application's data can change at
 any point in the application's execution. Further, a complex function would
 cause the ISR to block for a long period which is bad practice.
 
+The use of `micropython.schedule` avoids the problem of excessive ISR blocking
+but would not solve the concurrency issue described above.
+
 A solution to this is an interface between the ISR's and `uasyncio` whereby the
 ISR's set a `ThreadSafeFlag`. This is awaited by a `uasyncio` `Task` which runs
 a user supplied callback. The latter runs in a `uasyncio` context: the state of
@@ -157,6 +165,8 @@ the rate at which callbacks occur.
  3. `encoder_rp2.py` Version specific to Raspberry Pico RP2 chip. This uses the
  PIO and Viper code to achieve fast response - upto ~10K transitions/s.
  4. `encoder.py` An old Pyboard-specific version.
+ 5. [Asynchronous driver](https://github.com/peterhinch/micropython-async/blob/master/v3/docs/DRIVERS.md#6-quadrature-encoders)
+ for `uasyncio` applications.
 
 These were written for encoders producing logic outputs. For switches, adapt
 the pull definition to provide a pull up or pull down as required, or provide
@@ -186,7 +196,7 @@ Decoding these four bits is a problem of combinatorial logic. All such problems
 may be solved by using the bits as addresses of a lookup table. In this case
 there would be two output bits signifying increment, decrement or do nothing.
 However, simplifications are possible if changes of `x` and `y` trigger
-interrupts.
+interrupts (i.e. interrupt on `IRQ_RISING | IRQ_FALLING`).
 
 The truth table may then be split into two, one catering for cases where `x`
 has changed, and the other for `y` changes. The illegal cases are discarded and
@@ -208,7 +218,8 @@ one LSB of positional uncertainty.
 
 All valid solutions to a combinatorial logic problem are equivalent. The only
 ways in which one solution can be considered "better" than another are in
-qualities such as performance and code size.
+qualities such as performance and code size. Where decoders can differ in
+quality is in their handling of interrupts.
 
 ## 7.3 Interrupt issues
 
@@ -246,3 +257,41 @@ logic levels and hard IRQ's, on rare occasions pulses arrive too fast for the
 ISR to track.
 
 If bit-perfect results are required, hardware rate limiting must be applied.
+
+## 7.4 Encoders with mechanical detents
+
+Encoders intended for user controls often have detents with each "click"
+producing one complete cycle of the state transition diagram above. If it is
+required to track these exactly, for example triggering a callback on each
+"click", the 
+[asynchronous driver](https://github.com/peterhinch/micropython-async/blob/master/v3/docs/DRIVERS.md#6-quadrature-encoders)
+with a division ratio of 4. Rate limiting is essential. Testing with a
+mechanical encoder with Schmitt trigger preconditioning (see below) produced
+good results with tracking maintained exactly.
+
+It is almost certainly impossible to provide exact tracking on platforms which
+support only soft IRQ's because garbage collection results in interrupt latency
+which exceeds the time between edges from the encoder.
+
+# 8. Preconditioning and rate limiting
+
+## 8.1 Mechanical encoders
+
+The task here is to ensure valid logic levels in addition to limiting the pulse
+rate. The solution is to use a single pole low pass filter to limit the rate,
+followed by a Schmitt trigger to guarantee logic levels. In practice a time
+constant of 1-1.5ms is sufficient for platforms with hard IRQ's.
+
+Typical circuit. The asymmetry in the timing resistors approximately matches
+the offsets of the chip's threshold voltages.  
+![Image](./encoder_conditioner_digital.png)  
+
+Alternative using a dual CMOS op amp.  
+![Image](./encoder_conditioner.png)
+
+## 8.2 Optical encoders
+
+These can use the above circuits, but as they produce good logic levels an
+alternative is to use two d-type flip-flops on each channel, clocked using a
+signal from the host. Typically this might be produced by a PWM channel running
+continuously. Clock rate depends on the expected worst-case interrupt latency.
