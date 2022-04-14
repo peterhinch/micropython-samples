@@ -164,15 +164,15 @@ the rate at which callbacks occur.
  anthropoid ape it's debatable whether it produces anything useful :)
  3. `encoder_rp2.py` Version specific to Raspberry Pico RP2 chip. This uses the
  PIO and Viper code to achieve fast response - upto ~10K transitions/s.
- 4. `encoder.py` An old Pyboard-specific version.
- 5. [Asynchronous driver](https://github.com/peterhinch/micropython-async/blob/master/v3/docs/DRIVERS.md#6-quadrature-encoders)
+ 4. [Asynchronous driver](https://github.com/peterhinch/micropython-async/blob/master/v3/docs/DRIVERS.md#6-quadrature-encoders)
  for `uasyncio` applications.
 
-These were written for encoders producing logic outputs. For switches, adapt
-the pull definition to provide a pull up or pull down as required, or provide
-physical resistors. The latter is my preferred solution as the internal
-resistors on most platforms have a rather high value posing a risk of slow
-edges.
+For mechanical encoders consider the need for pull up or pull down resistors.
+
+Applications which just require the maintenance of a position count would
+normally use `encoder_portable.py`. Where callbacks are required, or tracking
+of detent positions is needed, the asynchronous driver is preferred for reasons
+covered in this document.
 
 # 7. Algorithm
 
@@ -267,7 +267,9 @@ required to track these exactly, for example triggering a callback on each
 [asynchronous driver](https://github.com/peterhinch/micropython-async/blob/master/v3/docs/DRIVERS.md#6-quadrature-encoders)
 with a division ratio of 4. Rate limiting is essential. Testing with a
 mechanical encoder with Schmitt trigger preconditioning (see below) produced
-good results with tracking maintained exactly.
+good results with tracking maintained exactly. Some encoders, described as
+"half step", have two detents per revolution. These can be handled by setting
+`div=2` on this driver.
 
 It is almost certainly impossible to provide exact tracking on platforms which
 support only soft IRQ's because garbage collection results in interrupt latency
