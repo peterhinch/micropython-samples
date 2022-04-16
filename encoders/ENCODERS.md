@@ -219,7 +219,13 @@ one LSB of positional uncertainty.
 All valid solutions to a combinatorial logic problem are equivalent. The only
 ways in which one solution can be considered "better" than another are in
 qualities such as performance and code size. Where decoders can differ in
-quality is in their handling of interrupts.
+quality is in their handling of interrupts. The approach used in the
+[Asynchronous driver](https://github.com/peterhinch/micropython-async/blob/master/v3/docs/DRIVERS.md#6-quadrature-encoders)
+has the following characteristics:
+ 1. Interrupt service routines are minimal.
+ 2. Encoders with 2 or 4 pulses per detent are handled by selection of a single
+ integer.
+ 3. The algorithm doesn't care about the polarity of the encoder signals.
 
 ## 7.3 Interrupt issues
 
