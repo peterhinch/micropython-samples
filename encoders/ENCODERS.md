@@ -34,10 +34,11 @@ latency or input pulse rates.
 
 # 2. Basic encoder script
 
-This comes from `encoder_portable.py` in this repo. It uses the simplest and
-fastest algorithm I know. It should run on any MicroPython platform, but please
-read the following notes as there are potential issues.
-
+This illustrates the basic algorithm used in these drivers, which is the
+simplest and fastest way I know. In practice the interrupt service routines are
+slightly more complex for reasons discussed below, but this code can be run on
+any MicroPython platform. Note the adaptation for platforms that don't support
+hard IRQ's.
 ```python
 from machine import Pin
 
@@ -70,16 +71,15 @@ class Encoder:
 If the direction is incorrect, transpose the X and Y pins in hardware or in the
 constructor call.
 
+Contrary to common opinion a state table is not necessary to produce a correct
+algorithm: see [section 7](./ENCODERS.md#7-algorithm).
+
 # 3. Problem 1: Interrupt latency
 
 By default, pin interrupts defined using the `machine` module are soft. This
 introduces latency if a line changes state when a garbage collection is in
 progress. The above script attempts to use hard IRQ's, but not all platforms
 support them (notably ESP8266 and ESP32).
-
-Hard IRQ's present their own issues documented
-[here](https://docs.micropython.org/en/latest/reference/isr_rules.html) but
-the above script conforms with these rules.
 
 # 4. Problem 2: Jitter
 
@@ -92,11 +92,10 @@ matching an edge. An arbitrarily long sequence of pulses on one line is the
 result. A correct algorithm must be able to cope with this: the outcome will be
 one digit of jitter in the output count but no systematic drift.
 
-Contrary to common opinion a state table is not necessary to produce a correct
-algorithm: see [section 7](./ENCODERS.md#7-algorithm).
-
 In practice the frequency of such edges may be arbitrarily high. This imposes
-a need for synchronisation.
+a need for synchronisation to limit the possible rate if bit-perfect results
+are required. In any solution based on interrupts it is necessary to avoid the
+condition where multiple pulses arrive during the latency period.
 
 ## 4.1 Synchronisation
 
@@ -115,13 +114,8 @@ determine the maximum permissible rotation speed of the encoder.
 
 Contact bounce on mechanical encoders can also result in invalid logic levels.
 This can cause a variety of unwanted results: conditioning with a CR network
-and a Schmitt trigger should be considered.
-
-In practice bit-perfect results are often not required: synchronisation can
-simply be ignored, relying on software to provide reasonably accurate tracking
-of position. Applications using encoders for user controls normally provide a
-form of user feedback. The occasional missed pulse caused by fast contact
-bounce will not be noticed.
+and a Schmitt trigger should be considered. That said, remarkably accurate
+tracking can be achieved in code.
 
 Where bit-perfect results are required the simplest approach is to use a target
 which supports hardware decoding and which pre-synchronises the signals. STM32
@@ -250,18 +244,20 @@ be stable when an edge occurs on `pin_x`, the state of `pin_x` may have changed
 by the time the latency has elapsed and the ISR reads its value. In this case
 the change will be registered with the wrong direction.
 
-Further, this second pin change will trigger another interrupt. The consequence
-of this depends on hardware and firmware implementations. The interrupt may be
-missed, it may execute after the first has completed, or re-entrancy may take
-place. However, by this time an error has already occurred as described above.
-There is nothing to gain by trying to fix this (e.g. by disabling interrupts in
-the ISR).
+This is handled by the following adaptation:
+```python
+    def x_callback(self, pin_x):
+        if (x := pin_x()) != self._x:
+            self._x = x
+            self._v += 1 if x ^ self._pin_y() else -1
+```
+If an interrupt occurs and no change has taken place since the previous one, it
+is ignored on the basis that a second edge must have occurred during the
+latency period. That second edge will trigger another interrupt which will be
+ignored for the same reason.
 
-In a careful test of a software decoder on a Pyboard 1.1 with an optical
-encoder pulses were occasionally missed. This confirms that, even with clean
-logic levels and hard IRQ's, on rare occasions pulses arrive too fast for the
-ISR to track.
-
+While this works remarkably well with a mechanical encoder connected directly,
+it cannot be expected to handle multiple transitions during the latency period.
 If bit-perfect results are required, hardware rate limiting must be applied.
 
 ## 7.4 Encoders with mechanical detents
@@ -271,15 +267,13 @@ producing one complete cycle of the state transition diagram above. If it is
 required to track these exactly, for example triggering a callback on each
 "click", the 
 [asynchronous driver](https://github.com/peterhinch/micropython-async/blob/master/v3/docs/DRIVERS.md#6-quadrature-encoders)
-with a division ratio of 4. Rate limiting is essential. Testing with a
-mechanical encoder with Schmitt trigger preconditioning (see below) produced
-good results with tracking maintained exactly. Some encoders, described as
-"half step", have two detents per revolution. These can be handled by setting
-`div=2` on this driver.
+with a division ratio of 4. Some encoders, described as "half step", have two
+detents per revolution. These can be handled by setting `div=2` on this driver.
 
 It is almost certainly impossible to provide exact tracking on platforms which
 support only soft IRQ's because garbage collection results in interrupt latency
-which exceeds the time between edges from the encoder.
+which exceeds the time between edges from the encoder. On platforms with SPIRAM
+GC can take hundreds of ms.
 
 # 8. Preconditioning and rate limiting
 
