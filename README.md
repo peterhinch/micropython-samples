@@ -38,6 +38,7 @@ and modules which are documented and supported.
   4.11 [Functors and singletons](./README.md#411-functors-and-singletons) Useful decorators.  
   4.12 [Quaternions](./README.md#412-quaternions) Scale, move and rotate 3D objects with minimal mathematics.  
   4.13 [A Pyboard power meter](./README.md#413-a-pyboard-power-meter) One of my own projects.  
+  4.14 [NTP time](./README.md#414-ntp-time) More portable than official driver with other benefits.  
  5. [Module Index](./README.md#5-module-index) Supported code. Device drivers, GUI's, utilities.  
   5.1 [uasyncio](./README.md#51-uasyncio) Tutorial and drivers for asynchronous coding.  
   5.2 [Memory Device Drivers](./README.md#52-memory-device-drivers) Drivers for nonvolatile memory devices.  
@@ -296,6 +297,20 @@ Unlike simple commercial devices it performs a true vector (phasor) measurement
 enabling it to provide information on power factor and to work with devices
 which generate as well as consume power. It uses the official LCD160CR display
 as a touch GUI interface. It is documented [here](./power/README.md).
+
+## 4.14 NTP Time
+
+The official code has a number of drawbacks, mainly a lack of portability.
+ 1. It does not check the host device's epoch. This version returns the number
+ of seconds since the host device's epoch.
+ 2. It uses socket timeouts while the docs recommend select.poll as being more
+ portable. This version remedies that.
+ 3. This version has very basic support for local time in the form of an offset
+ in hours relative to UTC.
+ 4. In the event of a timeout this version returns 0: the caller should check
+ for this and re-try after a period.
+
+Code is [here](./ntptime/ntptime.py).
 
 ##### [Index](./README.md#0-index)
 
