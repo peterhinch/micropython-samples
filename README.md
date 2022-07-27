@@ -312,6 +312,9 @@ The official code has a number of drawbacks, mainly a lack of portability.
 
 Code is [here](./ntptime/ntptime.py).
 
+It seems impractical to write a portable version of `settime` as the
+`machine.RTC` class is not yet fully portable.
+
 ##### [Index](./README.md#0-index)
 
 # 5. Module index
