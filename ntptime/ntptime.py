@@ -21,15 +21,21 @@ host = "pool.ntp.org"
 def time(hrs_offset=0):  # Local time offset in hrs relative to UTC
     NTP_QUERY = bytearray(48)
     NTP_QUERY[0] = 0x1B
-    addr = socket.getaddrinfo(host, 123)[0][-1]
+    try:
+        addr = socket.getaddrinfo(host, 123)[0][-1]
+    except OSError:
+        return 0
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     poller = select.poll()
     poller.register(s, select.POLLIN)
-    s.sendto(NTP_QUERY, addr)
-    if poller.poll(1000):  # time in milliseconds
-        msg = s.recv(48)
+    try:
+        s.sendto(NTP_QUERY, addr)
+        if poller.poll(1000):  # time in milliseconds
+            msg = s.recv(48)
+            val = struct.unpack("!I", msg[40:44])[0]  # Can return 0
+            return max(val - NTP_DELTA + hrs_offset * 3600, 0)
+    except OSError:
+        pass  # LAN error
+    finally:
         s.close()
-        val = struct.unpack("!I", msg[40:44])[0]
-        return val - NTP_DELTA + hrs_offset * 3600
-    s.close()  # Timeout occurred
-    return 0
+    return 0  # Timeout or LAN error occurred
