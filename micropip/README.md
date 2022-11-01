@@ -6,27 +6,10 @@
 
 # 1. Installing MicroPython library modules
 
-There are various forks of MicroPython, consequently libraries on
-[PyPi](https://pypi.org/) may or may not be compatible with official firmware.
-This is resolved by official `upip` (and its `micropip` derivative). These
-first search the official library. Only if no match is found do they install
-from PyPi. For this and other reasons, `pip` and `pip3` should not be used to
-install MicroPython libraries. Use of `upip` is detailed in the
-[official docs](http://docs.micropython.org/en/latest/reference/packages.html).
-
-Users of non-networked hardware such as the Pyboard 1.x can use `upip` with the
-Unix build of MicroPython to install a library module to an arbitrary directory
-on a PC, from where the files and directories can be copied to the target
-hardware. `upip` and its dependency `upip_utarfile` may be found in the `tools`
-directory of the source tree. This approach has the drawback of requiring the
-Unix build, which must be built from source. This may be avoided by using
-`micropip.py` in this repo which runs under CPython.
-
-Alternatively libraries may be installed by copying files from the MicroPython
-[library repository](https://github.com/micropython/micropython-lib) to the
-target device. However this requires some attention to detail where there are
-dependencies. Where modules are organised as Python packages the directory
-structure must be maintained.
+MicroPython no longer uses PyPi for official software, so `upip` and `micropip`
+are largely obsolete. Please read
+[the official docs](http://docs.micropython.org/en/latest/reference/packages.html#packages)
+for up to date instructions on installing official library modules.
 
 ## 1.1 Installing unofficial packages
 
