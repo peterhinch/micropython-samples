@@ -12,7 +12,7 @@ and modules which are documented and supported.
  1. [Installation guides](./README.md#1-installation-guides)  
   1.1 [Installing MicroPython libraries](./README.md#11-installing-micropython-libraries)  
   1.2 [Fastbuild](./README.md#12-fastbuild) Build scripts and udev rules  
-  1.3 [Installing PicoWeb](./README.md#13-installing-picoweb) For users of official firmware  
+  1.3 [A web framework](./README.md#13-a-web-framework) Microdot.  
   1.4 [Buildcheck](./README.md#14-buildcheck) Check firmware build date  
   1.5 [Pyboard USB pitfall](./README.md#15-pyboard-usb-pitfall) Read this if you're new to Pyboards  
  2. [Hardware information and drivers](./README.md#2-hardware-information-and-drivers)  
@@ -55,9 +55,10 @@ and modules which are documented and supported.
 
 ## 1.1 Installing MicroPython libraries
 
-This is more involved since the advent of the pycopy fork of MicroPython.
-[This doc](./micropip/README.md) describes the issues and provides a utility
-to simplify installation for users of official MicroPython firmware.
+Please read
+[the official docs](http://docs.micropython.org/en/latest/reference/packages.html#packages).
+[This doc](./micropip/README.md) describes a simple way to override modules
+which have been incorporated in firmware as frozen bytecode.
 
 ## 1.2 Fastbuild
 
@@ -65,16 +66,14 @@ Scripts for building MicroPython for various target hardware types and for
 updating your local source. Now detects and builds for Pyboard D. See
 [docs](./fastbuild/README.md)
 
-## 1.3 Installing PicoWeb
+## 1.3 A Web Framework
 
 Paul Sokolovsk's [PicoWeb](https://github.com/pfalcon/picoweb) requires his
 fork of MicroPython.
 
-Some time ago I was asked what was involved to install it on official firmware.
-Changes were minor. However it should be stressed that while the version here
-works, it is not up to date. See the [Easy installation](./PICOWEB.md) guide.
-
-PR's with updated versions of PicoWeb are welcome.
+This requires some modification to run under official MicroPython. The solution
+preferred by MicroPython maintainers is
+[Microdot](https://microdot.readthedocs.io/en/latest/).
 
 ## 1.4 Buildcheck
 
