@@ -69,10 +69,10 @@ updating your local source. Now detects and builds for Pyboard D. See
 ## 1.3 A Web Framework
 
 Paul Sokolovsk's [PicoWeb](https://github.com/pfalcon/picoweb) requires his
-fork of MicroPython.
+fork of MicroPython and requires some modification to run under official
+MicroPython.
 
-This requires some modification to run under official MicroPython. The solution
-preferred by MicroPython maintainers is
+The solution preferred by MicroPython maintainers is
 [Microdot](https://microdot.readthedocs.io/en/latest/).
 
 ## 1.4 Buildcheck
