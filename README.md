@@ -14,7 +14,7 @@ and modules which are documented and supported.
   1.2 [Fastbuild](./README.md#12-fastbuild) Build scripts and udev rules  
   1.3 [A web framework](./README.md#13-a-web-framework) Microdot.  
   1.4 [Buildcheck](./README.md#14-buildcheck) Check firmware build date  
-  1.5 [Pyboard USB pitfall](./README.md#15-pyboard-usb-pitfall) Read this if you're new to Pyboards  
+  1.5 [A USB pitfall](./README.md#15-a-usb-pitfall) A problem with platforms which share their filesystem with the PC.  
  2. [Hardware information and drivers](./README.md#2-hardware-information-and-drivers)  
   2.1 [ESP32](./README.md#21-esp32) Pinout and notes on the reference board  
   2.2 [SSD1306](./README.md#22-ssd1306) Write large fonts to the SSD1306.  
@@ -24,6 +24,7 @@ and modules which are documented and supported.
   3.1 [Resilient](./README.md#31-resilient) A guide to writing resilient WiFi code  
   3.2 [Serialisation](./README.md#32-serialisation) Review of MicroPython's five serialisation libraries  
   3.3 [Measurement of relative timing and phase of fast analog signals](./README.md#33-measurement-of-relative-timing-and-phase-of-fast-analog-signals) For Pyboard.  
+  3.4 [Import subtleties](./README.md#34-import-subtleties) Ways to save RAM with import statements.  
  4. [Code samples](./README.md#4-code-samples) Samples prefixed Pyboard are Pyboard specific  
   4.1 [Pyboard Mutex](./README.md#41-pyboard-mutex) Share data between threads and ISR's.  
   4.2 [Pyboard watchdog](./README.md#42-pyboard-watchdog) Access a Pyboard hardware WDT.  
@@ -80,7 +81,7 @@ The solution preferred by MicroPython maintainers is
 Raise an [exception](./buildcheck/buildcheck.py) if a firmware build is earlier
 than a given date.
 
-## 1.5 Pyboard USB pitfall
+## 1.5 A USB pitfall
 
 By default the Pyboard's `/flash/boot.py` enables MSC (mass storage) mode. This
 makes the Pyboard look like a USB stick, making its filesystem visible to the
@@ -146,6 +147,11 @@ tutorial on a Protocol Buffer library.
 
 This describes ways of using the Pyboard to perform precision measurements of
 analog signals of up to around 50KHz. It is documented [here](./phase/README.md).
+
+## 3.4 Import subtleties
+
+[This doc](./import/IMPORT.md) describes a way to save RAM with Damien's lazy
+loader, a `reload` function, and ways to use wildcard imports.
 
 ##### [Index](./README.md#0-index)
 
