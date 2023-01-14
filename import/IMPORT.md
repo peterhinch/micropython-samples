@@ -100,3 +100,12 @@ def reload(mod):
     gc.collect()
     __import__(mod_name)
 ```
+## 4.1 Indirect import
+
+The above code sample illustrates the method of importing a module where the
+module name is stored in a variable:
+```python
+def run_test(module_name):
+    mod = __import__(module_name)
+    mod.test()  # Run a self test
+```
