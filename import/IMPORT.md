@@ -35,15 +35,13 @@ The file `my_library/foo.py` is only loaded when it becomes clear that
 the user and may be changed without affecting its API.
 
 The "lazy loader" is employed in
-[uasyncio](https://github.com/micropython/micropython/tree/master/extmod/uasyncio).
+[uasyncio](https://github.com/micropython/micropython/tree/master/extmod/uasyncio)
 making it possible to write
 ```python
 import uasyncio as asyncio
 e = asyncio.Event()  # The file event.py is loaded now
 ```
-Files are loaded as required.
-
-The source code is in `__init__.py`: 
+Files are loaded as required. The source code is in `__init__.py`: 
 [the lazy loader](https://github.com/micropython/micropython/blob/master/extmod/uasyncio/__init__.py).
 
 # 3. Wildcard imports
@@ -55,9 +53,7 @@ from my_module import *
 needs to be treated with caution for two reasons. It can populate the program's
 namespace with unexpected objects causing name conflicts. Secondly all these
 objects occupy RAM. In general wildcard imports should be avoided unless the
-module is designed to be imported in this way.
-
-For example issuing
+module is designed to be imported in this way. For example issuing
 ```python
 from uasyncio import *
 ```
