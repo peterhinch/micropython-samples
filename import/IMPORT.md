@@ -63,7 +63,7 @@ from uasyncio import *
 ```
 would defeat the lazy loader forcing all the files to be loaded.
 
-## 3.1 Designing fo wildcard import
+## 3.1 Designing for wildcard import
 
 There are cases where wildcard import makes sense. For example a module might
 declare a number of constants. This module 
@@ -77,12 +77,18 @@ This saves having to name each color explicitly.
 
 In larger modules it is wise to avoid populating the caller's namespace with
 cruft. This is achieved by ensuring that all private names begin with a `_`
-character:
+character. In a wildcard import, Python does not import such names.
 ```python
 _LOCAL_CONSTANT = const(42)
 def _foo():
     print("foo")  # A local function
 ```
+Note that declaring a constant with a leading underscore saves RAM: no
+variable is created. The compiler substitues 42 when it sees `_LOCAL_CONSTANT`.
+Where there is no underscore the compiler still performs the same substitution,
+but a variable is created. This is because the module might be imported with a
+wildcard import.
+
 # 4. Reload
 
 Users coming from a PC background often query the lack of a `reload` command.
