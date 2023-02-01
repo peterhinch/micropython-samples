@@ -1,7 +1,9 @@
 # micropython-samples
-The first part of this repo contains assorted code ideas for MicroPython. Many
-are targeted at Pyboard variants. Some are intended as pointers to programmers
-rather than being complete. Egregious bugs will be fixed but I may not accept
+
+The first part of this repo comprises assorted code ideas for MicroPython and
+also serves as an unofficial MicroPython FAQ. Some samples are targeted at
+Pyboard variants. Some are intended as pointers for programmers rather than
+being complete solutions. Egregious bugs will be fixed but I may not accept
 feature requests.
 
 [Section 5](./README.md#5-module-index) is an index to complete applications
@@ -307,7 +309,7 @@ as a touch GUI interface. It is documented [here](./power/README.md).
 
 The official code has a number of drawbacks, mainly a lack of portability.
  1. It does not check the host device's epoch. This version returns the number
- of seconds since the host device's epoch.
+ of seconds since the host device's epoch. [Official version is now fixed].
  2. It uses socket timeouts while the docs recommend select.poll as being more
  portable. This version remedies that.
  3. This version has very basic support for local time in the form of an offset
@@ -319,6 +321,26 @@ Code is [here](./ntptime/ntptime.py).
 
 It seems impractical to write a portable version of `settime` as the
 `machine.RTC` class is not yet fully portable.
+
+It's worth noting that NTP queries do time out. The default timeout is 1s: on
+many WANs this is quite demanding, yet for obvious reasons a longer value does
+not benefit precision. Another issue is that issuing NTP queries too frequently
+causes the time server to send a KoD (Kiss of Death) packet. The official
+version issues a large negative number which causes `.settime` to throw an
+exception. The version here returns 0: the caller should test for this. I
+suspect that this also occurs occasionally in non-KoD circumstances.
+
+Finally, an option is to run the NTP daemon on a local server which can be as
+simple as a Raspberry Pi. This gives high accuracy and should eliminate
+timeouts. Install with:
+```bash
+$ sudo apt install -y ntp ntpdate
+```
+and point the MicroPython device at the local server with:
+```python
+ntptime.host="192.168.0.10"  # Server address.
+ntptime.time()
+```
 
 ##### [Index](./README.md#0-index)
 
