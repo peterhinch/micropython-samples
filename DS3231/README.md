@@ -25,19 +25,17 @@ precise value of calibration may be acquired in 5-10 minutes.
 
 This can use soft I2C so any pins may be used.
 
-It uses the currently undocumented `RTC.datetime()` method to set and to query
-the platform RTC. This appears to be the only cross-platform way to do this.
-The meaning of the subseconds field is hardware dependent so this is ignored.
-The RTC is checked against the DS3231 by timing the transition of the seconds
-field of each clock (using system time to measure the relative timing of the
-edges).
+It uses the `RTC.datetime()` method to set and to query the platform RTC. The
+meaning of the subseconds field is hardware dependent so this is ignored. The
+RTC is checked against the DS3231 by timing the transition of the seconds field
+of each clock (using system time to measure the relative timing of the edges).
 
 This example ran on a WeMos D1 Mini ESP8266 board, also a generic ESP32.
 ```python
 from ds3231_port import DS3231
-from machine import Pin, I2C
+from machine import Pin, SoftI2C
 # Pins with pullups on ESP8266: clk=WeMos D3(P0) data=WeMos D4(P2)
-i2c = I2C(-1, Pin(0, Pin.OPEN_DRAIN), Pin(2, Pin.OPEN_DRAIN))
+i2c = SoftI2C(Pin(0, Pin.OPEN_DRAIN), Pin(2, Pin.OPEN_DRAIN))
 ds3231 = DS3231(i2c)
 ds3231.get_time()
 ```
@@ -46,7 +44,8 @@ Testing the onboard RTC:
 ds3231.rtc_test()  # Takes 10 minutes
 ```
 In my testing the ESP8266 RTC was out by 5%. The ESP32 was out by 6.7ppm or
-about 12 minutes/yr. Hardware samples will vary.
+about 12 minutes/yr. A PiPico was out by 1.7ppm, 3.2mins/yr. Hardware samples
+will vary.
 
 ## 1.1 The DS3231 class
 
