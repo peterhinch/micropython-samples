@@ -42,6 +42,7 @@ and modules which are documented and supported.
   4.12 [Quaternions](./README.md#412-quaternions) Scale, move and rotate 3D objects with minimal mathematics.  
   4.13 [A Pyboard power meter](./README.md#413-a-pyboard-power-meter) One of my own projects.  
   4.14 [NTP time](./README.md#414-ntp-time) More portable than official driver with other benefits.  
+  4.15 [Date](./README.md#415-date) Small and simple classes for handling dates.  
  5. [Module Index](./README.md#5-module-index) Supported code. Device drivers, GUI's, utilities.  
   5.1 [uasyncio](./README.md#51-uasyncio) Tutorial and drivers for asynchronous coding.  
   5.2 [Memory Device Drivers](./README.md#52-memory-device-drivers) Drivers for nonvolatile memory devices.  
@@ -341,6 +342,20 @@ and point the MicroPython device at the local server with:
 ntptime.host="192.168.0.10"  # Server address.
 ntptime.time()
 ```
+## 4.15 Date
+
+The official [datetime module](https://github.com/micropython/micropython-lib/tree/master/python-stdlib/datetime)
+is fully featured but substantial. This `Date` class has no concept of time,
+but is very compact. Dates are stored as a small int. Contrary to normal MP
+practice, properties are used. This allows basic arithmetic syntax while
+ensuring automatic rollover. The speed penalty of properties is unlikely to be
+a factor in date operations.
+
+The `Date` class provides basic arithmetic and comparison methods. The
+`DateCal` subclass adds pretty printing and methods to assist in creating
+calendars.
+
+The classes are documented [here](./date/DATE.md)
 
 ##### [Index](./README.md#0-index)
 
