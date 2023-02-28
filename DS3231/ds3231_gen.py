@@ -71,26 +71,16 @@ class DS3231:
         if _ADDR not in self.ds3231.scan():
             raise RuntimeError(f"DS3231 not found on I2C bus at {_ADDR}")
 
-    def get_time(self, set_rtc=False, data=bytearray(7)):
+    def get_time(self, data=bytearray(7)):
         def bcd2dec(bcd):  # Strip MSB
             return ((bcd & 0x70) >> 4) * 10 + (bcd & 0x0F)
 
         self.ds3231.readfrom_mem_into(_ADDR, 0, data)
-        if set_rtc:  # For accuracy set RTC immediately after a seconds transition
-            ss = data[0]
-            while ss == data[0]:
-                self.ds3231.readfrom_mem_into(_ADDR, 0, data)
         ss, mm, hh, wday, DD, MM, YY = [bcd2dec(x) for x in data]
         MM &= 0x1F  # Strip century
         YY += 2000
         # Time from DS3231 in time.localtime() format (less yday)
         result = YY, MM, DD, hh, mm, ss, wday - 1, 0
-        if set_rtc:
-            if rtc is None:  # Best we can do is to set local time
-                secs = time.mktime(result)
-                time.localtime(secs)
-            else:
-                rtc.datetime((YY, MM, DD, wday, hh, mm, ss, 0))
         return result
 
     # Output time or alarm data to device

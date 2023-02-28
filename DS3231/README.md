@@ -21,9 +21,27 @@ the DS3231. This enables relatively rapid accuracy testing of the platform's
 RTC, and fast calibration of the Pyboard's RTC. To quantify this, a
 sufficiently precise value of calibration may be acquired in 5-10 minutes.
 
+# Datetime tuples
+
+MicroPython currently enjoys three formats. The first is that used by the
+`time` module in `localtime` and `gmtime`. This is  
+`(year, month, mday, hour, minute, second, weekday, yearday)`  
+with the meaning of each field as described in the
+[MP official docs](http://docs.micropython.org/en/latest/library/time.html#functions) and
+[CPython docs](https://docs.python.org/3/library/time.html#time.struct_time).
+**These drivers use this format as it is the CPython standard.**
+
+The micropython RTC class uses [this format](http://docs.micropython.org/en/latest/library/machine.RTC.html#machine.RTC.init)
+in its `__init__` method:  
+`(year, month, day[, hour[, minute[, second[, microsecond[, tzinfo]]]]])`  
+and this format in its `datetime` method:  
+`(year, month, mday, weekday, hours, minutes, seconds, subseconds)`  
+It is to be hoped that some standardisation will occur. Please check official
+docs for any changes.
+
 ###### [Main README](../README.md)
 
-# 1. General purpose driver ds3231_gen.py
+# 1. General purpose driver ds3231_gen
 
 This uses datetime tuples to set and read time values. These are of form  
 (year, month, day, hour, minute, second, weekday, yearday)  
@@ -35,12 +53,8 @@ as used by [time.localtime](http://docs.micropython.org/en/latest/library/time.h
 This takes one mandatory argument, an initialised I2C bus.
 
 #### Public methods:
- 1. `get_time(set_rtc=False)`. If `set_rtc` is `True` it sets the platform's
- RTC from the DS3231. Returns the DS3231 time as a datetime tuple with
+ 1. `get_time()`. Returns the DS3231 time as a datetime tuple with
  `yearday=0`.
- On ports/platforms which don't support an RTC, if `set_rtc` is  `True`, the
- system time will be set from the DS3231. If setting the RTC, for accuracy the
- method will pause until a seconds transition occurs on the DS3231.
  2. `set_time(tt=None)`. Sets the DS3231 time. By default it uses the
  platform's syatem time, otherwise the passed `datetime` tuple. If passing a
  tuple, see the note below.
@@ -72,7 +86,7 @@ This takes one mandatory argument, an initialised I2C bus.
 #### Module constants
 
 These are the allowable options for the alarm's `when` arg, along with the
-relevant `Alarm.set()` args:
+relevant `Alarm.set()` args:  
 `EVERY_SECOND` Only supported by alarm1.  
 `EVERY_MINUTE` `sec`  
 `EVERY_HOUR` `min`, `sec`  
@@ -97,7 +111,8 @@ def dt_tuple(dt):
 
 #### Alarms
 
-Comments assume that a backup battery is in use.
+Comments assume that a backup battery is in use, in which case alarms continue
+to operate.
 
 The battery ensures that alarm settings are stored through a power outage. If
 an alarm occurs during an outage the pin will be driven low and will stay low
@@ -110,10 +125,10 @@ from machine import SoftI2C, Pin
 from ds3231_gen import *
 i2c = SoftI2C(scl=Pin(16, Pin.OPEN_DRAIN, value=1), sda=Pin(17, Pin.OPEN_DRAIN, value=1))
 d = DS3231(i2c)
-dt.alarm1.set(EVERY_MINUTE, sec=30)
+dt.alarm1.set(EVERY_MINUTE, sec=30)  # Alarm on the half minute
 ```
-If a power outage occurs here the following code will ensure alarms continue to
-occur at one minute intervals:
+If a power outage occurs here the following code demonstrates that alarms
+continue to occur at one minute intervals:
 ```python
 from machine import SoftI2C, Pin
 from ds3231_gen import *
@@ -131,6 +146,47 @@ be ignored and `EVERY_SECOND` is unsupported.
 Re the `INT\` (alarm) pin the datasheet (P9) states "The pullup voltage can be
 up to 5.5V, regardless of the voltage on Vcc". Note that some breakout boards
 have a pullup resistor between this pin and Vcc.
+
+#### Setting system RTC
+
+Note that the DS3231 driver uses the CPython standard datetime tuple:  
+`(year, month, mday, hour, minute, second, weekday, yearday)`  
+Currently the RTC `datetime` method uses a different format.
+
+The system RTC may be set from the DS3231 as follows:
+```python
+from machine import SoftI2C, Pin, RTC
+from ds3231_gen import *
+i2c = SoftI2C(scl=Pin(16, Pin.OPEN_DRAIN, value=1), sda=Pin(17, Pin.OPEN_DRAIN, value=1))
+d = DS3231(i2c)
+rtc = RTC()
+YY, MM, DD, hh, mm, ss, wday, _ = d.get_time()
+rtc.datetime((YY, MM, DD, wday, hh, mm, ss, 0))
+```
+The following can be used to set the RTC to better than +-1s accuracy. Though
+the DS3231 has only 1s resolution, setting the RTC on a transition of the
+seconds value minimises error.
+```python
+t = d.get_time()  # As per above, d is the DS3231 instance
+while t == d.get_time()[5]:  # Wait for change in seconds
+    pass
+YY, MM, DD, hh, mm, ss, wday, _ = t  # Set time now
+rtc.datetime((YY, MM, DD, wday, hh, mm, ss, 0))
+```
+
+#### Application: micropower systems
+
+The DS3231 alarm pin may be used to control the application of power to the
+MicroPython host and peripheral devices. This may be done with a PNP transistor
+driven (via suitable resistors) from the alarm output. When in an alarm state,
+power is applied to the system. The DS3231 is set to alarm at the required
+interval - say at 00:03:00 every Sunday. On startup the system takes readings
+and logs them or reports them via MQTT. Its final act is to issue
+```python
+ds3231.alarm1.clear()
+```
+which turns off the MOSFET and the transistor and powers down the system.
+Current in the OFF state will be very much less than 1μA.
 
 # 2. Portable driver ds3231_port
 
