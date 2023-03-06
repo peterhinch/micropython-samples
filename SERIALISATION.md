@@ -321,7 +321,7 @@ by a single string.
 ## 5.1 Installation
 
 The library comprises a single file `minipb.py`. It has a dependency, the
-`logging` module `logging.py` which may be found in
+`logging` module `logging.py` and `bisect` module `bisect.py` which may be found in
 [micropython-lib](https://github.com/micropython/micropython-lib/tree/master/logging).
 On RAM constrained platforms `minipb.py` may be cross-compiled or frozen as
 bytecode for even lower RAM consumption.
@@ -342,7 +342,7 @@ a subset may be used which maps onto Python data types:
  an ingenious algorithm.
  6. 'd' A double precision 64-bit float. The default on Pyboard D SF6. Also on
  other platforms with special firmware builds.
- 7. 'X' An empty field.
+ 7. 'x' An empty field.
 
 ## 5.2.1 Required and Optional fields
 
@@ -447,9 +447,23 @@ print(rx)
 ```
 ### 5.5.1 Packed repeating fields
 
+This feature reduces some space overhead of encoded message caused by repeatedly
+emitting field headers as seen in regular repeated fields.
+
+```python
+>>> import minipb
+>>> normal=minipb.Wire('+z')
+>>> len(normal.encode(range(10000)))
+31744
+>>> packed=minipb.Wire('#z')
+>>> len(packed.encode(range(10000)))
+21748
+>>> 
+```
+
 The author of `minipb` [does not recommend](https://github.com/dogtopus/minipb/issues/6)
-their use. Their purpose appears to be in the context of fixed-length fields
-which are outside the scope of pure Python programming.
+their use for strings, bytes and nested messages due to compatibility concerns with the
+official Google Protobuf standards, which disallows such use.
 
 ## 5.6 Message fields (nested dicts)
 
@@ -468,7 +482,7 @@ nested_schema = (('str2', 'U'),
 # Outer schema
 schema = (('number', 'z'),
           ('string', 'U'),
-          ('nested', '+[', nested_schema, ']'),
+          ('nested', '+[', nested_schema),
           ('num', 'z'),)
 w = minipb.Wire(schema)
 
@@ -501,11 +515,11 @@ import minipb
 inner_schema = (('str2', 'U'),
                 ('num2', 'z'),)
 
-nested_schema = (('inner', '+[', inner_schema, ']'),)
+nested_schema = (('inner', '+[', inner_schema),)
 
 schema = (('number', 'z'),
           ('string', 'U'),
-          ('nested', '[', nested_schema, ']'),
+          ('nested', '[', nested_schema),
           ('num', 'z'),)
 
 w = minipb.Wire(schema)
