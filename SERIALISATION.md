@@ -320,9 +320,9 @@ by a single string.
 
 ## 5.1 Installation
 
-The library comprises a single file `minipb.py`. It has a dependency, the
+The library comprises a single file `minipb.py`. It has some dependencies, the
 `logging` module `logging.py` and `bisect` module `bisect.py` which may be found in
-[micropython-lib](https://github.com/micropython/micropython-lib/tree/master/logging).
+[micropython-lib](https://github.com/micropython/micropython-lib/tree/master/python-stdlib).
 On RAM constrained platforms `minipb.py` may be cross-compiled or frozen as
 bytecode for even lower RAM consumption.
 
