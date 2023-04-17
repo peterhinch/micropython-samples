@@ -9,6 +9,8 @@ feature requests.
 [Section 5](./README.md#5-module-index) is an index to complete applications
 and modules which are documented and supported.
 
+Please also see the [official examples](https://github.com/micropython/micropython/tree/master/examples).
+
 # 0. Index
 
  1. [Installation guides](./README.md#1-installation-guides)  
