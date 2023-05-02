@@ -77,7 +77,6 @@ class DS3231:
 
         self.ds3231.readfrom_mem_into(_ADDR, 0, data)
         ss, mm, hh, wday, DD, MM, YY = [bcd2dec(x) for x in data]
-        MM &= 0x1F  # Strip century
         YY += 2000
         # Time from DS3231 in time.localtime() format (less yday)
         result = YY, MM, DD, hh, mm, ss, wday - 1, 0
