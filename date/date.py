@@ -12,6 +12,7 @@ def leap(year):
 class Date:
 
     def __init__(self, lt=None):
+        self.callback = lambda : None  # No callback until set
         self.now(lt)
 
     def now(self, lt=None):
@@ -23,6 +24,7 @@ class Date:
             self._lt[3] = 6
             self._cur = mktime(self._lt) // _SECS_PER_DAY
         self._lt = list(localtime(self._cur * _SECS_PER_DAY))
+        self.callback()
 
     def _mlen(self, d=bytearray((31, 0, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31))):
         days = d[self._lt[1] - 1]
@@ -68,7 +70,7 @@ class Date:
         return self._cur
 
     @day.setter
-    def day(self, v):  # Usuge: d.day += 7 or date_1.day = d.day.
+    def day(self, v):  # Usage: d.day += 7 or date_1.day = d.day.
         self._cur = v
         self._update(False)  # Flag _cur change
 
