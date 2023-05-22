@@ -45,6 +45,7 @@ Please also see the [official examples](https://github.com/micropython/micropyth
   4.13 [A Pyboard power meter](./README.md#413-a-pyboard-power-meter) One of my own projects.  
   4.14 [NTP time](./README.md#414-ntp-time) More portable than official driver with other benefits.  
   4.15 [Date](./README.md#415-date) Small and simple classes for handling dates.  
+  4.16 [Greatest common divisor](./README.md#416-greatest-common-divisor) Neat algorithm.  
  5. [Module Index](./README.md#5-module-index) Supported code. Device drivers, GUI's, utilities.  
   5.1 [uasyncio](./README.md#51-uasyncio) Tutorial and drivers for asynchronous coding.  
   5.2 [Memory Device Drivers](./README.md#52-memory-device-drivers) Drivers for nonvolatile memory devices.  
@@ -358,6 +359,16 @@ The `Date` class provides basic arithmetic and comparison methods. The
 calendars.
 
 The classes are documented [here](./date/DATE.md)
+
+## 4.16 Greatest Common Divisor
+
+This was found [here](https://github.com/micropython/micropython/pull/8331#issuecomment-1556291482):
+```python
+def gcd(a, b) :
+	while b:
+		a, b = b, a % b
+	return a
+```
 
 ##### [Index](./README.md#0-index)
 
