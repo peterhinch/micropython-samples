@@ -31,6 +31,8 @@ error-prone address calculations. It is not a high performance solution. The
 module resulted from guidance provided in
 [this discussion](https://github.com/orgs/micropython/discussions/11611).
 
+###### [Main README](../README.md)
+
 # The do_args generator function
 
 This takes the following args:
@@ -133,3 +135,5 @@ have
 demo[0:, 0] = 4
 ```
 The demo also illustrates the case where `__getitem__` returns an iterator.
+
+###### [Main README](../README.md)
