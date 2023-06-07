@@ -46,6 +46,7 @@ Please also see the [official examples](https://github.com/micropython/micropyth
   4.14 [NTP time](./README.md#414-ntp-time) More portable than official driver with other benefits.  
   4.15 [Date](./README.md#415-date) Small and simple classes for handling dates.  
   4.16 [Greatest common divisor](./README.md#416-greatest-common-divisor) Neat algorithm.  
+  4.17 [2D array indexing](./README.md#417-2d-array-indexing) Use `[1:3, 20]` syntax to address a 2D array.  
  5. [Module Index](./README.md#5-module-index) Supported code. Device drivers, GUI's, utilities.  
   5.1 [uasyncio](./README.md#51-uasyncio) Tutorial and drivers for asynchronous coding.  
   5.2 [Memory Device Drivers](./README.md#52-memory-device-drivers) Drivers for nonvolatile memory devices.  
@@ -369,6 +370,17 @@ def gcd(a, b) :
 		a, b = b, a % b
 	return a
 ```
+## 4.17 2D array indexing
+
+This enables a class to be written that maps a 2D address onto an underlying 1D
+addressable object such as an array, list or random access file. An instance
+can then be accessed with syntax such as
+```python
+s = sum(obj[5, 0:20])  # Sum row 5, cols 0..19 (or x = 5, y = 0..19)
+obj[10, 10] = 42
+obj[0:5, 3] = iter(range(100, 105))
+```
+See [the docs](./parse2d/README.md).
 
 ##### [Index](./README.md#0-index)
 
