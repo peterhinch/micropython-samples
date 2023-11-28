@@ -296,16 +296,8 @@ class RiSet:
 
 
 r = RiSet()
-t = time.ticks_us()
-r.set_day()
-print("Elapsed us", time.ticks_diff(time.ticks_us(), t))
 for d in range(7):
     print(f"Day {d}")
     r.set_day(d)
     print(f"Sun rise {r.sunrise(3)} set {r.sunset(3)}")
     print(f"Moon rise {r.moonrise(3)} set {r.moonset(3)}")
-
-print(r.sunrise(1))
-for d in range(30):
-    r.set_day(d)
-    print(round(r.moonphase() * 1000))
