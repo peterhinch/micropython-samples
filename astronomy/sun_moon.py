@@ -1,8 +1,7 @@
 # sun_moon.py MicroPython Port of lunarmath.c
 # Calculate sun and moon rise and set times for any date and location
 
-# Copyright (c) 2023 Peter Hinch
-# Released under the MIT License (MIT) - see LICENSE file
+# Licensing and copyright: see README.md
 
 # Source "Astronomy on the Personal Computer" by Montenbruck and Pfleger
 # ISBN 978-3-540-67221-0
@@ -65,6 +64,7 @@ def get_mjd(ndays: int = 0) -> int:  # Days offset from today
     tsecs += secs_per_day * ndays  # Specified day
     days_from_epoch = round(tsecs / secs_per_day)  # Days from 1 Jan 70
     # tsecs += secs_per_day # 2  # Noon
+    # mjepoch = -10957.5 # 40587  - 51544.5 # Modified Julian date of C epoch (1 Jan 70)
     mjepoch = 40587  # Modified Julian date of C epoch (1 Jan 70)
     if time.gmtime(0)[0] == 2000:
         mjepoch += 10957
@@ -98,7 +98,7 @@ def moonphase(year, month, day, hour):
 
 
 def minisun(t):
-    # Output dec, ra
+    # Output sin(dec), cos(dec), ra
     # returns the ra and dec of the Sun
     # in decimal hours, degs referred to the equinox of date and using
     # obliquity of the ecliptic at J2000.0 (small error for +- 100 yrs)
@@ -107,19 +107,17 @@ def minisun(t):
     coseps = 0.91748
     sineps = 0.39778
 
-    M = p2 * frac(0.993133 + 99.997361 * t)
-    DL = 6893.0 * sin(M) + 72.0 * sin(2 * M)
-    L = p2 * frac(0.7859453 + M / p2 + (6191.2 * t + DL) / 1296000)
-    SL = sin(L)
-    X = cos(L)
-    Y = coseps * SL
-    Z = sineps * SL
-    RHO = sqrt(1 - Z * Z)
-    dec = (360.0 / p2) * atan(Z / RHO)
-    ra = (48.0 / p2) * atan(Y / (X + RHO))
-    if ra < 0:
-        ra += 24
-    return dec, ra
+    m = p2 * frac(0.993133 + 99.997361 * t)
+    dl = 6893.0 * sin(m) + 72.0 * sin(2 * m)
+    l = p2 * frac(0.7859453 + m / p2 + (6191.2 * t + dl) / 1296000)
+    sl = sin(l)
+    x = cos(l)
+    y = coseps * sl
+    z = sineps * sl
+    rho = sqrt(1 - z * z)
+    # dec = (360.0 / p2) * atan(z / rho)
+    ra = (48.0 / p2) * atan(y / (x + rho)) % 24
+    return z, rho, ra
 
 
 def minimoon(t):
@@ -132,56 +130,54 @@ def minimoon(t):
     coseps = 0.91748
     sineps = 0.39778
 
-    L0 = frac(0.606433 + 1336.855225 * t)  # mean longitude of moon
-    L = p2 * frac(0.374897 + 1325.552410 * t)  # mean anomaly of Moon
-    LS = p2 * frac(0.993133 + 99.997361 * t)  # mean anomaly of Sun
-    D = p2 * frac(0.827361 + 1236.853086 * t)  # difference in longitude of moon and sun
-    F = p2 * frac(0.259086 + 1342.227825 * t)  # mean argument of latitude
+    l0 = frac(0.606433 + 1336.855225 * t)  # mean longitude of moon
+    l = p2 * frac(0.374897 + 1325.552410 * t)  # mean anomaly of Moon
+    ls = p2 * frac(0.993133 + 99.997361 * t)  # mean anomaly of Sun
+    d = p2 * frac(0.827361 + 1236.853086 * t)  # difference in longitude of moon and sun
+    f = p2 * frac(0.259086 + 1342.227825 * t)  # mean argument of latitude
 
     # corrections to mean longitude in arcsec
-    DL = 22640 * sin(L)
-    DL += -4586 * sin(L - 2 * D)
-    DL += +2370 * sin(2 * D)
-    DL += +769 * sin(2 * L)
-    DL += -668 * sin(LS)
-    DL += -412 * sin(2 * F)
-    DL += -212 * sin(2 * L - 2 * D)
-    DL += -206 * sin(L + LS - 2 * D)
-    DL += +192 * sin(L + 2 * D)
-    DL += -165 * sin(LS - 2 * D)
-    DL += -125 * sin(D)
-    DL += -110 * sin(L + LS)
-    DL += +148 * sin(L - LS)
-    DL += -55 * sin(2 * F - 2 * D)
+    dl = 22640 * sin(l)
+    dl += -4586 * sin(l - 2 * d)
+    dl += +2370 * sin(2 * d)
+    dl += +769 * sin(2 * l)
+    dl += -668 * sin(ls)
+    dl += -412 * sin(2 * f)
+    dl += -212 * sin(2 * l - 2 * d)
+    dl += -206 * sin(l + ls - 2 * d)
+    dl += +192 * sin(l + 2 * d)
+    dl += -165 * sin(ls - 2 * d)
+    dl += -125 * sin(d)
+    dl += -110 * sin(l + ls)
+    dl += +148 * sin(l - ls)
+    dl += -55 * sin(2 * f - 2 * d)
 
     # simplified form of the latitude terms
-    S = F + (DL + 412 * sin(2 * F) + 541 * sin(LS)) / arc
-    H = F - 2 * D
-    N = -526 * sin(H)
-    N += +44 * sin(L + H)
-    N += -31 * sin(-L + H)
-    N += -23 * sin(LS + H)
-    N += +11 * sin(-LS + H)
-    N += -25 * sin(-2 * L + F)
-    N += +21 * sin(-L + F)
+    s = f + (dl + 412 * sin(2 * f) + 541 * sin(ls)) / arc
+    h = f - 2 * d
+    n = -526 * sin(h)
+    n += +44 * sin(l + h)
+    n += -31 * sin(-l + h)
+    n += -23 * sin(ls + h)
+    n += +11 * sin(-ls + h)
+    n += -25 * sin(-2 * l + f)
+    n += +21 * sin(-l + f)
 
     # ecliptic long and lat of Moon in rads
-    L_moon = p2 * frac(L0 + DL / 1296000)
-    B_moon = (18520.0 * sin(S) + N) / arc
+    l_moon = p2 * frac(l0 + dl / 1296000)
+    b_moon = (18520.0 * sin(s) + n) / arc
 
     # equatorial coord conversion - note fixed obliquity
-    CB = cos(B_moon)
-    X = CB * cos(L_moon)
-    V = CB * sin(L_moon)
-    W = sin(B_moon)
-    Y = coseps * V - sineps * W
-    Z = sineps * V + coseps * W
-    RHO = sqrt(1.0 - Z * Z)
-    dec = (360.0 / p2) * atan(Z / RHO)
-    ra = (48.0 / p2) * atan(Y / (X + RHO))
-    if ra < 0:
-        ra += 24
-    return dec, ra
+    cb = cos(b_moon)
+    x = cb * cos(l_moon)
+    v = cb * sin(l_moon)
+    W = sin(b_moon)
+    y = coseps * v - sineps * W
+    z = sineps * v + coseps * W
+    rho = sqrt(1.0 - z * z)
+    # dec = (360.0 / p2) * atan(z / rho)
+    ra = (48.0 / p2) * atan(y / (x + rho)) % 24
+    return z, rho, ra
 
 
 class RiSet:
@@ -197,29 +193,19 @@ class RiSet:
         self.set_day()  # Initialise to today's date
 
     # ***** API start *****
-    # 109μs on PBD-SF2W 166μs on ESP32-S3 394μs on RP2 (standard clocks)
-    def set_day(self, day: int = 0):
+    # Examine Julian dates either side of current one to cope with localtime.
+    # TODO: Allow localtime offset to be varied at runtime for DST.
+    # TODO: relative=True arg for set_day. Allows entering absolute dates e.g. for testing.
+    def set_day(self, day: int = 0, relative: bool = True):
         mjd = get_mjd(day)
         if self.mjd is None or self.mjd != mjd:
             spd = 86400  # Secs per day
             # ._t0 is time of midnight (local time) in secs since MicroPython epoch
             # time.time() assumes MicroPython clock is set to local time
             self._t0 = ((round(time.time()) + day * spd) // spd) * spd
-            self._times = [None] * 4
-            self._ms = None  # Moon set
-            for day in range(3):
-                self.mjd = mjd + day - 1
-                sr, ss = self.rise_set(True)  # Sun
-                mr, ms = self.rise_set(False)  # Moon
-                # Adjust for local time. Store in ._times if value is in 24-hour
-                # local time window
-                self.adjust(sr, day, 0)
-                self.adjust(ss, day, 1)
-                self.adjust(mr, day, 2)
-                self.adjust(ms, day, 3)
-            self.mjd = mjd
             t = time.gmtime(time.time() + day * spd)
             self._phase = moonphase(*t[:4])
+            self.update(mjd)  # Recalculate rise and set times
         return self  # Allow r.set_day().sunrise()
 
     # variants: 0 secs since 00:00:00 localtime. 1 secs since MicroPython epoch
@@ -236,10 +222,29 @@ class RiSet:
     def moonset(self, variant: int = 0):
         return self._format(self._times[3], variant)
 
-    def moonphase(self):
+    def moonphase(self) -> float:
         return self._phase
 
+    def set_lto(self, t):  # Update the offset from UTC
+        pass  # TODO
+
     # ***** API end *****
+    # Re-calculate rise and set times
+    def update(self, mjd):
+        self._times = [None] * 4
+        days = (1, 2) if self.lto < 0 else (1,) if self.lto == 0 else (0, 1)
+        for day in days:
+            self.mjd = mjd + day - 1
+            sr, ss = self.rise_set(True)  # Sun
+            mr, ms = self.rise_set(False)  # Moon
+            # Adjust for local time. Store in ._times if value is in 24-hour
+            # local time window
+            self.adjust(sr, day, 0)
+            self.adjust(ss, day, 1)
+            self.adjust(mr, day, 2)
+            self.adjust(ms, day, 3)
+        self.mjd = mjd
+
     def adjust(self, n, day, idx):
         if n is not None:
             n += self.lto + (day - 1) * 86400
@@ -261,7 +266,7 @@ class RiSet:
             return f"{hr:02d}:{mi:02d}:{sec:02d}"
 
     # See https://github.com/orgs/micropython/discussions/13075
-    def lmstt(self, t):
+    def lmst(self, t):
         # Takes the mjd and the longitude (west negative) and then returns
         # the local sidereal time in hours. Im using Meeus formula 11.4
         # instead of messing about with UTo and so on
@@ -278,13 +283,13 @@ class RiSet:
         # Returns the sine of the altitude of the object (moon or sun)
         # at an hour relative to the current date (mjd)
         mjd1 = (self.mjd - 51544.5) + hour / 24.0
+        # mjd1 = self.mjd + hour / 24.0
         t1 = mjd1 / 36525.0
-        # print(f"sin_alt mjd0={mjd0:.7f} t0={t0:.9f} mjd1={mjd1:.7f} t1={t1:.9f}")
-        dec, ra = func(t1)
+        sin_dec, cos_dec, ra = func(t1)
         # hour angle of object: one hour = 15 degrees. Note lmst() uses longitude
-        tau = 15.0 * (self.lmstt(t1) - ra)
+        tau = 15.0 * (self.lmst(t1) - ra)
         # sin(alt) of object using the conversion formulas
-        return self.sglat * sin(radians(dec)) + self.cglat * cos(radians(dec)) * cos(radians(tau))
+        return self.sglat * sin_dec + self.cglat * cos_dec * cos(radians(tau))
 
     # Modified to find sunrise and sunset only, not twilight events.
     def rise_set(self, sun):
@@ -325,8 +330,9 @@ class RiSet:
         return to_int(t_rise), to_int(t_set)  # Convert to int preserving None values
 
 
-r = RiSet()
-# Seattle RiSet(lat=47.61, long=-122.35, lto=-8)
+# r = RiSet()
+# r = RiSet(lat=47.61, long=-122.35, lto=-8)  # Seattle 47°36′35″N 122°19′59″W
+r = RiSet(lat=-33.86, long=151.21, lto=11)  # Sydney 33°52′04″S 151°12′36″E
 # t = time.ticks_us()
 # r.set_day()
 # print("Elapsed us", time.ticks_diff(time.ticks_us(), t))

@@ -1,0 +1,75 @@
+Astronomy on the Personal Computer; 4th Edition
+
+Springer-Verlag GmbH & Co.KG Berlin Heidelberg and the user of this CD-ROM conclude the following Agreement concerning:
+
+Use and Registration
+
+Art. 1 Copyright and License
+
+1 The data stored on the CD-ROM, the software and the manual, hereinafter referred to as the Objects are protected by copyright; in relation to the user any rights in them lie exclusively with Springer-Verlag. 
+Independently thereof, the parties hereto agree to apply the copyright principles to the Objects.
+
+2 The user is, not exclusively on the basis of the law of obligations, entitled to use the Objects in the way described in the manuals. Any other ways or possibilities of using the Objects are inadmissible, in particular any translation, reproduction, decompilation, transformation in a machine-readable language and public communication; this applies to all Objects as a whole and to any of their parts.
+
+3 The Objects shall at any one time be used only on one computer and at one terminal. The person using them must pertain to the user’s institution (for example, employees of his or her enterprise or library users). If the Objects are used on computers with more than one terminal or in networks, the user must obtain additional licenses from Springer-Verlag. Such a license is obtained by acquiring the corresponding multiuser or network 
+version of the CD-ROM and paying the purchase price which is valid for that version at the time. In any other respect that version is subject to the same conditions of use.
+
+4 The user shall store the Objects with due care in order to prevent third persons from accessing and abusing the Objects. The data stored on the Objects may not be reproduced.
+
+Art. 2 Transmittal
+
+1 Any transmittal (for example, sale) of the Objects to third persons, and therefore any passing on of the right and the possibility to use them, is only admissible with written authorization from Springer-Verlag.
+
+2 Springer-Verlag shall provide such authorization if the previous user files a written application, supplying a representation given by the new user to the effect that he or she will comply with the provisions of the present Agreement. When the authorization is received by the previous user, the license expires, rendering the transmittal admissible.
+
+
+Art. 3 Consultancy
+
+1 Springer-Verlag offers the possibility of asking the originator questions with respect to the use of the CD-ROM. There is, however, no legal title to the availability of this service.
+
+2 The questions may refer to the installation of the program or to problems concerning its operation and use. 
+
+3 Questions shall be addressed in writing or via mail to Springer-Verlag (em-helpdesk@springer.de). Springer-Verlag forwards the answers given by the originator or manufacturer without verifying them. The answers will normally be given in the order in which they were received. It will not be possible to answer all questions.
+
+Art. 4 Warranty
+
+1 Springer-Verlag is not the originator of the data and programs but only makes them available. The user is conscious of the fact that it is not possible to create faultless databases and software; users will take appropriate steps to verify the correctness of the results of their queries.
+
+2 In the case of faulty material, manufacturing defects, absence of warranted characteristics, or damage in transit, Springer-Verlag shall exchange the Object. Further claims shall only be admitted if the user has purchased the Objects from Springer-Verlag directly. The warranty requires the user to supply a detailed written description of 
+any fault immediately.
+
+Art. 5 Liabilities of Springer-Verlag
+
+1 Springer-Verlag will only be liable for damages, whatever the legal ground, in the case of intent or gross negligence and with respect to warranted characteristics. A warranty of specific characteristics is given only in individual cases to a specific user and requires explicit written representation. Neither the originator nor the manufacturer is liable for information given under Article 4. Liability under the product liability act is not 
+affected hereby. Springer-Verlag may always claim a contributory fault on the part of the user.
+
+2 The originator or manufacturer named on the Objects will only be liable to the user, whatever the legal ground, in the case of intent or gross negligence.
+
+Art. 6 Liabilities of the User
+
+1 The user agrees to comply with the rules for use and transmittal (Articles 1 and 2). Violations of these rules may be criminal offences and may also give rise to claims for damages against the user from the licensers of Springer-Verlag.
+
+2 In the case of serious violations committed by the user, Springer-Verlag may revoke the license and demand that Objects are returned.
+
+Art. 7 Data Protection
+
+The user consents to the computerized storage and processing of his or her personal data.
+
+Art. 8 Conclusion of the Agreement
+
+The user agrees that he or she shall not receive, together with this agreement, a declaration of consent given by Springer-Verlag.
+
+Art. 9 Final Provisions
+
+1 The present Agreement applies to Objects already delivered and still to be delivered.
+2 If any provision of the Agreement is or becomes invalid or if the Agreement is incomplete, the remainder of the Agreement is not affected. The invalid provision shall then be replaced by a legally valid provision which comes as close as possible to the invalid provision in its economic effect. The same applies to possible gaps in the Agreement.
+3 This Agreement falls under the jurisdiction of the courts at Heidelberg, if the user is a merchant who has been entered in the commercial register, a legal entity under public law, or a public special fund, or if the user has no residence or place of business in Germany.
+
+4 This Agreement is subject to the laws of Germany to the exclusion of the uncitral trading rules.
+
+
+
+
+
+
+
