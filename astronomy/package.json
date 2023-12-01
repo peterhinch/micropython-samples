@@ -1,0 +1,7 @@
+{
+  "urls": [
+    ["sched/sun_moon.py", "github:peterhinch/micropython-samples/astronomy/sun_moon.py"],
+    ["sched/sun_moon_test.py", "github:peterhinch/micropython-samples/astronomy/sun_moon_test.py"]
+  ],
+  "version": "0.1"
+}

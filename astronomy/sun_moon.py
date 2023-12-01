@@ -14,6 +14,30 @@ from math import sin, cos, sqrt, fabs, atan, radians, floor
 LAT = 53.29756504536339  # Local defaults
 LONG = -2.102811634540558
 
+# MicroPython wanton epochs:
+# time.gmtime(0)[0] = 1970 or 2000 depending on platform.
+# On CPython:
+# (date(2000, 1, 1) - date(1970, 1, 1)).days * 24*60*60 = 946684800
+# (date(2000, 1, 1) - date(1970, 1, 1)).days = 10957
+
+# Return time now in days relative to platform epoch.
+def now_days() -> int:
+    secs_per_day = 86400  # 24 * 3600
+    t = time.time()
+    t -= t % secs_per_day  # Previous Midnight
+    return round(t / secs_per_day)  # Days since datum
+
+
+# Convert number of days relative to the Unix epoch (1970,1,1) to a number of
+# days relative to the current date. e.g. 19695 = 4th Dec 2023
+# Platform independent.
+def abs_to_rel_days(days: int) -> int:
+    secs_per_day = 86400  # 24 * 3600
+    now = now_days()  # Days since platform epoch
+    if time.gmtime(0)[0] == 2000:  # Machine epoch
+        now += 10957
+    return days - now
+
 
 def quad(ym, yz, yp):
     # See Astronomy on the PC P48-49, plus contribution from Marcus Mendenhall
@@ -45,26 +69,15 @@ def quad(ym, yz, yp):
 
 # **** GET MODIFIED JULIAN DATE FOR DAY RELATIVE TO TODAY ****
 
-# Takes the system time in seconds from 1 Jan 70 & returns
-# modified julian day number defined as mjd = jd - 2400000.5
+# Returns modified julian day number defined as mjd = jd - 2400000.5
 # Deals only in integer MJD's: the JD of just after midnight will always end in 0.5
 # hence the MJD of an integer day number will always be an integer
 
-# MicroPython wanton epochs:
-# time.gmtime(0)[0] = 1970 or 2000 depending on platform.
-# (date(2000, 1, 1) - date(1970, 1, 1)).days * 24*60*60 = 946684800
-# (date(2000, 1, 1) - date(1970, 1, 1)).days = 10957
-
 # Re platform comparisons get_mjd returns the same value regardless of
 # the platform's epoch: integer days since 00:00 on 17 November 1858.
-def get_mjd(ndays: int = 0) -> int:  # Days offset from today
+def get_mjd(ndays: int = 0) -> int:
     secs_per_day = 86400  # 24 * 3600
-    tsecs = time.time()  # Time now in secs since epoch
-    tsecs -= tsecs % secs_per_day  # Time last midnight
-    tsecs += secs_per_day * ndays  # Specified day
-    days_from_epoch = round(tsecs / secs_per_day)  # Days from 1 Jan 70
-    # tsecs += secs_per_day # 2  # Noon
-    # mjepoch = -10957.5 # 40587  - 51544.5 # Modified Julian date of C epoch (1 Jan 70)
+    days_from_epoch = now_days() + ndays  # Days since platform epoch
     mjepoch = 40587  # Modified Julian date of C epoch (1 Jan 70)
     if time.gmtime(0)[0] == 2000:
         mjepoch += 10957
@@ -196,7 +209,7 @@ class RiSet:
     # Examine Julian dates either side of current one to cope with localtime.
     # TODO: Allow localtime offset to be varied at runtime for DST.
     # TODO: relative=True arg for set_day. Allows entering absolute dates e.g. for testing.
-    def set_day(self, day: int = 0, relative: bool = True):
+    def set_day(self, day: int = 0):
         mjd = get_mjd(day)
         if self.mjd is None or self.mjd != mjd:
             spd = 86400  # Secs per day
@@ -226,7 +239,10 @@ class RiSet:
         return self._phase
 
     def set_lto(self, t):  # Update the offset from UTC
-        pass  # TODO
+        lto = round(t * 3600)  # Localtime offset in secs
+        if self.lto != lto:  # changed
+            self.lto = lto
+            self.update(self.mjd)
 
     # ***** API end *****
     # Re-calculate rise and set times
@@ -328,21 +344,3 @@ class RiSet:
             if t_rise is not None and t_set is not None:
                 break  # All done
         return to_int(t_rise), to_int(t_set)  # Convert to int preserving None values
-
-
-# r = RiSet()
-# r = RiSet(lat=47.61, long=-122.35, lto=-8)  # Seattle 47°36′35″N 122°19′59″W
-r = RiSet(lat=-33.86, long=151.21, lto=11)  # Sydney 33°52′04″S 151°12′36″E
-# t = time.ticks_us()
-# r.set_day()
-# print("Elapsed us", time.ticks_diff(time.ticks_us(), t))
-for d in range(7):
-    print(f"Day {d}")
-    r.set_day(d)
-    print(f"Sun rise {r.sunrise(3)} set {r.sunset(3)}")
-    print(f"Moon rise {r.moonrise(3)} set {r.moonset(3)}")
-
-print(r.set_day().sunrise(0))
-# for d in range(30):
-#    r.set_day(d)
-#    print(round(r.moonphase() * 1000))
