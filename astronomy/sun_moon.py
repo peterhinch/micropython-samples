@@ -9,7 +9,7 @@
 # https://github.com/orgs/micropython/discussions/13075
 
 import time
-from math import sin, cos, sqrt, fabs, atan, radians, floor
+from math import sin, cos, sqrt, fabs, atan, radians, floor, pi
 
 LAT = 53.29756504536339  # Local defaults
 LONG = -2.102811634540558
@@ -64,7 +64,8 @@ def quad(ym, yz, yp):
             nz += 1
         if z1 < -1.0:
             z1 = z2
-    return nz, z1, z2, ye
+        return nz, z1, z2, ye
+    return 0, 0, 0, 0  # No roots
 
 
 # **** GET MODIFIED JULIAN DATE FOR DAY RELATIVE TO TODAY ****
@@ -116,20 +117,19 @@ def minisun(t):
     # in decimal hours, degs referred to the equinox of date and using
     # obliquity of the ecliptic at J2000.0 (small error for +- 100 yrs)
     # takes t centuries since J2000.0. Claimed good to 1 arcmin
-    p2 = 6.283185307
-    coseps = 0.91748
-    sineps = 0.39778
+    coseps = 0.9174805004
+    sineps = 0.397780757938
 
-    m = p2 * frac(0.993133 + 99.997361 * t)
+    m = 2 * pi * frac(0.993133 + 99.997361 * t)
     dl = 6893.0 * sin(m) + 72.0 * sin(2 * m)
-    l = p2 * frac(0.7859453 + m / p2 + (6191.2 * t + dl) / 1296000)
+    l = 2 * pi * frac(0.7859453 + m / (2 * pi) + (6191.2 * t + dl) / 1296000)
     sl = sin(l)
     x = cos(l)
     y = coseps * sl
     z = sineps * sl
     rho = sqrt(1 - z * z)
-    # dec = (360.0 / p2) * atan(z / rho)
-    ra = (48.0 / p2) * atan(y / (x + rho)) % 24
+    # dec = (360.0 / 2 * pi) * atan(z / rho)
+    ra = ((48.0 / (2 * pi)) * atan(y / (x + rho))) % 24
     return z, rho, ra
 
 
@@ -137,17 +137,15 @@ def minimoon(t):
     # takes t and returns the geocentric ra and dec
     # claimed good to 5' (angle) in ra and 1' in dec
     # tallies with another approximate method and with ICE for a couple of dates
-
-    p2 = 6.283185307
     arc = 206264.8062
-    coseps = 0.91748
-    sineps = 0.39778
+    coseps = 0.9174805004
+    sineps = 0.397780757938
 
     l0 = frac(0.606433 + 1336.855225 * t)  # mean longitude of moon
-    l = p2 * frac(0.374897 + 1325.552410 * t)  # mean anomaly of Moon
-    ls = p2 * frac(0.993133 + 99.997361 * t)  # mean anomaly of Sun
-    d = p2 * frac(0.827361 + 1236.853086 * t)  # difference in longitude of moon and sun
-    f = p2 * frac(0.259086 + 1342.227825 * t)  # mean argument of latitude
+    l = 2 * pi * frac(0.374897 + 1325.552410 * t)  # mean anomaly of Moon
+    ls = 2 * pi * frac(0.993133 + 99.997361 * t)  # mean anomaly of Sun
+    d = 2 * pi * frac(0.827361 + 1236.853086 * t)  # difference in longitude of moon and sun
+    f = 2 * pi * frac(0.259086 + 1342.227825 * t)  # mean argument of latitude
 
     # corrections to mean longitude in arcsec
     dl = 22640 * sin(l)
@@ -177,19 +175,19 @@ def minimoon(t):
     n += +21 * sin(-l + f)
 
     # ecliptic long and lat of Moon in rads
-    l_moon = p2 * frac(l0 + dl / 1296000)
+    l_moon = 2 * pi * frac(l0 + dl / 1296000)
     b_moon = (18520.0 * sin(s) + n) / arc
 
     # equatorial coord conversion - note fixed obliquity
     cb = cos(b_moon)
     x = cb * cos(l_moon)
     v = cb * sin(l_moon)
-    W = sin(b_moon)
-    y = coseps * v - sineps * W
-    z = sineps * v + coseps * W
+    w = sin(b_moon)
+    y = coseps * v - sineps * w
+    z = sineps * v + coseps * w
     rho = sqrt(1.0 - z * z)
-    # dec = (360.0 / p2) * atan(z / rho)
-    ra = (48.0 / p2) * atan(y / (x + rho)) % 24
+    # dec = (360.0 / 2 * pi) * atan(z / rho)
+    ra = ((48.0 / (2 * pi)) * atan(y / (x + rho))) % 24
     return z, rho, ra
 
 
@@ -207,8 +205,6 @@ class RiSet:
 
     # ***** API start *****
     # Examine Julian dates either side of current one to cope with localtime.
-    # TODO: Allow localtime offset to be varied at runtime for DST.
-    # TODO: relative=True arg for set_day. Allows entering absolute dates e.g. for testing.
     def set_day(self, day: int = 0):
         mjd = get_mjd(day)
         if self.mjd is None or self.mjd != mjd:
