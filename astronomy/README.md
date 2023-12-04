@@ -1,5 +1,20 @@
 # Astronomical calculations in MicroPython
 
+1. [Overview](./README.md#1-overview)  
+ 1.1 [Applications](./README.md#11-applications)  
+ 1.2 [Licensing and acknowledgements](./README.md#12-licensing-and-acknowledgements)  
+ 1.3 [Installation](./README.md#13-installation)  
+2. [The RiSet class](./README.md#2-the-riset-class)  
+ 2.1 [Constructor](./README.md#21-constructor)  
+ 2.2 [Methods](./README.md#22-methods)  
+3. [The moonphase function](./README.md#3-the-moonphase-function)  
+4. [Utility functions](./README.md#4-utility-functions)  
+5. [Demo script](./README.md#5-demo-script)  
+6. [Scheduling events](./README.md#6-scheduling-events)  
+7. [Performance and accuracy](./README.md#7-performance-and-accuracy)  
+
+# 1. Overview
+
 This module enables sun and moon rise and set times to be determined at any
 geographical location. Times are in seconds from midnight and refer to any
 event in a 24 hour period starting at midnight. The midnight datum is defined in
@@ -14,14 +29,14 @@ algorithms I am unlikely to be able to offer an opinion, still less a fix.
 
 The code is currently under development: the API may change.
 
-## Applications
+## 1.1 Applications
 
 There are two application areas. Firstly timing of events relative to sun or
 moon rise and set times, discussed later in this doc. Secondly constructing
 lunar clocks such as this one - the "lunartick":
 ![Image](./lunartick.jpg)
 
-## Licensing and acknowledgements
+## 1.2 Licensing and acknowledgements
 
 The code was ported from C/C++ as presented in "Astronomy on the Personal
 Computer" by Montenbruck and Pfleger, with mathematical improvements contributed
@@ -31,7 +46,7 @@ license file on the disk, which contains source, executable code, and databases.
 This module (obviously) only references the source. I am not a lawyer; I have no
 idea of the legal status of code translated from sourcecode in a published work.
 
-## Installation
+## 1.3 Installation
 
 Installation copies files from the `astronomy` directory to a directory
 `\lib\sched` on the target. This is for optional use with the
@@ -60,35 +75,43 @@ After installation the `RiSet` class may be accessed with
 from sched.sun_moon import RiSet
 ```
 
-# The RiSet class
+# 2. The RiSet class
 
 This holds the local geographic coordinates and the localtime offset relative to
 UTC. It is initialised to the current date and can provide the times of rise and
 set events occurring within a 24 hour window starting at 00:00:00 local time.
 The `RiSet` instance's date may be changed allowing rise and set times to be
-retrieved for other 24 hour windows.
+retrieved for other 24 hour windows. In continuously running applications which
+must access current rise and set times the application should re-calculate (by
+issuing `.set_day()`) prior to retrieving that day's data.
 
 Rise and set times may be retrieved in various formats including seconds from
 local midnight: this may be used to enable the timing of actions relative to a
 rise or set event.
 
-## Constructor
+## 2.1 Constructor
 
 Args (float):
 * `lat=LAT` Latitude in degrees (-ve is South). Defaults are my location. :)
 * `long=LONG` Longitude in degrees (-ve is West).
 * `lto=0` Local time offset in hours to UTC (-ve is West).
 
-Methods:
-* `set_day(day: int = 0)` `day` is the offset in days from the current system
-date. If `day` is changed compared to the object's currently stored value its
-rise and set times are updated. Returns the `RiSet` instance.
+## 2.2 Methods
+
+* `set_day(day: int = 0)` `day` is an offset in days from the current system
+date. The number of days from the specified day to a fixed epoch is calculated
+and compared to that stored in the instance. If there is a change the new value
+is stored and the rise and set times are updated - otherwise return is
+"immediate". Returns the `RiSet` instance.
 * `sunrise(variant: int = 0)` See below for details and the `variant` arg.
 * `sunset(variant: int = 0)`
 * `moonrise(variant: int = 0)`
 * `moonset(variant: int = 0)`
+* `is_up(sun: bool)` Returns `True` if the selected object is above the horizon.
+This calls `.set_day()` to ensure the current day is selected.
 * `moonphase()` Return current phase as a float: 0.0 <= result < 1.0. 0.0 is new
-moon, 0.5 is full.
+moon, 0.5 is full. See [section 3](./README.md#3-the-moonphase-function) for
+observations about this.
 * `set_lto(t)` Set localtime offset in hours relative to UTC. Primarily intended
 for daylight saving time. Rise and set times are updated if the lto is changed.
 
@@ -110,13 +133,10 @@ r = RiSet(lat=47.609722, long=-122.3306, lto=-8)  # Seattle 47°36′35″N 122�
 r = RiSet(lat=-33.87667, long=151.21, lto=11)  # Sydney 33°52′04″S 151°12′36″E
 ```
 
-# The moonphase function
+# 3. The moonphase function
 
-This is a simple function whose provenance is uncertain. I have a lunar clock
-which uses the original C code. This has run for 14 years without issue, but I
-can't vouch for its absolute accuracy over long time intervals. The Montenbruck
-and Pfleger version is very much more involved but they claim accuracy over
-centuries.
+This is a simple function whose provenance is uncertain. It appears to produce
+valid results but I plan to implement a better solution.
 
 Args:
 * `year: int` 4-digit year
@@ -127,14 +147,14 @@ Args:
 Return value:  
 A float in range 0.0 <= result < 1.0, 0 being new moon, 0.5 being full moon.
 
-# Utility functions
+# 4. Utility functions
 
 `now_days() -> int` Returns the current time as days since the platform epoch.
 `abs_to_rel_days(days: int) -> int` Takes a number of days since the Unix epoch
 (1970,1,1) and returns a number of days relative to the current date. Platform
 independent. This facilitates testing with pre-determined target dates.
 
-# Demo script
+# 5. Demo script
 
 This produces output for the fixed date 4th Dec 2023 at three geographical
 locations. It can therefore be run on platforms where the system time is wrong.
@@ -175,36 +195,36 @@ Moon rise 03:56:44 set 13:46:27
 Day: 6
 Sun rise 08:12:01 set 15:49:56
 Moon rise 05:18:32 set 14:00:11
+Maximum error 0. Expect 0 on 64-bit platform, 30s on 32-bit
 >>>
 ```
 Code comments show times retrieved from `timeanddate.com`.
 
-# Scheduling events
+# 6. Scheduling events
 
 A likely use case is to enable events to be timed relative to sunrise and set.
-In simple cases this can be done with `asyncio`.
+In simple cases this can be done with `asyncio`. This routine, called before
+sunrise, will perform some action at dawn and quit:
 ```python
 from sched.sun_moon import RiSet
 import time
 rs = RiSet()
-tsecs = time.time()  # Time now in secs since epoch
-tsecs -= tsecs % 86400  # Last midnight in secs since epoch
-tmidnight = tsecs
-async def do_sunrise():
-    while True:
-        toff = time.time() - tmidnight  # Seconds relative to midnight
-        if toff > 0:  # Midnight has passed, wait for sunrise
-            twait = rs.sunrise() - toff  # Assumes a latitude where sun must rise
-        else:  # Wait for tomorrow
-            twait = tmidnight + 86400 + toff
+async def wait_for_sunrise():
+    tsecs = time.time() % 86400  # Time now in secs since midnight
+    rs.set_day()  # Ensure today's date
+    twait = rs.sunrise() - tsecs  # Time before Sunrise
+    if twait > 0:  # Sunrise has not yet occurred
         await asyncio.sleep(twait)
-        if toff > 0:
-            # Turn the lights off, or whatever
+        # Turn the lights off, or whatever
 ```
-An alternative, particularly suited to more complex cases, is to use the
+The problem with the above is ensuring that `wait_for_sunrise` is called shortly
+after midnight. A simple solution is to use the
 [schedule module](https://github.com/peterhinch/micropython-async/blob/master/v3/docs/SCHEDULE.md).
-This allows more intuitive coding without the epoch calculations. The following
-is a minimal example:
+This may be installed with
+```bash
+$ mpremote mip install "github:peterhinch/micropython-async/v3/as_drivers/sched"
+```
+The following is a minimal example:
 ```python
 import uasyncio as asyncio
 from sched.sched import schedule
@@ -249,3 +269,19 @@ try:
 finally:
     _ = asyncio.new_event_loop()
 ```
+
+# 7. Performance and accuracy
+
+A recalculation is triggered whenever the 24 hour local time window is changed,
+such as calling `.set_day()` where the stored date changes. Normally two days of
+data are calculated, except where the local time is UTC where only one day is
+required. The time to derive one day's data on RP2040 was 707μs.
+
+The accuracy of rise and set times was checked against online sources for
+several geographic locations. The online data had 1 minute resolution and the
+checked values corresponded with data computed on a platform with 64 bit
+floating point unit. The loss of precision from using a 32 bit FPU was no more
+than 30s.
+
+For reasons which are unclear, the `is_up()` method is less precise, showing
+incorrect results when within a few minutes of the rise or set time.

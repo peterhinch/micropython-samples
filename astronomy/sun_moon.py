@@ -248,6 +248,13 @@ class RiSet:
             self.lto = lto
             self.update(self.mjd)
 
+    def is_up(self, sun: bool):  # Return current state of sun or moon
+        t = time.time() + self.lto  # UTC
+        t %= 86400
+        t /= 3600  # UTC Hour of day
+        self.set_day()  # Ensure today's date
+        return self.sin_alt(t, sun) > 0
+
     # ***** API end *****
     # Re-calculate rise and set times
     def update(self, mjd):

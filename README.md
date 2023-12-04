@@ -47,6 +47,7 @@ Please also see the [official examples](https://github.com/micropython/micropyth
   4.15 [Date](./README.md#415-date) Small and simple classes for handling dates.  
   4.16 [Greatest common divisor](./README.md#416-greatest-common-divisor) Neat algorithm.  
   4.17 [2D array indexing](./README.md#417-2d-array-indexing) Use `[1:3, 20]` syntax to address a 2D array.  
+  4.18 [Astronomy](./README.md#418-astronomy) Derive Sun and Moon rise and set times, moon phase.  
  5. [Module Index](./README.md#5-module-index) Supported code. Device drivers, GUI's, utilities.  
   5.1 [uasyncio](./README.md#51-uasyncio) Tutorial and drivers for asynchronous coding.  
   5.2 [Memory Device Drivers](./README.md#52-memory-device-drivers) Drivers for nonvolatile memory devices.  
@@ -304,7 +305,7 @@ functions. See [the docs](./QUATERNIONS.md).
 
 ## 4.13 A pyboard power meter
 
-This uses a Pyboard to measure the power consumption of mains powered devices. 
+This uses a Pyboard to measure the power consumption of mains powered devices.
 Unlike simple commercial devices it performs a true vector (phasor) measurement
 enabling it to provide information on power factor and to work with devices
 which generate as well as consume power. It uses the official LCD160CR display
@@ -383,6 +384,12 @@ obj[0:5, 3] = iter(range(100, 105))
 See [the docs](./parse2d/README.md).
 
 ##### [Index](./README.md#0-index)
+
+## 4.18 Astronomy
+
+This module enables Sun and Moon rise and set times to be determined for timing
+applications or for lunar clocks. Moon phase can also be accessed. Designed to
+work at global locations and timezones. See [./astronomy/README.md].
 
 # 5. Module index
 
