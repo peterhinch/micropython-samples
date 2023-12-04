@@ -14,6 +14,13 @@ algorithms I am unlikely to be able to offer an opinion, still less a fix.
 
 The code is currently under development: the API may change.
 
+## Applications
+
+There are two application areas. Firstly timing of events relative to sun or
+moon rise and set times, discussed later in this doc. Secondly constructing
+lunar clocks such as this one - the "lunartick":
+![Image](./lunartick.jpg)
+
 ## Licensing and acknowledgements
 
 The code was ported from C/C++ as presented in "Astronomy on the Personal

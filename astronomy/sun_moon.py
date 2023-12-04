@@ -7,6 +7,8 @@
 # ISBN 978-3-540-67221-0
 # Also contributions from Raul Kompaß and Marcus Mendenhall: see
 # https://github.com/orgs/micropython/discussions/13075
+# Raul Kompaß perfomed major simplification of the maths for deriving rise and set_times.
+
 
 import time
 from math import sin, cos, sqrt, fabs, atan, radians, floor, pi
@@ -127,10 +129,10 @@ def minisun(t):
     x = cos(l)
     y = coseps * sl
     z = sineps * sl
-    rho = sqrt(1 - z * z)
+    # rho = sqrt(1 - z * z)
     # dec = (360.0 / 2 * pi) * atan(z / rho)
-    ra = ((48.0 / (2 * pi)) * atan(y / (x + rho))) % 24
-    return z, rho, ra
+    # ra = ((48.0 / (2 * pi)) * atan(y / (x + rho))) % 24
+    return x, y, z
 
 
 def minimoon(t):
@@ -185,10 +187,10 @@ def minimoon(t):
     w = sin(b_moon)
     y = coseps * v - sineps * w
     z = sineps * v + coseps * w
-    rho = sqrt(1.0 - z * z)
+    # rho = sqrt(1.0 - z * z)
     # dec = (360.0 / 2 * pi) * atan(z / rho)
-    ra = ((48.0 / (2 * pi)) * atan(y / (x + rho))) % 24
-    return z, rho, ra
+    # ra = ((48.0 / (2 * pi)) * atan(y / (x + rho))) % 24
+    return x, y, z
 
 
 class RiSet:
@@ -205,6 +207,7 @@ class RiSet:
 
     # ***** API start *****
     # Examine Julian dates either side of current one to cope with localtime.
+    # 707μs on RP2040 at standard clock and with local time == UTC
     def set_day(self, day: int = 0):
         mjd = get_mjd(day)
         if self.mjd is None or self.mjd != mjd:
@@ -234,6 +237,11 @@ class RiSet:
     def moonphase(self) -> float:
         return self._phase
 
+    # May need to temporarily adjust self.mjd
+    # def is_up(self, sun=True):
+    #     t = ((time.time() % 86400) + self.lto) / 3600
+    #     return sin_alt(t, sun) > 0
+
     def set_lto(self, t):  # Update the offset from UTC
         lto = round(t * 3600)  # Localtime offset in secs
         if self.lto != lto:  # changed
@@ -251,18 +259,16 @@ class RiSet:
             mr, ms = self.rise_set(False)  # Moon
             # Adjust for local time. Store in ._times if value is in 24-hour
             # local time window
-            self.adjust(sr, day, 0)
-            self.adjust(ss, day, 1)
-            self.adjust(mr, day, 2)
-            self.adjust(ms, day, 3)
+            self.adjust((sr, ss, mr, ms), day)
         self.mjd = mjd
 
-    def adjust(self, n, day, idx):
-        if n is not None:
-            n += self.lto + (day - 1) * 86400
-            h = n // 3600
-            if 0 <= h < 24:
-                self._times[idx] = n
+    def adjust(self, times, day):
+        for idx, n in enumerate(times):
+            if n is not None:
+                n += self.lto + (day - 1) * 86400
+                h = n // 3600
+                if 0 <= h < 24:
+                    self._times[idx] = n
 
     def _format(self, n, variant):
         if variant == 0:  # Default: secs since Midnight (local time)
@@ -278,9 +284,9 @@ class RiSet:
             return f"{hr:02d}:{mi:02d}:{sec:02d}"
 
     # See https://github.com/orgs/micropython/discussions/13075
-    def lmst(self, t):
+    def lstt(self, t):
         # Takes the mjd and the longitude (west negative) and then returns
-        # the local sidereal time in hours. Im using Meeus formula 11.4
+        # the local sidereal time in degrees. Im using Meeus formula 11.4
         # instead of messing about with UTo and so on
         # modified to use the pre-computed 't' value from sin_alt
         d = t * 36525
@@ -289,24 +295,23 @@ class RiSet:
         c2 = 0.98564736629
         dsum = c1 * df + c2 * d  # no large integer * 360 here
         lst = 280.46061837 + dsum + 0.000387933 * t * t - t * t * t / 38710000
-        return (lst % 360) / 15.0 + self.long / 15
+        return lst % 360
 
-    def sin_alt(self, hour, func):
+    def sin_alt(self, hour, sun):
         # Returns the sine of the altitude of the object (moon or sun)
         # at an hour relative to the current date (mjd)
-        mjd1 = (self.mjd - 51544.5) + hour / 24.0
-        # mjd1 = self.mjd + hour / 24.0
-        t1 = mjd1 / 36525.0
-        sin_dec, cos_dec, ra = func(t1)
-        # hour angle of object: one hour = 15 degrees. Note lmst() uses longitude
-        tau = 15.0 * (self.lmst(t1) - ra)
-        # sin(alt) of object using the conversion formulas
-        return self.sglat * sin_dec + self.cglat * cos_dec * cos(radians(tau))
+        func = minisun if sun else minimoon
+        mjd = (self.mjd - 51544.5) + hour / 24.0
+        # mjd = self.mjd + hour / 24.0
+        t = mjd / 36525.0
+        x, y, z = func(t)
+        tl = self.lstt(t) + self.long  # Local mean sidereal time adjusted for logitude
+        return self.sglat * z + self.cglat * (x * cos(radians(tl)) + y * sin(radians(tl)))
 
     # Modified to find sunrise and sunset only, not twilight events.
+    # Calculate rise and set times of sun or moon for the current MJD. Times are
+    # relative to that 24 hour period.
     def rise_set(self, sun):
-        # this is my attempt to encapsulate most of the program in a function
-        # then this function can be generalised to find all the Sun events.
         t_rise = None  # Rise and set times in secs from midnight
         t_set = None
         sinho = sin(radians(-0.833)) if sun else sin(radians(8 / 60))
@@ -315,12 +320,11 @@ class RiSet:
         # The loop finds the sin(alt) for sets of three consecutive
         # hours, and then tests for a single zero crossing in the interval
         # or for two zero crossings in an interval for for a grazing event
-        func = minisun if sun else minimoon
-        yp = self.sin_alt(0, func) - sinho
+        yp = self.sin_alt(0, sun) - sinho
         for hour in range(1, 24, 2):
             ym = yp
-            yz = self.sin_alt(hour, func) - sinho
-            yp = self.sin_alt(hour + 1, func) - sinho
+            yz = self.sin_alt(hour, sun) - sinho
+            yp = self.sin_alt(hour + 1, sun) - sinho
             nz, z1, z2, ye = quad(ym, yz, yp)  # Find horizon crossings
             if nz == 1:  # One crossing found
                 if ym < 0.0:
