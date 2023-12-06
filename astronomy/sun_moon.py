@@ -23,6 +23,10 @@ LONG = -2.102811634540558
 # (date(2000, 1, 1) - date(1970, 1, 1)).days = 10957
 
 # Return time now in days relative to platform epoch.
+# System time is set to local time, and MP has no concept of this. Hence
+# time.time() returns secs since epoch 00:00:00 local time. If lto is local time
+# offset to UTC, provided -12 < lto < 12, the effect of rounding ensures the
+# right number of days for platform epoch at UTC.
 def now_days() -> int:
     secs_per_day = 86400  # 24 * 3600
     t = time.time()
@@ -77,7 +81,7 @@ def quad(ym, yz, yp):
 # hence the MJD of an integer day number will always be an integer
 
 # Re platform comparisons get_mjd returns the same value regardless of
-# the platform's epoch: integer days since 00:00 on 17 November 1858.
+# the platform's epoch: integer days since 00:00 UTC on 17 November 1858.
 def get_mjd(ndays: int = 0) -> int:
     secs_per_day = 86400  # 24 * 3600
     days_from_epoch = now_days() + ndays  # Days since platform epoch
@@ -198,6 +202,8 @@ class RiSet:
         self.sglat = sin(radians(lat))
         self.cglat = cos(radians(lat))
         self.long = long
+        if not -12 < lto < 12:
+            raise ValueError("Invalid local time offset.")
         self.lto = round(lto * 3600)  # Localtime offset in secs
         self.mjd = None  # Current integer MJD
         # Times in integer secs from midnight on current day (in local time)
@@ -237,23 +243,37 @@ class RiSet:
     def moonphase(self) -> float:
         return self._phase
 
-    # May need to temporarily adjust self.mjd
-    # def is_up(self, sun=True):
-    #     t = ((time.time() % 86400) + self.lto) / 3600
-    #     return sin_alt(t, sun) > 0
-
     def set_lto(self, t):  # Update the offset from UTC
+        if not -12 < t < 12:
+            raise ValueError("Invalid local time offset.")
         lto = round(t * 3600)  # Localtime offset in secs
         if self.lto != lto:  # changed
             self.lto = lto
             self.update(self.mjd)
 
     def is_up(self, sun: bool):  # Return current state of sun or moon
-        t = time.time() + self.lto  # UTC
-        t %= 86400
-        t /= 3600  # UTC Hour of day
         self.set_day()  # Ensure today's date
-        return self.sin_alt(t, sun) > 0
+        now = round(time.time()) + self.lto  # UTC
+        rt = self.sunrise(1) if sun else self.moonrise(1)
+        st = self.sunset(1) if sun else self.moonset(1)
+        if rt is None:
+            if st is None:
+                t = (now % 86400) / 3600  # Time as UTC hours (float)
+                return self.sin_alt(t, sun) > 0
+            return st > now
+        if st is None:
+            return rt < now
+        print(rt, now, st)
+        return rt < now < st
+
+    # This is in error by ~12 minutes: sin_alt() produces incorrect values
+    # unless t corresponds to an exact hour. Odd.
+    # def is_up(self, sun: bool):
+    #     t = time.time() + self.lto  # UTC
+    #     t %= 86400
+    #     t /= 3600  # UTC Hour of day
+    #     self.set_day()  # Ensure today's date
+    #     return self.sin_alt(t, sun) > 0
 
     # ***** API end *****
     # Re-calculate rise and set times
