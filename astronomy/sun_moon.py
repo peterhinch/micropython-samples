@@ -244,15 +244,11 @@ class RiSet:
         return self._phase
 
     def set_lto(self, t):  # Update the offset from UTC
-        if not -12 < t < 12:
+        if not -12 < t < 12:  # No need to recalc beause date is unchanged
             raise ValueError("Invalid local time offset.")
         lto = round(t * 3600)  # Localtime offset in secs
-        if self.lto != lto:  # changed
-            self.lto = lto
-            self.update(self.mjd)
 
     def is_up(self, sun: bool):  # Return current state of sun or moon
-        self.set_day()  # Ensure today's date
         now = round(time.time()) + self.lto  # UTC
         rt = self.sunrise(1) if sun else self.moonrise(1)
         st = self.sunset(1) if sun else self.moonset(1)
@@ -263,16 +259,14 @@ class RiSet:
             return st > now
         if st is None:
             return rt < now
-        print(rt, now, st)
         return rt < now < st
 
-    # This is in error by ~12 minutes: sin_alt() produces incorrect values
+    # This is in error by ~7 minutes: sin_alt() produces incorrect values
     # unless t corresponds to an exact hour. Odd.
-    # def is_up(self, sun: bool):
+    # def is_up_old(self, sun: bool):
     #     t = time.time() + self.lto  # UTC
     #     t %= 86400
     #     t /= 3600  # UTC Hour of day
-    #     self.set_day()  # Ensure today's date
     #     return self.sin_alt(t, sun) > 0
 
     # ***** API end *****

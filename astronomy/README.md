@@ -8,6 +8,7 @@
  2.1 [Constructor](./README.md#21-constructor)  
  2.2 [Methods](./README.md#22-methods)  
  2.3 [Effect of local time](./README.md#23-effect-of-local-time)  
+ 2.4 [Continuously running applications](./README.md#24-continuously-running-applications)  
 3. [The moonphase function](./README.md#3-the-moonphase-function)  
 4. [Utility functions](./README.md#4-utility-functions)  
 5. [Demo script](./README.md#5-demo-script)  
@@ -23,7 +24,6 @@ local time. The start is a day being the current day plus an offset in days.
 
 A `moonphase` function is also provided enabling the moon phase to be determined
 for any date.
-
 
 Caveat. I am not an astronomer. If there are errors in the fundamental
 algorithms I am unlikely to be able to offer an opinion, still less a fix.
@@ -97,6 +97,9 @@ Args (float):
 * `long=LONG` Longitude in degrees (-ve is West).
 * `lto=0` Local time offset in hours to UTC (-ve is West); the value is checked
 to ensure `-12 < lto < 12`. See [section 2.3](./README.md#23-effect-of-local-time).
+The constructor sets the object's date to the system date: this does require
+that the system clock is set to local time. Precision is not required so long as
+the date component is correct.
 
 ## 2.2 Methods
 
@@ -104,19 +107,19 @@ to ensure `-12 < lto < 12`. See [section 2.3](./README.md#23-effect-of-local-tim
 date. The number of days from the specified day to a fixed epoch is calculated
 and compared to that stored in the instance. If there is a change the new value
 is stored and the rise and set times are updated - otherwise return is
-"immediate". Returns the `RiSet` instance.
+"immediate". Returns the `RiSet` instance. See the note above re system clock.
 * `sunrise(variant: int = 0)` See below for details and the `variant` arg.
 * `sunset(variant: int = 0)`
 * `moonrise(variant: int = 0)`
 * `moonset(variant: int = 0)`
 * `is_up(sun: bool)` Returns `True` if the selected object is above the horizon.
-This calls `.set_day()` to ensure the current day is selected.
+The caller should ensure that the `RiSet` instance is set to the current day.
 * `moonphase()` Return current phase as a float: 0.0 <= result < 1.0. 0.0 is new
 moon, 0.5 is full. See [section 3](./README.md#3-the-moonphase-function) for
 observations about this.
 * `set_lto(t)` Set localtime offset in hours relative to UTC. Primarily intended
-for daylight saving time. Rise and set times are updated if the lto is changed.
-The value is checked to ensure `-12 < lto < 12`. See [section 2.3](./README.md#23-effect-of-local-time).
+for daylight saving time. The value is checked to ensure `-12.0 < lto < 12.0`.
+See [section 2.3](./README.md#23-effect-of-local-time).
 
 The return value of the rise and set method is determined by the `variant` arg.
 In all cases rise and set events are identified which occur in the current 24
@@ -150,12 +153,35 @@ date at 00:00:00 local time.
 If the machine clock has a fixed relationship to UTC, `RiSet` instances should
 have a corresponding fixed local time offset: rise and set times will be
 relative to that time. If the application implements daylight saving time, the
-local time offsets should be adjusted accordingly.
+local time offsets should be adjusted accordingly (remembering that offsets are
+relative to UTC).
 
 The constructor and the `set_day()` method set the instance's date relative to
 the machine clock. They use only the date component of system time, hence they
 may be run at any time of day. In continuously-running applications, `set_day()`
 may be run each day just after midnight to keep a `RiSet` instance up to date.
+
+## 2.4 Continuously running applications
+
+Where an application runs continuously there is usually a need for `RiSet`
+instances to track the current date. One approach is this:
+```python
+async def tomorrow(offs):  # Offset compensates for possible clock drift
+    now = round(time.time())
+    tw = 86400 + 60 * offs - (now % 86400)  # Time from now to one minute past next midnight
+    await asyncio.sleep(tw)
+
+async def keep_updated():
+    rs = RiSet()  # May need args
+    while True:
+        await tomorrow(1)  # Wait until 1 minute past midnight
+        rs.set_day()  # Update to new day
+```
+It is important that, at the time when `.set_day()` is called, the system time
+has a date which is correct. Most hardware uses crystal controlled clocks so
+drift is minimal. However with long run times it will accumulate. The
+`tomorrow()` coroutine has an offset value in minutes: this should be chosen
+such that the date value will remain correct.
 
 # 3. The moonphase function
 
@@ -227,29 +253,47 @@ Code comments show times retrieved from `timeanddate.com`.
 # 6. Scheduling events
 
 A likely use case is to enable events to be timed relative to sunrise and set.
-In simple cases this can be done with `asyncio`. This coroutine will execute a
-payload at sunrise every day. A similar coroutine might handle sunsets.
+In simple cases this can be done with `asyncio`. This will execute a payload at
+sunrise, and another at sunset, every day.
 ```python
 import uasyncio as asyncio
 import time
 from sched.sun_moon import RiSet
 
-async def tomorrow():  # Wait until 1 minute past midnight
+async def tomorrow(offs):  # Offset compensates for possible clock drift
     now = round(time.time())
-    tw = 86400 + 60 - (now % 86400)  # Time from now to one minute past next midnight
+    tw = 86400 + 60 * offs - (now % 86400)  # Time from now to one minute past next midnight
     await asyncio.sleep(tw)
 
 async def do_sunrise():
     rs = RiSet()  # May need args
     while True:
-        if (now := round(time.time())) < rs.sunrise(1):  # Sun has not yet risen
-            await asyncio.sleep(rs.sunrise(1) - now)  # Wait for it to rise
-            # Sun has risen, execute payload
-        await tomorrow()
+        if (delay := rs.sunrise(1) - round(time.time())) > 0:  # Sun has not yet risen
+            await asyncio.sleep(delay)  # Wait for it to rise
+            # Sun has risen, execute payload e.g. turn off light
+        await tomorrow(1)  # Wait until 1 minute past midnight
         rs.set_day()  # Update to new day
+
+async def do_sunset():
+    rs = RiSet()  # May need args
+    while True:
+        if (delay := rs.sunset(1) - round(time.time())) > 0:  # Sun has not yet set
+            await asyncio.sleep(delay)  # Wait for it to set
+            # Sun has risen, execute payload e.g. turn on light
+        await tomorrow(1)  # Wait until 1 minute past midnight
+        rs.set_day()  # Update to new day
+
+async def main():
+    sr = asyncio.create_task(do_sunrise())
+    ss = asyncio.create_task(do_sunset())
+    ayncio.gather(sr, ss)
+try:
+    asyncio.run(main())
+finally:
+    _ = asyncio.new_event_loop()
 ```
 This code assumes that `.sunrise()` will never return `None`. At polar latitudes
-waiting for sunrise in winter would require changes.
+waiting for sunrise in winter would require changes - and patience.
 
 Code may be simplified by using the
 [schedule module](https://github.com/peterhinch/micropython-async/blob/master/v3/docs/SCHEDULE.md).
@@ -263,7 +307,7 @@ import uasyncio as asyncio
 from sched.sched import schedule
 from sched.sun_moon import RiSet
 
-async def turn_off_lights(rs):  # Runs at 00:01:00
+async def turn_off_lights(rs):  # Runs every day at 00:01:00
     rs.set_day()  # Re-calculate for new daylight
     asyncio.sleep(rs.sunrise() - 60)
     # Actually turn them off
