@@ -311,18 +311,18 @@ class RiSet:
             return f"{hr:02d}:{mi:02d}:{sec:02d}"
 
     # See https://github.com/orgs/micropython/discussions/13075
-    def lstt(self, t):
+    def lstt(self, t, h):
         # Takes the mjd and the longitude (west negative) and then returns
         # the local sidereal time in degrees. Im using Meeus formula 11.4
         # instead of messing about with UTo and so on
         # modified to use the pre-computed 't' value from sin_alt
         d = t * 36525
-        df = frac(d)
+        df = frac(0.5 + h / 24)
         c1 = 360
         c2 = 0.98564736629
-        dsum = c1 * df + c2 * d  # no large integer * 360 here
-        lst = 280.46061837 + dsum + 0.000387933 * t * t - t * t * t / 38710000
-        return lst % 360
+        dsum = c1 * df + c2 * d  # dsum is still ~ 9000 on average, losing precision
+        lst = 280.46061837 + dsum + t * t * (0.000387933 - t / 38710000)
+        return lst
 
     def sin_alt(self, hour, sun):
         # Returns the sine of the altitude of the object (moon or sun)
@@ -332,7 +332,7 @@ class RiSet:
         # mjd = self.mjd + hour / 24.0
         t = mjd / 36525.0
         x, y, z = func(t)
-        tl = self.lstt(t) + self.long  # Local mean sidereal time adjusted for logitude
+        tl = self.lstt(t, hour) + self.long  # Local mean sidereal time adjusted for logitude
         return self.sglat * z + self.cglat * (x * cos(radians(tl)) + y * sin(radians(tl)))
 
     # Modified to find sunrise and sunset only, not twilight events.
