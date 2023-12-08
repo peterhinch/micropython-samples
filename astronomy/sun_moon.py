@@ -254,7 +254,7 @@ class RiSet:
         st = self.sunset(1) if sun else self.moonset(1)
         if rt is None:
             if st is None:
-                t = (now % 86400) / 3600  # Time as UTC hours (float)
+                t = (now % 86400) / 3600  # Time as UTC hour of day (float)
                 return self.sin_alt(t, sun) > 0
             return st > now
         if st is None:

@@ -309,7 +309,7 @@ from sched.sun_moon import RiSet
 
 async def turn_off_lights(rs):  # Runs every day at 00:01:00
     rs.set_day()  # Re-calculate for new daylight
-    asyncio.sleep(rs.sunrise() - 60)
+    await asyncio.sleep(rs.sunrise() - 60)
     # Actually turn them off
 
 async def main():
@@ -328,7 +328,7 @@ from sched.sched import schedule, Sequence
 from sched.sun_moon import RiSet
 
 async def turn_off_lights(t):
-    asyncio.sleep(t)
+    await asyncio.sleep(t)
     # Actually turn them off
 
 async def main():
