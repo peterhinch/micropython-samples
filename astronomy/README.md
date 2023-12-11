@@ -20,7 +20,8 @@
 This module enables sun and moon rise and set times to be determined at any
 geographical location. Times are in seconds from midnight and refer to any
 event in a 24 hour period starting at midnight. The midnight datum is defined in
-local time. The start is a day being the current day plus an offset in days.
+local time. The start is a day specified as the current day plus an offset in
+days.
 
 A `moonphase` function is also provided enabling the moon phase to be determined
 for any date.
@@ -41,8 +42,9 @@ lunar clocks such as this one - the "lunartick":
 
 The code was ported from C/C++ as presented in "Astronomy on the Personal
 Computer" by Montenbruck and Pfleger, with mathematical improvements contributed
-by Raul Kompaß and Marcus Mendenhall. The sourcecode exists in the book and also
-on an accompanying CD-R. The file `CDR_license.txt` contains a copy of the
+by Marcus Mendenhall and Raul Kompaß. Raul Kompaß substantially improved the
+accuracy when using 32-bit floating point. The sourcecode exists in the book and
+also on an accompanying CD-R. The file `CDR_license.txt` contains a copy of the
 license file on the disk, which contains source, executable code, and databases.
 This module (obviously) only references the source. I am not a lawyer; I have no
 idea of the legal status of code translated from sourcecode in a published work.
@@ -75,16 +77,29 @@ After installation the `RiSet` class may be accessed with
 ```python
 from sched.sun_moon import RiSet
 ```
+## 1.4 Definitions
+
+Time is a slippery concept when applied to global locations. This document uses
+the following conventions:
+* `UTC` The international time standard based on the Greenwich meridian.
+* `LT (Local time)` Time as told on a clock at the device's location. May include
+daylight saving time (`DST`).
+* `MT (Machine time)` Time defined by the platform's hardware clock.
+* `LTO (Local time offset)` A `RiSet` instance contains a user supplied `LTO`.
+The class computes rise and set times in UTC, using `LTO` to output results in
+`LT` via `LT = UTC + LTO`. If an application maintains `LTO` to match `DST`, the
+rise and set times will be in `LT`.
 
 # 2. The RiSet class
 
-This holds the local geographic coordinates and the localtime offset relative to
-UTC. It is initialised to the current date and can provide the times of rise and
-set events occurring within a 24 hour window starting at 00:00:00 local time.
-The `RiSet` instance's date may be changed allowing rise and set times to be
-retrieved for other 24 hour windows. In continuously running applications which
-must access current rise and set times the application should re-calculate (by
-issuing `.set_day()`) prior to retrieving that day's data.
+This holds the local geographic coordinates and the local time offset (`LTO`).
+An instance is initialised to the current date (defined by `MT`) and can provide
+the times of rise and set events occurring within a 24 hour window starting at
+00:00:00 `LT`. A `RiSet` instance's date may be changed allowing rise and set
+times to be retrieved for other 24 hour windows. Continuously running
+applications should detect machine time (`MT`) date rollover and cause `RiSet`
+instances to re-calculate rise and set times for the new day. This is done by
+issuing `.set_day()`.
 
 Rise and set times may be retrieved in various formats including seconds from
 local midnight: this may be used to enable the timing of actions relative to a
@@ -97,29 +112,29 @@ Args (float):
 * `long=LONG` Longitude in degrees (-ve is West).
 * `lto=0` Local time offset in hours to UTC (-ve is West); the value is checked
 to ensure `-12 < lto < 12`. See [section 2.3](./README.md#23-effect-of-local-time).
-The constructor sets the object's date to the system date: this does require
-that the system clock is set to local time. Precision is not required so long as
-the date component is correct.
+The constructor sets the object's date to the system date as defined by machine
+time (`MT`).
 
 ## 2.2 Methods
 
 * `set_day(day: int = 0)` `day` is an offset in days from the current system
-date. The number of days from the specified day to a fixed epoch is calculated
-and compared to that stored in the instance. If there is a change the new value
-is stored and the rise and set times are updated - otherwise return is
-"immediate". Returns the `RiSet` instance. See the note above re system clock.
+date. If the passed day differs from that stored in the instance, rise and set
+times are updated - otherwise return is "immediate". Returns the `RiSet`
+instance.
 * `sunrise(variant: int = 0)` See below for details and the `variant` arg.
 * `sunset(variant: int = 0)`
 * `moonrise(variant: int = 0)`
 * `moonset(variant: int = 0)`
-* `is_up(sun: bool)` Returns `True` if the selected object is above the horizon.
-The caller should ensure that the `RiSet` instance is set to the current day.
-* `moonphase()` Return current phase as a float: 0.0 <= result < 1.0. 0.0 is new
+* `is_up(sun: bool)-> bool` Returns `True` if the selected object is above the
+horizon.
+* `has_risen(sun: bool)->bool` Returns `True` if the selected object has risen.
+* `has_set(sun: bool)->bool` Returns `True` if the selected object has set.
+* `moonphase()->float` Return current phase: 0.0 <= result < 1.0. 0.0 is new
 moon, 0.5 is full. See [section 3](./README.md#3-the-moonphase-function) for
 observations about this.
-* `set_lto(t)` Set localtime offset in hours relative to UTC. Primarily intended
-for daylight saving time. The value is checked to ensure `-12.0 < lto < 12.0`.
-See [section 2.3](./README.md#23-effect-of-local-time).
+* `set_lto(t)` Set local time offset `LTO` in hours relative to UTC. Primarily
+intended for daylight saving time. The value is checked to ensure
+`-12.0 < lto < 12.0`. See [section 2.3](./README.md#23-effect-of-local-time).
 
 The return value of the rise and set method is determined by the `variant` arg.
 In all cases rise and set events are identified which occur in the current 24
@@ -127,10 +142,10 @@ hour period. Note that a given event may be absent in the period: this can occur
 with the moon at most locations, and with the sun in polar regions.
 
 Variants:
-* 0 Return integer seconds since midnight local time (or `None` if no event).
+* 0 Return integer seconds since midnight `LT` (or `None` if no event).
 * 1 Return integer seconds since since epoch of the MicroPython platform
- (or `None`).
-* 2 Return text of form hh:mm:ss (or --:--:--) being local time.
+ (or `None`). This is machine time (`MT`) as per `time.time()`.
+* 2 Return text of form hh:mm:ss (or --:--:--) being local time (`LT`).
 
 Example constructor invocations:
 ```python
@@ -140,48 +155,56 @@ r = RiSet(lat=-33.87667, long=151.21, lto=11)  # Sydney 33°52′04″S 151°12�
 ```
 ## 2.3 Effect of local time
 
-MicroPython has no concept of local time. A hardware platform has a clock;
-depending on application this might be permanently set to local winter time, or
-it might be adjusted twice per year for local daylight saving time. It is the
-responsibility of the application to do this if it is considered necessary.
+MicroPython has no concept of local time. The hardware platform has a clock
+which reports machine time (`MT`): this might be set to local winter time or
+summer time.  The `RiSet` instances' `LTO` should be set to represent the
+difference between `MT` and `UTC`. In continuously running applications it is
+best to avoid changing the hardware clock (`MT`) for reasons discussed below.
+Daylight savings time should be implemented by changing the `RiSet` instances'
+`LTO`.
 
 Rise and set times are computed relative to UTC and then adjusted using the
-`RiSet` instance's local time offset before being returned  (see `.adjust()`).
-This applies to all variants - note that the local platform epoch is on a fixed
-date at 00:00:00 local time.
+`RiSet` instance's `LTO` before being returned  (see `.adjust()`). This means
+that the accuracy of the hardware clock is not critical: only the date portion
+is used in determining rise and set times.
 
-If the machine clock has a fixed relationship to UTC, `RiSet` instances should
-have a corresponding fixed local time offset: rise and set times will be
-relative to that time. If the application implements daylight saving time, the
-local time offsets should be adjusted accordingly (remembering that offsets are
-relative to UTC).
+The `.has_risen()`, `.has_set()` and `.is_up()` methods do use machine time
+(`MT`) and rely on `MT == UTC + LTO`: if `MT` has drifted, precision will be
+reduced.
 
 The constructor and the `set_day()` method set the instance's date relative to
-the machine clock. They use only the date component of system time, hence they
-may be run at any time of day. In continuously-running applications, `set_day()`
-may be run each day just after midnight to keep a `RiSet` instance up to date.
+`MT`. They use only the date component of `MT`, hence they may be run at any
+time of day and are not reliant on `MT` accuracy.
 
 ## 2.4 Continuously running applications
 
 Where an application runs continuously there is usually a need for `RiSet`
 instances to track the current date. One approach is this:
 ```python
-async def tomorrow(offs):  # Offset compensates for possible clock drift
+async def tomorrow(offs):
     now = round(time.time())
-    tw = 86400 + 60 * offs - (now % 86400)  # Time from now to one minute past next midnight
+    tw = 86400 + 60 - (now % 86400)  # Time from now to one minute past next midnight
     await asyncio.sleep(tw)
 
-async def keep_updated():
-    rs = RiSet()  # May need args
+rs = RiSet()  # May need args
+
+async def keep_updated(rs):  # Keep a RiSet instance updated
     while True:
-        await tomorrow(1)  # Wait until 1 minute past midnight
+        await tomorrow()  # Wait until 1 minute past midnight
         rs.set_day()  # Update to new day
 ```
 It is important that, at the time when `.set_day()` is called, the system time
 has a date which is correct. Most hardware uses crystal controlled clocks so
-drift is minimal. However with long run times it will accumulate. The
-`tomorrow()` coroutine has an offset value in minutes: this should be chosen
-such that the date value will remain correct.
+drift is minimal. However with long run times it will accumulate. Care must be
+taken if periodically synchronising system time to a time source: the resultant
+sudden jumps in system time can cause havoc with `uasyncio` timing. If
+synchronisation is required it is best done frequently to minimise the size of
+jumps.
+
+For this reason changing system time to accommodate daylight saving time is a
+bad idea. It is usually best to run winter time all year round. Where a DST
+change occurs, the `RiSet.set_lto()` method should be run to ensure that `RiSet`
+operates in current local time.
 
 # 3. The moonphase function
 

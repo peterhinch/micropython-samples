@@ -5,9 +5,12 @@
 
 # Source "Astronomy on the Personal Computer" by Montenbruck and Pfleger
 # ISBN 978-3-540-67221-0
-# Also contributions from Raul Kompaß and Marcus Mendenhall: see
+
+# Port from C++ to MicroPython performed by Peter Hinch 2023.
+# Withcontributions from Raul Kompaß and Marcus Mendenhall: see
 # https://github.com/orgs/micropython/discussions/13075
-# Raul Kompaß perfomed major simplification of the maths for deriving rise and set_times.
+# Raul Kompaß perfomed major simplification of the maths for deriving rise and
+# set_times with improvements in precision with 32-bit floats.
 
 
 import time
@@ -248,26 +251,24 @@ class RiSet:
             raise ValueError("Invalid local time offset.")
         lto = round(t * 3600)  # Localtime offset in secs
 
-    def is_up(self, sun: bool):  # Return current state of sun or moon
+    def has_risen(self, sun: bool):
         now = round(time.time()) + self.lto  # UTC
         rt = self.sunrise(1) if sun else self.moonrise(1)
-        st = self.sunset(1) if sun else self.moonset(1)
         if rt is None:
-            if st is None:
-                t = (now % 86400) / 3600  # Time as UTC hour of day (float)
-                return self.sin_alt(t, sun) > 0
-            return st > now
-        if st is None:
-            return rt < now
-        return rt < now < st
+            t = (now % 86400) / 3600  # Time as UTC hour of day (float)
+            return self.sin_alt(t, sun) > 0  # Above horizon
+        return rt < now
 
-    # This is in error by ~7 minutes: sin_alt() produces incorrect values
-    # unless t corresponds to an exact hour. Odd.
-    # def is_up_old(self, sun: bool):
-    #     t = time.time() + self.lto  # UTC
-    #     t %= 86400
-    #     t /= 3600  # UTC Hour of day
-    #     return self.sin_alt(t, sun) > 0
+    def has_set(self, sun: bool):
+        now = round(time.time()) + self.lto  # UTC
+        st = self.sunset(1) if sun else self.moonset(1)
+        if st is None:
+            t = (now % 86400) / 3600  # Time as UTC hour of day (float)
+            return self.sin_alt(t, sun) < 0
+        return st > now
+
+    def is_up(self, sun: bool):  # Return current state of sun or moon
+        return self.has_risen(sun) and not self.has_set(sun)
 
     # ***** API end *****
     # Re-calculate rise and set times
