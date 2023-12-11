@@ -4,6 +4,7 @@
  1.1 [Applications](./README.md#11-applications)  
  1.2 [Licensing and acknowledgements](./README.md#12-licensing-and-acknowledgements)  
  1.3 [Installation](./README.md#13-installation)  
+ 1.4 [Definitions](./README.md#14-definitions) Basic concepts.  
 2. [The RiSet class](./README.md#2-the-riset-class)  
  2.1 [Constructor](./README.md#21-constructor)  
  2.2 [Methods](./README.md#22-methods)  
