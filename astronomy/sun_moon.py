@@ -201,17 +201,17 @@ def minimoon(t):
 
 
 class RiSet:
-    def __init__(self, lat=LAT, long=LONG, lto=0):  # Local defaults
+    def __init__(self, lat=LAT, long=LONG, lto=0, tl=None):  # Local defaults
         self.sglat = sin(radians(lat))
         self.cglat = cos(radians(lat))
         self.long = long
-        if not -12 < lto < 12:
-            raise ValueError("Invalid local time offset.")
+        self.check_lto(lto)  # -15 < lto < 15
         self.lto = round(lto * 3600)  # Localtime offset in secs
+        self.tlight = sin(radians(tl)) if tl is not None else tl
         self.mjd = None  # Current integer MJD
         # Times in integer secs from midnight on current day (in local time)
-        # [sunrise, sunset, moonrise, moonset]
-        self._times = [None] * 4
+        # [sunrise, sunset, moonrise, moonset, cvend, cvstart]
+        self._times = [None] * 6
         self.set_day()  # Initialise to today's date
 
     # ***** API start *****
@@ -243,12 +243,17 @@ class RiSet:
     def moonset(self, variant: int = 0):
         return self._format(self._times[3], variant)
 
+    def tend(self, variant: int = 0):
+        return self._format(self._times[4], variant)
+
+    def tstart(self, variant: int = 0):
+        return self._format(self._times[5], variant)
+
     def moonphase(self) -> float:
         return self._phase
 
     def set_lto(self, t):  # Update the offset from UTC
-        if not -12 < t < 12:  # No need to recalc beause date is unchanged
-            raise ValueError("Invalid local time offset.")
+        self.check_lto(t)  # No need to recalc beause date is unchanged
         lto = round(t * 3600)  # Localtime offset in secs
 
     def has_risen(self, sun: bool):
@@ -273,15 +278,20 @@ class RiSet:
     # ***** API end *****
     # Re-calculate rise and set times
     def update(self, mjd):
-        self._times = [None] * 4
+        self._times = [None] * 6
         days = (1, 2) if self.lto < 0 else (1,) if self.lto == 0 else (0, 1)
+        tr = None  # Assume no twilight calculations
+        ts = None
         for day in days:
             self.mjd = mjd + day - 1
-            sr, ss = self.rise_set(True)  # Sun
-            mr, ms = self.rise_set(False)  # Moon
+            sr, ss = self.rise_set(True, False)  # Sun
+            # Twilight: only calculate if required
+            if self.tlight is not None:
+                tr, ts = self.rise_set(True, True)
+            mr, ms = self.rise_set(False, False)  # Moon
             # Adjust for local time. Store in ._times if value is in 24-hour
             # local time window
-            self.adjust((sr, ss, mr, ms), day)
+            self.adjust((sr, ss, mr, ms, tr, ts), day)
         self.mjd = mjd
 
     def adjust(self, times, day):
@@ -304,6 +314,10 @@ class RiSet:
             hr, tmp = divmod(n, 3600)
             mi, sec = divmod(tmp, 60)
             return f"{hr:02d}:{mi:02d}:{sec:02d}"
+
+    def check_lto(self, t):
+        if not -15 < t < 15:
+            raise ValueError("Invalid local time offset.")
 
     # See https://github.com/orgs/micropython/discussions/13075
     def lstt(self, t, h):
@@ -333,10 +347,13 @@ class RiSet:
     # Modified to find sunrise and sunset only, not twilight events.
     # Calculate rise and set times of sun or moon for the current MJD. Times are
     # relative to that 24 hour period.
-    def rise_set(self, sun):
+    def rise_set(self, sun, tl):
         t_rise = None  # Rise and set times in secs from midnight
         t_set = None
-        sinho = sin(radians(-0.833)) if sun else sin(radians(8 / 60))
+        if tl:
+            sinho = -self.tlight
+        else:
+            sinho = sin(radians(-0.833)) if sun else sin(radians(8 / 60))
         # moonrise taken as centre of moon at +8 arcmin
         # sunset upper limb simple refraction
         # The loop finds the sin(alt) for sets of three consecutive

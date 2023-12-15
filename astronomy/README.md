@@ -24,13 +24,15 @@ event in a 24 hour period starting at midnight. The midnight datum is defined in
 local time. The start is a day specified as the current day plus an offset in
 days.
 
-A `moonphase` function is also provided enabling the moon phase to be determined
+It can also compute Civil, Nautical or Astronomical twilight times. A
+`moonphase` function is also provided enabling the moon phase to be determined
 for any date.
 
 Caveat. I am not an astronomer. If there are errors in the fundamental
 algorithms I am unlikely to be able to offer an opinion, still less a fix.
 
-The code is currently under development: the API may change.
+The code is currently under development but I don't anticipate breaking changes
+to the API.
 
 ## 1.1 Applications
 
@@ -41,14 +43,18 @@ lunar clocks such as this one - the "lunartick":
 
 ## 1.2 Licensing and acknowledgements
 
-The code was ported from C/C++ as presented in "Astronomy on the Personal
+Some code was ported from C/C++ as presented in "Astronomy on the Personal
 Computer" by Montenbruck and Pfleger, with mathematical improvements contributed
-by Marcus Mendenhall and Raul Kompaß. Raul Kompaß substantially improved the
-accuracy when using 32-bit floating point. The sourcecode exists in the book and
-also on an accompanying CD-R. The file `CDR_license.txt` contains a copy of the
-license file on the disk, which contains source, executable code, and databases.
-This module (obviously) only references the source. I am not a lawyer; I have no
-idea of the legal status of code translated from sourcecode in a published work.
+by Marcus Mendenhall and Raul Kompaß. I (Peter Hinch) performed the port and
+enabled support for timezones. Raul Kompaß substantially improved the accuracy
+when run on hardware with 32-bit floating point.
+
+The sourcecode exists in the book and also on an accompanying CD-R. The file
+`CDR_license.txt` contains a copy of the license file on the disk, which
+contains source, executable code, and databases. This module only references the
+source. I have not spotted any restrictions on use in the book. I am not a
+lawyer; I have no idea of the legal status of code based on sourcecode in a
+published work.
 
 ## 1.3 Installation
 
@@ -112,9 +118,13 @@ Args (float):
 * `lat=LAT` Latitude in degrees (-ve is South). Defaults are my location. :)
 * `long=LONG` Longitude in degrees (-ve is West).
 * `lto=0` Local time offset in hours to UTC (-ve is West); the value is checked
-to ensure `-12 < lto < 12`. See [section 2.3](./README.md#23-effect-of-local-time).
+to ensure `-15 < lto < 15`. See [section 2.3](./README.md#23-effect-of-local-time).
 The constructor sets the object's date to the system date as defined by machine
 time (`MT`).
+* `tl=None` If provided, set an offset in degrees for the definition of twilight
+(6 is Civil, 12 is Nautical, 18 is Astronomical). By default twilight times are
+not computed, saving some processor time. Offsets are positive numbers
+representing degrees below the horizon where twilight is deemed to start and end.
 
 ## 2.2 Methods
 
@@ -126,6 +136,8 @@ instance.
 * `sunset(variant: int = 0)`
 * `moonrise(variant: int = 0)`
 * `moonset(variant: int = 0)`
+* `tstart(variant: int = 0)` Twilight start
+* `tend(variant: int = 0)` Twilight end
 * `is_up(sun: bool)-> bool` Returns `True` if the selected object is above the
 horizon.
 * `has_risen(sun: bool)->bool` Returns `True` if the selected object has risen.
@@ -135,7 +147,7 @@ moon, 0.5 is full. See [section 3](./README.md#3-the-moonphase-function) for
 observations about this.
 * `set_lto(t)` Set local time offset `LTO` in hours relative to UTC. Primarily
 intended for daylight saving time. The value is checked to ensure
-`-12.0 < lto < 12.0`. See [section 2.3](./README.md#23-effect-of-local-time).
+`-15.0 < lto < 15.0`. See [section 2.3](./README.md#23-effect-of-local-time).
 
 The return value of the rise and set method is determined by the `variant` arg.
 In all cases rise and set events are identified which occur in the current 24
@@ -376,13 +388,16 @@ finally:
 A recalculation is triggered whenever the 24 hour local time window is changed,
 such as calling `.set_day()` where the stored date changes. Normally two days of
 data are calculated, except where the local time is UTC where only one day is
-required. The time to derive one day's data on RP2040 was 707μs.
+required. The time to derive one day's data on RP2040 was 707μs (no twilight
+calculation, standard clock).
 
 The accuracy of rise and set times was checked against online sources for
 several geographic locations. The online data had 1 minute resolution and the
 checked values corresponded with data computed on a platform with 64 bit
 floating point unit. The loss of precision from using a 32 bit FPU was no more
-than 30s.
+than 3s.
 
-For reasons which are unclear, the `is_up()` method is less precise, showing
-incorrect results when within a few minutes of the rise or set time.
+The lunar phase calculation is poor. It is adequate for displaying a phase icon
+or adjusting a pointer, but not good enough for predicting lunar quarters.
+
+I plan to improve this, but it may be via a separate module.
