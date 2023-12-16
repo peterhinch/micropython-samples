@@ -201,6 +201,8 @@ def minimoon(t):
 
 
 class RiSet:
+    verbose = True
+
     def __init__(self, lat=LAT, long=LONG, lto=0, tl=None):  # Local defaults
         self.sglat = sin(radians(lat))
         self.cglat = cos(radians(lat))
@@ -213,6 +215,10 @@ class RiSet:
         # [sunrise, sunset, moonrise, moonset, cvend, cvstart]
         self._times = [None] * 6
         self.set_day()  # Initialise to today's date
+        if RiSet.verbose:
+            t = time.localtime()
+            print(f"Machine time: {t[2]:02}/{t[1]:02}/{t[0]:4} {t[3]:02}:{t[4]:02}:{t[5]:02}")
+            RiSet.verbose = False
 
     # ***** API start *****
     # Examine Julian dates either side of current one to cope with localtime.

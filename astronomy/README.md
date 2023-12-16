@@ -126,6 +126,10 @@ time (`MT`).
 not computed, saving some processor time. Offsets are positive numbers
 representing degrees below the horizon where twilight is deemed to start and end.
 
+By default when an application instantiates `RiSet` for the first time the
+constructor prints the system date and time. This can be inhibited by setting
+the class variable `verbose` to `False`.
+
 ## 2.2 Methods
 
 * `set_day(day: int = 0)` `day` is an offset in days from the current system
