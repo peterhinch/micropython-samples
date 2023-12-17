@@ -249,10 +249,10 @@ class RiSet:
     def moonset(self, variant: int = 0):
         return self._format(self._times[3], variant)
 
-    def tend(self, variant: int = 0):
+    def tstart(self, variant: int = 0):
         return self._format(self._times[4], variant)
 
-    def tstart(self, variant: int = 0):
+    def tend(self, variant: int = 0):
         return self._format(self._times[5], variant)
 
     def moonphase(self) -> float:

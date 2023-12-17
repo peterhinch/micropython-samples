@@ -140,8 +140,8 @@ instance.
 * `sunset(variant: int = 0)`
 * `moonrise(variant: int = 0)`
 * `moonset(variant: int = 0)`
-* `tstart(variant: int = 0)` Twilight start
-* `tend(variant: int = 0)` Twilight end
+* `tstart(variant: int = 0)` Twilight start, Sun about to rise.
+* `tend(variant: int = 0)` Twilight end, (Sun has set).
 * `is_up(sun: bool)-> bool` Returns `True` if the selected object is above the
 horizon.
 * `has_risen(sun: bool)->bool` Returns `True` if the selected object has risen.
