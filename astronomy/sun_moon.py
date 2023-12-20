@@ -260,7 +260,7 @@ class RiSet:
 
     def set_lto(self, t):  # Update the offset from UTC
         self.check_lto(t)  # No need to recalc beause date is unchanged
-        lto = round(t * 3600)  # Localtime offset in secs
+        self.lto = round(t * 3600)  # Localtime offset in secs
 
     def has_risen(self, sun: bool):
         now = round(time.time()) + self.lto  # UTC
