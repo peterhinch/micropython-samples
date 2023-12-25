@@ -93,7 +93,8 @@ Move to `micropython-samples` on the PC, run `rshell` and issue:
 ```
 `mip` installs the following files in the `sched` directory.
 * `sun_moon.py`
-* `sun_moon_test.py` A test/demo script.
+* `sun_moon_test.py` A test/demo script for the above.
+* `moonphase.py` Determine lunar quarters and phase.
 After installation the `RiSet` class may be accessed with
 ```python
 from sched.sun_moon import RiSet
@@ -402,6 +403,11 @@ time. Phases are calculated with respect to this datum. It may be changed using
 `.set_day` to enable future and past phases to be determined or to enable long
 running applications to track time.
 
+The module is imported as follows:
+```python
+from sched.moonphase import MoonPhase
+```
+
 ## 6.1 Constructor
 
 * `lto:float=0, dst = lambda x: x` Local time offset in hours to UTC (-ve is
@@ -420,7 +426,7 @@ being full. The `text` arg determines how the value is returned: as text or as
 function is provided to the constructor.
 * `phase() -> float)` Returns moon phase where 0.0 <= phase < 1.0 with 0.5 being
 full moon. The phase is that pertaining to the datum.
-* `nextphase(, text: bool = True)` This is a generator function. Each iteration
+* `nextphase(text: bool = True)` This is a generator function. Each iteration
 of the generator returns three values: the phase number, the lunation number and
 the datetime of the phase. The `text` arg is as per `.quarter()`, defining the
 format of the datetime.
@@ -435,7 +441,7 @@ per the constructor arg.
 ## 6.3 Usage examples
 
 ```python
-from moonphase import MoonPhase
+from sched.moonphase import MoonPhase
 mp = MoonPhase()  # datum is midnight last night
 print(f"Full moon, current lunation {mp.quarter(2)}")
 mp.set_day(0.5)  # Adjust datum to noon today machine time
@@ -457,10 +463,11 @@ which is based on the machine clock. If the machine clock runs at a fixed offset
 to UTC (which is recommended), a DST function can be used to enable reported
 results to reflect local time.
 
-A DST function takes as input a time measured in seconds since the machine epoch
-(as returned by `time.time()`) and returns that number adjusted for local time.
-The following example is for UK time, which adds one hour at 2:00 on the last
-Sunday in March, reverting to winter time at 2:00 on the last Sunday in October.
+A DST function takes as input a datetime measured in seconds since the machine
+epoch (as returned by `time.time()`) and returns that number adjusted for local
+time. The following example is for UK time, which adds one hour at 2:00 on the
+last Sunday in March, reverting to winter time at 2:00 on the last Sunday in
+October.
 
 ```python
 def uk_dst(secs_epoch: int):  # Change in March (3) and Oct (10)
@@ -476,8 +483,8 @@ def uk_dst(secs_epoch: int):  # Change in March (3) and Oct (10)
         return summer  # +1 hr
     # We are in March or October. Find the day in month of last Sunday.
     ld = (wday + 31 - mday) % 7  # weekday of 31st.
-    lsun = 31 - (1 + ld) % 7
-    thresh = time.mktime((t[0], month, lsun, 2, 0, 0, 6, 0))
+    lsun = 31 - (1 + ld) % 7  # Monthday of last Sunday
+    thresh = time.mktime((t[0], month, lsun, 2, 0, 0, 6, 0))  # 2am last Sunday in month
     return summer if ((secs_epoch >= thresh) ^ (month == 10)) else winter
 ```
 
