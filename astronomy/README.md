@@ -10,29 +10,36 @@
  2.2 [Methods](./README.md#22-methods)  
  2.3 [Effect of local time](./README.md#23-effect-of-local-time)  
  2.4 [Continuously running applications](./README.md#24-continuously-running-applications)  
-3. [The moonphase function](./README.md#3-the-moonphase-function)  
-4. [Utility functions](./README.md#4-utility-functions)  
-5. [Demo script](./README.md#5-demo-script)  
-6. [Scheduling events](./README.md#6-scheduling-events)  
+3. [Utility functions](./README.md#3-utility-functions)  
+4. [Demo script](./README.md#4-demo-script)  
+5. [Scheduling events](./README.md#5-scheduling-events)  
+6. [The moonphase module](./README.md#6-the-moonphase-module)  
+ 6.1 [Constructor](./README.md#61-constructor)  
+ 6.2 [Methods](./README.md#62-methods)  
+ 6.3 [Usage examples](./README.md#63-usage-examples)  
+ 6.4 [DST](./README.md#64-dst) Daylight savings time.  
 7. [Performance and accuracy](./README.md#7-performance-and-accuracy)  
+ 7.1 [RiSet class](./README.md#71-riset-class)  
+ 7.2 [moonphase class](./README.md#72-moonphase-class)  
 
 # 1. Overview
 
-This module enables sun and moon rise and set times to be determined at any
-geographical location. Times are in seconds from midnight and refer to any
-event in a 24 hour period starting at midnight. The midnight datum is defined in
-local time. The start is a day specified as the current day plus an offset in
-days.
+The `sun_moon` module enables sun and moon rise and set times to be determined
+at any geographical location. Times are in seconds from midnight and refer to
+any event in a 24 hour period starting at midnight. The midnight datum is
+defined in local time. The start is a day specified as the current day plus an
+offset in days. It can also compute Civil, Nautical or Astronomical twilight
+times.
 
-It can also compute Civil, Nautical or Astronomical twilight times. A
-`moonphase` function is also provided enabling the moon phase to be determined
-for any date.
+The `moonphase` module enables the moon phase to be determined for any date, and
+the dates and times of lunar quarters to be calculated.
 
 Caveat. I am not an astronomer. If there are errors in the fundamental
 algorithms I am unlikely to be able to offer an opinion, still less a fix.
 
-The code is currently under development but I don't anticipate breaking changes
-to the API.
+The `moonphase` module is currently under development: API changes are possible.
+
+Moon phase options have been removed from `sun_moon` because accuracy was poor.
 
 ## 1.1 Applications
 
@@ -42,6 +49,8 @@ lunar clocks such as this one - the "lunartick":
 ![Image](./lunartick.jpg)
 
 ## 1.2 Licensing and acknowledgements
+
+#### sun_moon.py
 
 Some code was ported from C/C++ as presented in "Astronomy on the Personal
 Computer" by Montenbruck and Pfleger, with mathematical improvements contributed
@@ -55,6 +64,11 @@ contains source, executable code, and databases. This module only references the
 source. I have not spotted any restrictions on use in the book. I am not a
 lawyer; I have no idea of the legal status of code based on sourcecode in a
 published work.
+
+#### moonphase.py
+
+This was derived from unrestricted public sources and is released under the MIT
+licence.
 
 ## 1.3 Installation
 
@@ -146,11 +160,8 @@ instance.
 horizon.
 * `has_risen(sun: bool)->bool` Returns `True` if the selected object has risen.
 * `has_set(sun: bool)->bool` Returns `True` if the selected object has set.
-* `moonphase()->float` Return current phase: 0.0 <= result < 1.0. 0.0 is new
-moon, 0.5 is full. See [section 3](./README.md#3-the-moonphase-function) for
-observations about this.
 * `set_lto(t)` Set local time offset `LTO` in hours relative to UTC. Primarily
-intended for daylight saving time. The value is checked to ensure
+intended for system longitude. The value is checked to ensure
 `-15.0 < lto < 15.0`. See [section 2.3](./README.md#23-effect-of-local-time).
 
 The return value of the rise and set method is determined by the `variant` arg.
@@ -223,28 +234,14 @@ bad idea. It is usually best to run winter time all year round. Where a DST
 change occurs, the `RiSet.set_lto()` method should be run to ensure that `RiSet`
 operates in current local time.
 
-# 3. The moonphase function
-
-This is a simple function whose provenance is uncertain. It appears to produce
-valid results but I plan to implement a better solution.
-
-Args:
-* `year: int` 4-digit year
-* `month: int` 1..12
-* `day: int` Day of month 1..31
-* `hour: int` 0..23
-
-Return value:  
-A float in range 0.0 <= result < 1.0, 0 being new moon, 0.5 being full moon.
-
-# 4. Utility functions
+# 3. Utility functions
 
 `now_days() -> int` Returns the current time as days since the platform epoch.
 `abs_to_rel_days(days: int) -> int` Takes a number of days since the Unix epoch
 (1970,1,1) and returns a number of days relative to the current date. Platform
 independent. This facilitates testing with pre-determined target dates.
 
-# 5. Demo script
+# 4. Demo script
 
 This produces output for the fixed date 4th Dec 2023 at three geographical
 locations. It can therefore be run on platforms where the system time is wrong.
@@ -290,7 +287,7 @@ Maximum error 0. Expect 0 on 64-bit platform, 30s on 32-bit
 ```
 Code comments show times retrieved from `timeanddate.com`.
 
-# 6. Scheduling events
+# 5. Scheduling events
 
 A likely use case is to enable events to be timed relative to sunrise and set.
 In simple cases this can be done with `asyncio`. This will execute a payload at
@@ -386,8 +383,107 @@ try:
 finally:
     _ = asyncio.new_event_loop()
 ```
+# 6. The moonphase module
+
+This contains a single class `MoonPhase`. The term "machine time" below refers
+to the time reported by the MicroPython `time` module. The "local time offset"
+(LTO) passed to the constructor specifies the difference between machine time
+and UTC based on system longitude. "Daylight saving time" (DST) allows reported
+times to be offset to compensate for DST. Internally phases are calculated in
+UTC, but where times are output they are adjusted for LTO and DST.
+
+It is recommended that the machine clock is not adjusted for DST because large
+changes can play havoc with program timing as described above. To accommodate
+DST, a `dst` function can be provided to the constructor. The module uses this
+to adjust reported times.
+
+A `MoonPhase` instance has a time `datum`, which defaults to the instantiation
+time. Phases are calculated with respect to this datum. It may be changed using
+`.set_day` to enable future and past phases to be determined or to enable long
+running applications to track time.
+
+## 6.1 Constructor
+
+* `lto:float=0, dst = lambda x: x` Local time offset in hours to UTC (-ve is
+West); the value is checked to ensure `-15 < lto < 15`. `dst` is an optional
+user defined function for Daylight Saving Time (DST). See
+[section 6.4](./README.md#64-dst)
+
+## 6.2 Methods
+
+* `quarter(q: int, text: bool = True)` Return the time of a given quarter. Five
+quarters are calculated around the instance datum. By default the time
+is last midnight machine time with an optional offset in days `doff` added. The
+`quarter` arg specifies the quarter with 0 and 4 being new moons and quarter 2
+being full. The `text` arg determines how the value is returned: as text or as
+`int` is secs from the machine epoch. Results are adjusted for DST if a `dst`
+function is provided to the constructor.
+* `phase() -> float)` Returns moon phase where 0.0 <= phase < 1.0 with 0.5 being
+full moon. The phase is that pertaining to the datum.
+* `nextphase(, text: bool = True)` This is a generator function. Each iteration
+of the generator returns three values: the phase number, the lunation number and
+the datetime of the phase. The `text` arg is as per `.quarter()`, defining the
+format of the datetime.
+* `set_day(doff: float = 0)` Set the `MoonPhase` datum time to machine time plus
+an offset in days: this may include a fractional part if `.phase()` is required
+to produce a time-precise value. The five quarters are calculated for the
+lunation including the midnight at the start of the specified day.
+* `set_lto(t:float)` Redefine the local time offset, `t` being in hours as
+per the constructor arg.
+* `datum(text: bool = True)` Returns the current datum.
+
+## 6.3 Usage examples
+
+```python
+from moonphase import MoonPhase
+mp = MoonPhase()  # datum is midnight last night
+print(f"Full moon, current lunation {mp.quarter(2)}")
+mp.set_day(0.5)  # Adjust datum to noon today machine time
+print(f"Phase at Noon {mp.phase()}")
+mp.set_day(182)  # Set datum ahead 6 months
+print(f"Lunation 1st new moon: {mp.quarter(0)}, 2nd new moon: {mp.quarter(4)}")
+mp.set_day(0)  # Reset datum to today
+n = mp.nextphase()  # Instantiate generator
+for _ in range(8):
+    print(next(n))
+```
+
+## 6.4 DST
+
+Daylight saving time depends on country and geographic location, and there is no
+built-in MicroPython support. The moonphase module supports DST via an optional
+user supplied function. DST does not affect the calculation of quarters or phase
+which is based on the machine clock. If the machine clock runs at a fixed offset
+to UTC (which is recommended), a DST function can be used to enable reported
+results to reflect local time.
+
+A DST function takes as input a time measured in seconds since the machine epoch
+(as returned by `time.time()`) and returns that number adjusted for local time.
+The following example is for UK time, which adds one hour at 2:00 on the last
+Sunday in March, reverting to winter time at 2:00 on the last Sunday in October.
+
+```python
+def uk_dst(secs_epoch: int):  # Change in March (3) and Oct (10)
+    t = time.gmtime(secs_epoch)
+    month = t[1]
+    mday = t[2]
+    wday = t[6]
+    winter = secs_epoch
+    summer = secs_epoch + 3600  # +1hr
+    if month in (1, 2, 11, 12):  # Simple cases: depend only on month
+        return winter
+    if not month in (3, 10):
+        return summer  # +1 hr
+    # We are in March or October. Find the day in month of last Sunday.
+    ld = (wday + 31 - mday) % 7  # weekday of 31st.
+    lsun = 31 - (1 + ld) % 7
+    thresh = time.mktime((t[0], month, lsun, 2, 0, 0, 6, 0))
+    return summer if ((secs_epoch >= thresh) ^ (month == 10)) else winter
+```
 
 # 7. Performance and accuracy
+
+## 7.1 RiSet class
 
 A recalculation is triggered whenever the 24 hour local time window is changed,
 such as calling `.set_day()` where the stored date changes. Normally two days of
@@ -401,7 +497,6 @@ checked values corresponded with data computed on a platform with 64 bit
 floating point unit. The loss of precision from using a 32 bit FPU was no more
 than 3s.
 
-The lunar phase calculation is poor. It is adequate for displaying a phase icon
-or adjusting a pointer, but not good enough for predicting lunar quarters.
+## 7.2 MoonPhase class
 
-I plan to improve this, but it may be via a separate module.
+TODO

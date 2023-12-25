@@ -12,6 +12,7 @@
 # Raul Kompaß perfomed major simplification of the maths for deriving rise and
 # set_times with improvements in precision with 32-bit floats.
 
+# Moon phase now in separate module
 
 import time
 from math import sin, cos, sqrt, fabs, atan, radians, floor, pi
@@ -101,23 +102,6 @@ def frac(x):
 # Convert rise or set time to int. These can be None (no event).
 def to_int(x):
     return None if x is None else round(x)
-
-
-# Approximate moon phase in range 0.0..1.0 0.0 is new moon, 0.5 full moon
-# Provenance of this cde is uncertain.
-def moonphase(year, month, day, hour):
-    fty = year - floor((12.0 - month) / 10.0)
-    itm = month + 9
-    if itm >= 12:
-        itm -= 12
-    term1 = floor(365.25 * (fty + 4712))
-    term2 = floor(30.6 * itm + 0.5)
-    term3 = floor(floor((fty / 100) + 49) * 0.75) - 38
-    tmp = term1 + term2 + day + 59 + hour / 24.0
-    if tmp > 2299160.0:
-        tmp = tmp - term3
-    phi = (tmp - 2451550.1) / 29.530588853  # 29.530588853 is length of lunar cycle (days)
-    return phi % 1
 
 
 def minisun(t):
@@ -231,7 +215,6 @@ class RiSet:
             # time.time() assumes MicroPython clock is set to local time
             self._t0 = ((round(time.time()) + day * spd) // spd) * spd
             t = time.gmtime(time.time() + day * spd)
-            self._phase = moonphase(*t[:4])
             self.update(mjd)  # Recalculate rise and set times
         return self  # Allow r.set_day().sunrise()
 
@@ -254,9 +237,6 @@ class RiSet:
 
     def tend(self, variant: int = 0):
         return self._format(self._times[5], variant)
-
-    def moonphase(self) -> float:
-        return self._phase
 
     def set_lto(self, t):  # Update the offset from UTC
         self.check_lto(t)  # No need to recalc beause date is unchanged
