@@ -243,20 +243,22 @@ class RiSet:
         self.lto = round(t * 3600)  # Localtime offset in secs
 
     def has_risen(self, sun: bool):
-        now = round(time.time()) + self.lto  # UTC
-        rt = self.sunrise(1) if sun else self.moonrise(1)
+        now = round(time.time())  # Machine time
+        rt = self.sunrise(1) if sun else self.moonrise(1)  # Machine time
         if rt is None:
+            now += self.lto  # UTC
             t = (now % 86400) / 3600  # Time as UTC hour of day (float)
             return self.sin_alt(t, sun) > 0  # Above horizon
         return rt < now
 
     def has_set(self, sun: bool):
-        now = round(time.time()) + self.lto  # UTC
+        now = round(time.time())
         st = self.sunset(1) if sun else self.moonset(1)
         if st is None:
+            now += self.lto  # UTC
             t = (now % 86400) / 3600  # Time as UTC hour of day (float)
             return self.sin_alt(t, sun) < 0
-        return st > now
+        return st < now
 
     def is_up(self, sun: bool):  # Return current state of sun or moon
         return self.has_risen(sun) and not self.has_set(sun)
