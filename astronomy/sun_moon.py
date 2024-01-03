@@ -33,20 +33,9 @@ LONG = -2.102811634540558
 # right number of days for platform epoch at UTC.
 def now_days() -> int:
     secs_per_day = 86400  # 24 * 3600
-    t = time.time()
+    t = RiSet.mtime()  # Machine time as int. Can be overridden for test.
     t -= t % secs_per_day  # Previous Midnight
     return round(t / secs_per_day)  # Days since datum
-
-
-# Convert number of days relative to the Unix epoch (1970,1,1) to a number of
-# days relative to the current date. e.g. 19695 = 4th Dec 2023
-# Platform independent.
-def abs_to_rel_days(days: int) -> int:
-    secs_per_day = 86400  # 24 * 3600
-    now = now_days()  # Days since platform epoch
-    if time.gmtime(0)[0] == 2000:  # Machine epoch
-        now += 10957
-    return days - now
 
 
 def quad(ym, yz, yp):
@@ -186,16 +175,30 @@ def minimoon(t):
 
 class RiSet:
     verbose = True
+    # Riset.mtime() returns machine time as an int. The class variable tim is for
+    # test purposes only and allows the hardware clock to be overridden
+    tim = None
 
-    def __init__(self, lat=LAT, long=LONG, lto=0, tl=None):  # Local defaults
+    @classmethod
+    def mtime(cls):
+        return round(time.time()) if cls.tim is None else cls.tim
+
+    @classmethod
+    def set_time(cls, t):  # Given time from Unix epoch set time
+        if time.gmtime(0)[0] == 2000:  # Machine epoch
+            t -= 10957 * 86400
+        cls.tim = t
+
+    def __init__(self, lat=LAT, long=LONG, lto=0, tl=None, dst=lambda x: x):  # Local defaults
         self.sglat = sin(radians(lat))
         self.cglat = cos(radians(lat))
         self.long = long
         self.check_lto(lto)  # -15 < lto < 15
         self.lto = round(lto * 3600)  # Localtime offset in secs
         self.tlight = sin(radians(tl)) if tl is not None else tl
+        self.dst = dst
         self.mjd = None  # Current integer MJD
-        # Times in integer secs from midnight on current day (in local time)
+        # Times in integer secs from midnight on current day (in machine time adjusted for DST)
         # [sunrise, sunset, moonrise, moonset, cvend, cvstart]
         self._times = [None] * 6
         self.set_day()  # Initialise to today's date
@@ -212,9 +215,8 @@ class RiSet:
         if self.mjd is None or self.mjd != mjd:
             spd = 86400  # Secs per day
             # ._t0 is time of midnight (local time) in secs since MicroPython epoch
-            # time.time() assumes MicroPython clock is set to local time
-            self._t0 = ((round(time.time()) + day * spd) // spd) * spd
-            t = time.gmtime(time.time() + day * spd)
+            # time.time() assumes MicroPython clock is set to geographic local time
+            self._t0 = ((self.mtime() + day * spd) // spd) * spd
             self.update(mjd)  # Recalculate rise and set times
         return self  # Allow r.set_day().sunrise()
 
@@ -243,30 +245,55 @@ class RiSet:
         self.lto = round(t * 3600)  # Localtime offset in secs
 
     def has_risen(self, sun: bool):
-        now = round(time.time())  # Machine time
-        rt = self.sunrise(1) if sun else self.moonrise(1)  # Machine time
-        if rt is None:
-            now += self.lto  # UTC
-            t = (now % 86400) / 3600  # Time as UTC hour of day (float)
-            return self.sin_alt(t, sun) > 0  # Above horizon
-        return rt < now
+        return self.has_x(True, sun)
 
     def has_set(self, sun: bool):
-        now = round(time.time())
-        st = self.sunset(1) if sun else self.moonset(1)
-        if st is None:
-            now += self.lto  # UTC
-            t = (now % 86400) / 3600  # Time as UTC hour of day (float)
-            return self.sin_alt(t, sun) < 0
-        return st < now
+        return self.has_x(False, sun)
 
-    def is_up(self, sun: bool):  # Return current state of sun or moon
-        return self.has_risen(sun) and not self.has_set(sun)
+    # Return current state of sun or moon. The moon has a special case where it
+    # rises and sets in a 24 hour period. If its state is queried after both these
+    # events or before either has occurred, the current state depends on the order
+    # in which they occurred (the sun always sets afer it rises).
+    # The case is (.has_risen(False) and .has_set(False)) and if it occurs then
+    # .moonrise() and .moonset() must return valid times (not None).
+    def is_up(self, sun: bool):
+        hr = self.has_risen(sun)
+        hs = self.has_set(sun)
+        rt = self.sunrise() if sun else self.moonrise()
+        st = self.sunset() if sun else self.moonset()
+        if rt is None and st is None:  # No event in 24hr period.
+            return self.above_horizon(sun)
+        # Handle special case: moon has already risen and set or moon has neither
+        # risen nor set, yet there is a rise and set event in the day
+        if not (hr ^ hs):
+            if not ((rt is None) or (st is None)):
+                return rt > st
+        if not (hr or hs):  # No event has yet occurred
+            return rt is None
+
+        return hr and not hs  # Default case: up if it's risen but not set
 
     # ***** API end *****
+
+    # Generic has_risen/has_set function
+    def has_x(self, risen: bool, sun: bool):
+        if risen:
+            st = self.sunrise(1) if sun else self.moonrise(1)  # DST- adjusted machine time
+        else:
+            st = self.sunset(1) if sun else self.moonset(1)
+        if st is not None:
+            return st < self.dst(self.mtime())  # Machine time
+        return False
+
+    def above_horizon(self, sun: bool):
+        now = self.mtime() + self.lto  # UTC
+        tutc = (now % 86400) / 3600  # Time as UTC hour of day (float)
+        return self.sin_alt(tutc, sun) > 0  # Object is above horizon
+
     # Re-calculate rise and set times
     def update(self, mjd):
-        self._times = [None] * 6
+        for x in range(len(self._times)):
+            self._times[x] = None  # Assume failure
         days = (1, 2) if self.lto < 0 else (1,) if self.lto == 0 else (0, 1)
         tr = None  # Assume no twilight calculations
         ts = None
@@ -277,8 +304,8 @@ class RiSet:
             if self.tlight is not None:
                 tr, ts = self.rise_set(True, True)
             mr, ms = self.rise_set(False, False)  # Moon
-            # Adjust for local time. Store in ._times if value is in 24-hour
-            # local time window
+            # Adjust for local time and DST. Store in ._times if value is in
+            # 24-hour local time window
             self.adjust((sr, ss, mr, ms, tr, ts), day)
         self.mjd = mjd
 
@@ -286,6 +313,7 @@ class RiSet:
         for idx, n in enumerate(times):
             if n is not None:
                 n += self.lto + (day - 1) * 86400
+                n = self.dst(n)  # Adjust for DST on day of n
                 h = n // 3600
                 if 0 <= h < 24:
                     self._times[idx] = n
@@ -332,7 +360,6 @@ class RiSet:
         tl = self.lstt(t, hour) + self.long  # Local mean sidereal time adjusted for logitude
         return self.sglat * z + self.cglat * (x * cos(radians(tl)) + y * sin(radians(tl)))
 
-    # Modified to find sunrise and sunset only, not twilight events.
     # Calculate rise and set times of sun or moon for the current MJD. Times are
     # relative to that 24 hour period.
     def rise_set(self, sun, tl):

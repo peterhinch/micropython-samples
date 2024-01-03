@@ -37,8 +37,6 @@ the dates and times of lunar quarters to be calculated.
 Caveat. I am not an astronomer. If there are errors in the fundamental
 algorithms I am unlikely to be able to offer an opinion, still less a fix.
 
-The `moonphase` module is currently under development: API changes are possible.
-
 Moon phase options have been removed from `sun_moon` because accuracy was poor.
 
 ## 1.1 Applications
@@ -73,9 +71,9 @@ licence.
 ## 1.3 Installation
 
 Installation copies files from the `astronomy` directory to a directory
-`\lib\sched` on the target. This is for optional use with the
+`\lib\sched` on the target. This directory eases optional use with the
 [schedule module](https://github.com/peterhinch/micropython-async/blob/master/v3/docs/SCHEDULE.md).
-This may be done with the official
+Installation may be done with the official
 [mpremote](https://docs.micropython.org/en/latest/reference/mpremote.html):
 ```bash
 $ mpremote mip install "github:peterhinch/micropython-samples/astronomy"
@@ -87,7 +85,8 @@ On networked platforms it may alternatively be installed with
 ```
 Currently these tools install to `/lib` on the built-in Flash memory. To install
 to a Pyboard's SD card [rshell](https://github.com/dhylands/rshell) may be used.
-Move to `micropython-samples` on the PC, run `rshell` and issue:
+Clone the repo and move to `micropython-samples` on the PC, run `rshell` and
+issue:
 ```
 > rsync astronomy /sd/sched
 ```
@@ -104,13 +103,14 @@ from sched.sun_moon import RiSet
 Time is a slippery concept when applied to global locations. This document uses
 the following conventions:
 * `UTC` The international time standard based on the Greenwich meridian.
-* `LT (Local time)` Time as told on a clock at the device's location. May include
+* `LT (Local time)` Time on a clock at the device's location. May include
 daylight saving time (`DST`).
 * `MT (Machine time)` Time defined by the platform's hardware clock.
-* `LTO (Local time offset)` A `RiSet` instance contains a user supplied `LTO`.
-The class computes rise and set times in UTC, using `LTO` to output results in
-`LT` via `LT = UTC + LTO`. If an application maintains `LTO` to match `DST`, the
-rise and set times will be in `LT`.
+* `LTO (Local time offset)` A `RiSet` instance contains a user supplied `LTO`
+intended for timezone support. The class computes rise and set times in UTC,
+using `LTO` to compute results using  `RESULT = UTC + LTO`. For output in `LT`
+there are two options: periodically adjust `LTO` to handle DST or (better)
+provide a `dst` function so that conversion is automatic.
 
 # 2. The RiSet class
 
@@ -140,10 +140,16 @@ time (`MT`).
 (6 is Civil, 12 is Nautical, 18 is Astronomical). By default twilight times are
 not computed, saving some processor time. Offsets are positive numbers
 representing degrees below the horizon where twilight is deemed to start and end.
+* `dst=lambda x: x` This is an optional user defined function for Daylight
+Saving Time (DST). The assumption is that machine time is not changed, typically
+permanently in winter time. A `dst` function handles seasonal changes. The
+default assumes no DST is applicable. For how to write a DST function for a
+given country see [section 6.4](./README.md#64-dst).
 
 By default when an application instantiates `RiSet` for the first time the
 constructor prints the system date and time. This can be inhibited by setting
-the class variable `verbose` to `False`.
+the class variable `verbose` to `False`. The purpose is to alert the user to a
+common source of error where machine time is not set.
 
 ## 2.2 Methods
 
@@ -162,8 +168,9 @@ horizon.
 * `has_risen(sun: bool)->bool` Returns `True` if the selected object has risen.
 * `has_set(sun: bool)->bool` Returns `True` if the selected object has set.
 * `set_lto(t)` Set local time offset `LTO` in hours relative to UTC. Primarily
-intended for system longitude. The value is checked to ensure
-`-15.0 < lto < 15.0`. See [section 2.3](./README.md#23-effect-of-local-time).
+intended for timezone support, but this function can be used to support DST. The
+value is checked to ensure `-15.0 < lto < 15.0`. See
+[section 2.3](./README.md#23-effect-of-local-time).
 
 The return value of the rise and set method is determined by the `variant` arg.
 In all cases rise and set events are identified which occur in the current 24
@@ -173,7 +180,8 @@ with the moon at most locations, and with the sun in polar regions.
 Variants:
 * 0 Return integer seconds since midnight `LT` (or `None` if no event).
 * 1 Return integer seconds since since epoch of the MicroPython platform
- (or `None`). This is machine time (`MT`) as per `time.time()`.
+ (or `None`). This allows comparisons with machine time (`MT`) as per
+ `time.time()`.
 * 2 Return text of form hh:mm:ss (or --:--:--) being local time (`LT`).
 
 Example constructor invocations:
@@ -184,13 +192,16 @@ r = RiSet(lat=-33.87667, long=151.21, lto=11)  # Sydney 33°52′04″S 151°12�
 ```
 ## 2.3 Effect of local time
 
-MicroPython has no concept of local time. The hardware platform has a clock
+MicroPython has no concept of timezones. The hardware platform has a clock
 which reports machine time (`MT`): this might be set to local winter time or
 summer time.  The `RiSet` instances' `LTO` should be set to represent the
 difference between `MT` and `UTC`. In continuously running applications it is
 best to avoid changing the hardware clock (`MT`) for reasons discussed below.
-Daylight savings time should be implemented by changing the `RiSet` instances'
-`LTO`.
+Daylight savings time may be implemented in one of two ways:
+* By changing the `RiSet` instances' `LTO` accordingly.
+* Or by providing a `dst` function as discussed in
+[section 6.4](./README.md#64-dst). This is the preferred solution as DST is then
+handled automatically.
 
 Rise and set times are computed relative to UTC and then adjusted using the
 `RiSet` instance's `LTO` before being returned  (see `.adjust()`). This means
@@ -199,7 +210,7 @@ is used in determining rise and set times.
 
 The `.has_risen()`, `.has_set()` and `.is_up()` methods do use machine time
 (`MT`) and rely on `MT == UTC + LTO`: if `MT` has drifted, precision will be
-reduced.
+lost at times close to rise and set events.
 
 The constructor and the `set_day()` method set the instance's date relative to
 `MT`. They use only the date component of `MT`, hence they may be run at any
@@ -231,16 +242,12 @@ synchronisation is required it is best done frequently to minimise the size of
 jumps.
 
 For this reason changing system time to accommodate daylight saving time is a
-bad idea. It is usually best to run winter time all year round. Where a DST
-change occurs, the `RiSet.set_lto()` method should be run to ensure that `RiSet`
-operates in current local time.
+bad idea. It is usually best to run winter time all year round and to use the
+`dst` constructor arg to handle time changes.
 
 # 3. Utility functions
 
 `now_days() -> int` Returns the current time as days since the platform epoch.
-`abs_to_rel_days(days: int) -> int` Takes a number of days since the Unix epoch
-(1970,1,1) and returns a number of days relative to the current date. Platform
-independent. This facilitates testing with pre-determined target dates.
 
 # 4. Demo script
 
@@ -287,6 +294,10 @@ Maximum error 0. Expect 0 on 64-bit platform, 30s on 32-bit
 >>>
 ```
 Code comments show times retrieved from `timeanddate.com`.
+
+The script includes some commented out code at the end. This tests `is_up`,
+`has_risen` and `has_set` over 365 days. It is commented out to reduce printed
+output.
 
 # 5. Scheduling events
 
@@ -436,7 +447,8 @@ to produce a time-precise value. The five quarters are calculated for the
 lunation including the midnight at the start of the specified day.
 * `set_lto(t:float)` Redefine the local time offset, `t` being in hours as
 per the constructor arg.
-* `datum(text: bool = True)` Returns the current datum.
+* `datum(text: bool = True)` Returns the current datum in secs since local epoch
+or in human-readable text form.
 
 ## 6.3 Usage examples
 
@@ -506,4 +518,6 @@ than 3s.
 
 ## 7.2 MoonPhase class
 
-TODO
+This uses Python's arbitrary precision integers to overcome the limitations of
+32-bit floating point units. Results on 32 bit platforms match those on 64-bits
+to within ~1 minute. Results match those on `timeanddate.com` within ~3 minutes.
