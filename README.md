@@ -23,7 +23,7 @@ Please also see the [official examples](https://github.com/micropython/micropyth
   2.1 [ESP32](./README.md#21-esp32) Pinout and notes on the reference board  
   2.2 [SSD1306](./README.md#22-ssd1306) Write large fonts to the SSD1306.  
   2.3 [Pyboard D](./README.md#23-pyboard-d) Some information remains absent or hard to find in the docs.  
-  2.4 [DS3231 precision RTC](./README.md#24-ds3231-precision-rtc) Use cheap hardware to calibrate Pyboard RTC.  
+  2.4 [DS3231 MAX31328 precision RTC](./README.md#24-ds3231-max31328-precision-rtc) Use cheap hardware to calibrate Pyboard RTC.  
  3. [Essays](./README.md#3-essays) General thoughts.  
   3.1 [Resilient](./README.md#31-resilient) A guide to writing resilient WiFi code  
   3.2 [Serialisation](./README.md#32-serialisation) Review of MicroPython's five serialisation libraries  
@@ -125,11 +125,14 @@ be found as part of [this repository](https://github.com/peterhinch/micropython-
 Assorted [information](./pyboard_d/README.md) not yet in the official docs or
 hard to find.
 
-## 2.4 DS3231 precision RTC
+## 2.4 DS3231 MAX31328 precision RTC
 
 This is a low cost precision battery backed real time clock (RTC) accurate to
 +-2 minutes/year. Two drivers are provided, one portable across platforms and
 one which is Pyboard specific.
+
+This driver also supports the MAX31328 which is a 100% compatible chip from the
+same manufacturer.
 
 The Pyboard-specific driver provides a facility to calibrate the Pyboard's RTC
 from the DS3231. Calibration to high precision may be achieved in five minutes.
