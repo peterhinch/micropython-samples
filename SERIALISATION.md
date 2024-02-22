@@ -61,6 +61,11 @@ The `protobuf` standard requires transmitter and receiver to share a schema
 which defines the message structure. Message length may change at runtime, but
 structure may not.
 
+There has been some discussion of supporting [CBOR](https://cbor.io/). There is a
+MicroPython library [here](https://github.com/onetonfoot/micropython-cbor). This
+is a binary format with a focus on minimising message length. I have not yet had
+time to study this.
+
 ## 1.1 Transmission over unreliable links
 
 Consider a system where a transmitter periodically sends messages to a receiver
@@ -77,7 +82,7 @@ signals the transmitter to request retransmission.
 
 ## 1.2 Concurrency
 
-In `uasyncio` systems the transmitter presents no problem. A message is created
+In `asyncio` systems the transmitter presents no problem. A message is created
 using synchronous code, then transmitted using asynchronous code typically with
 a `StreamWriter`. In the case of ASCII protocols a delimiter - usually `b"\n"`
 is appended.
@@ -99,7 +104,7 @@ identical methods so this doc may be used for both.
 
 The advantage of `ujson` is that JSON strings can be accepted by CPython and by
 other languages. The drawback is that only a subset of Python object types can
-be converted to legal JSON strings; this is a limitation of the 
+be converted to legal JSON strings; this is a limitation of the
 [JSON specification](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
 
 The advantage of `pickle` is that it will accept any Python object except for
@@ -256,7 +261,7 @@ string can be done with:
 ```python
 import umsgpack
 obj = [1.23, 2.56, 89000]
-msg = umsgpack.dumps(obj)  # msg is a bytes object 
+msg = umsgpack.dumps(obj)  # msg is a bytes object
 ```
 Retrieval of the object is as follows:
 ```python
@@ -458,7 +463,7 @@ emitting field headers as seen in regular repeated fields.
 >>> packed=minipb.Wire('#z')
 >>> len(packed.encode(range(10000)))
 21748
->>> 
+>>>
 ```
 
 The author of `minipb` [does not recommend](https://github.com/dogtopus/minipb/issues/6)
