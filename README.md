@@ -392,7 +392,7 @@ See [the docs](./parse2d/README.md).
 
 This module enables Sun and Moon rise and set times to be determined for timing
 applications or for lunar clocks. Moon phase can also be accessed. Designed to
-work at global locations and timezones. See [./astronomy/README.md].
+work at global locations and timezones. See [docs](./astronomy/README.md).
 
 # 5. Module index
 
