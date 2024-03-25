@@ -49,7 +49,7 @@ Please also see the [official examples](https://github.com/micropython/micropyth
   4.17 [2D array indexing](./README.md#417-2d-array-indexing) Use `[1:3, 20]` syntax to address a 2D array.  
   4.18 [Astronomy](./README.md#418-astronomy) Derive Sun and Moon rise and set times, moon phase.  
  5. [Module Index](./README.md#5-module-index) Supported code. Device drivers, GUI's, utilities.  
-  5.1 [uasyncio](./README.md#51-uasyncio) Tutorial and drivers for asynchronous coding.  
+  5.1 [asyncio](./README.md#51-asyncio) Tutorial and drivers for asynchronous coding.  
   5.2 [Memory Device Drivers](./README.md#52-memory-device-drivers) Drivers for nonvolatile memory devices.  
   5.3 [Inertial Measurement Units](./README.md#53-inertial-measurement-units) Gravity, gyro and magnetic sensors.  
   5.4 [Other hardware drivers](./README.md#54-other-hardware-drivers)  
@@ -401,13 +401,13 @@ some cases as collaborations. This is acknowledged in their respective docs.
 
 Unlike the code samples these are fully documented and supported.
 
-## 5.1 uasyncio
+## 5.1 asyncio
 
 [Tutorial](https://github.com/peterhinch/micropython-async/blob/master/v3/docs/TUTORIAL.md)
-Main focus: using uasyncio to drive and communicate with hardware devices.  
+Main focus: using asyncio to drive and communicate with hardware devices.  
 [Drivers](https://github.com/peterhinch/micropython-async/blob/master/v3/docs/DRIVERS.md)
 Asynchronous device drivers for switches, pushbuttons and ADC's. Also has
-information on interfacing interrupts to uasyncio.  
+information on interfacing interrupts to asyncio.  
 [Asynchronous monitor](https://github.com/peterhinch/micropython-monitor) Use a
 raspberry Pico and a logic analyser or scope to monitor asynchronous code.  
 [Schedule](https://github.com/peterhinch/micropython-async/blob/master/v3/docs/SCHEDULE.md)
@@ -460,7 +460,8 @@ humidity sensor on ESP8266.
 
 [Asynchronous MQTT](https://github.com/peterhinch/micropython-mqtt/blob/master/mqtt_as/README.md)
 This improves on official MQTT drivers by recovering from WiFi outages and
-offering asynchronous operation.  
+offering asynchronous operation. Now also supports micropower applications on
+ESP32 using ESPNow (via an MQTT subset).  
 [IOT](https://github.com/peterhinch/micropython-iot) An IOT solution. Provides
 a socket-like interface between WiFi clients and a server with wired ethernet.
 The interface is resilient in the presence of WiFi outages. The server (e.g.
@@ -475,8 +476,8 @@ officially supported NRF24l01 radio.
 
 Fonts, graphics, GUIs and display drivers.
 
-All GUIs except e-paper are based on uasyncio. Where input is supported a
-callback-based interface is povided.
+All GUIs are based on asyncio. Where input is supported a callback-based
+interface is provided: knowledge of asyncio is not required for their use.
 
 [font-to-py](https://github.com/peterhinch/micropython-font-to-py) Converts
 industry standard font files to Python source which may be frozen as bytecode.
@@ -491,15 +492,15 @@ Sharp. Supports a range of hosts with low RAM usage.
 [micro-gui](https://github.com/peterhinch/micropython-micro-gui) Derived from
 nano-gui and supporting the same displays and hosts, this provides for user
 input via pushbuttons or a navigation joystick.  
+[micropython-touch](https://github.com/peterhinch/micropython-touch/) Similar to
+micro-gui but uses touch input. Supports multiple displays, hosts and touch
+controllers.  
 [LCD160CR](https://github.com/peterhinch/micropython-lcd160cr-gui) Touch GUI
 for the official display module.  
 [TFT-GUI](https://github.com/peterhinch/micropython-tft-gui) A fast touch GUI
 for large displays based on SSD1963 controller with XPT2046 touch controller.  
 [RA8875-GUI](https://github.com/peterhinch/micropython_ra8875) Touch GUI for
 large displays based on the RA8875 controller (e.g. from Adafruit).  
-[e-paper](https://github.com/peterhinch/micropython-epaper) GUI for the
-Embedded Artists 2.7 inch e-paper display. Pyboard only. Sadly these displays
-are now obsolete.  
 
 ## 5.7 Pyboard micropower
 
