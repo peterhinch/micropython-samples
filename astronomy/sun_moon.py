@@ -319,11 +319,14 @@ class RiSet:
                     self._times[idx] = n
 
     def _format(self, n, variant):
+        if (n is not None) and (variant & 4):  # Machine clock set to UTC
+            variant &= 0x03
+            n = self.dst(n + self._t0) - self._t0
         if variant == 0:  # Default: secs since Midnight (local time)
             return n
         elif variant == 1:  # Secs since epoch of MicroPython platform
             return None if n is None else n + self._t0
-        # variant == 3
+        # variant == 2
         if n is None:
             return "--:--:--"
         else:

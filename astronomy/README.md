@@ -184,6 +184,13 @@ Variants:
  `time.time()`.
 * 2 Return text of form hh:mm:ss (or --:--:--) being local time (`LT`).
 
+If bit 2 of `variant` is set and a `dst` constructor arg has been passed, the
+`dst` function will be applied to the result. This caters for the case where the
+machine clock runs winter time and a dst-adjusted result is required. It should
+be noted that applying dst adjustment to a time close to midnight can result in
+rollover, i.e. a time > 24:00. Handling this case is the responsibility of the
+application.
+
 Example constructor invocations:
 ```python
 r = RiSet()  # UK near Manchester
