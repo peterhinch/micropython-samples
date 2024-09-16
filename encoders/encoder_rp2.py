@@ -11,33 +11,37 @@ from array import array
 import rp2
 
 # Test with encoder on pins 2 and 3:
-#e = Encoder(0, Pin(2))
+# e = Encoder(0, Pin(2))
 
-#while True:    
-    #time.sleep(1)
-    #print(e.value())
+# while True:
+# time.sleep(1)
+# print(e.value())
 
 # Closure enables Viper to retain state. Currently (V1.17) nonlocal doesn't
 # work: https://github.com/micropython/micropython/issues/8086
 # so using arrays.
 def make_isr(pos):
-    old_x = array('i', (0,))
+    old_x = array("i", (0,))
+
     @micropython.viper
     def isr(sm):
         i = ptr32(pos)
         p = ptr32(old_x)
         while sm.rx_fifo():
-            v : int = int(sm.get()) & 3
-            x : int = v & 1
-            y : int = v >> 1
-            s : int = 1 if (x ^ y) else -1
+            v: int = int(sm.get()) & 3
+            x: int = v & 1
+            y: int = v >> 1
+            s: int = 1 if (x ^ y) else -1
             i[0] = i[0] + (s if (x ^ p[0]) else (0 - s))
             p[0] = x
+
     return isr
+
 
 # Args:
 # StateMachine no. (0-7): each instance must have a different sm_no.
 # An initialised input Pin: this and the next pin are the encoder interface.
+# Pins must have pullups (internal or, preferably, low value 1KΩ to 3.3V).
 class Encoder:
     def __init__(self, sm_no, base_pin, scale=1):
         self.scale = scale
