@@ -69,7 +69,7 @@ This takes a single optional arg:
  00:00 UTC on the last Sunday in March and October. If an hour value is passed,
  the change will occur at the correct 01:00 UTC. The value of `hr` may be an
  `int` or a `float`. This method will need to be  adapted for other geographic
- locations.
+ locations. See [note below](./DATE.md#DST).
  * `wday_n` arg `mday=1`. Return the weekday for a given day of the month.
  * `mday_list` arg `wday`. Given a weekday, for the current month return an
  ordered list of month days matching that weekday.
@@ -122,4 +122,12 @@ Common microcontroller practice is for system time to be UTC or local winter
 time. This avoids sudden changes which can disrupt continuously running
 applications. Where local time is required the `time_offset` method accepts the
 current UTC hours value (with fractional part) and returns an offset measured in
-hours. This may be used to correct the displayed time value.
+hours. This may be used to facilitate a displayed local time value.
+
+The principal purpose of this module is to provide a lightweight `Date` class.
+Time support is rudimentary, with the `time_offset` method illustrating a
+minimal way to provide a screen-based calendar with a clock display. For
+applications requiring full featured time support, see the official
+[datetime module](https://github.com/micropython/micropython-lib/tree/master/python-stdlib/datetime). Also
+[this scheduler](https://github.com/peterhinch/micropython-async/blob/master/v3/docs/SCHEDULE.md)
+which enables `cron`-like scheduling of future events.
