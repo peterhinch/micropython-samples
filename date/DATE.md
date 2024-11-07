@@ -67,8 +67,9 @@ This takes a single optional arg:
  * `time_offset` arg `hr=6`. This returns 0 or 1, being the offset in hours of
  UK local time to UTC. By default the change occurs when the date changes at
  00:00 UTC on the last Sunday in March and October. If an hour value is passed,
- the change will occur at the correct 01:00 UTC. This method will need to be
- adapted for other geographic locations.
+ the change will occur at the correct 01:00 UTC. The value of `hr` may be an
+ `int` or a `float`. This method will need to be  adapted for other geographic
+ locations.
  * `wday_n` arg `mday=1`. Return the weekday for a given day of the month.
  * `mday_list` arg `wday`. Given a weekday, for the current month return an
  ordered list of month days matching that weekday.
@@ -95,7 +96,7 @@ d.mday = 25  # Set absolute day of month
 d.day += 7  # Advance date by one week. Month/year rollover is handled.
 today = Date()
 if d == today:  # Date comparisons
-    # do something
+    print("Today")# do something
 new_date = Date()
 new_date.day = d.day  # Assign d to new_date: now new_date == d.
 print(d)  # Basic numeric print.
@@ -104,11 +105,21 @@ The DateCal class:
 ```python
 from date import DateCal
 d = DateCal()
-# Correct a UK clock for DST
+# Given a system running UTC, enable a display of local time (UK example)
 d.now()
-hour = (hour_utc + d.time_offset(hour_utc)) % 24
+t = time.gmtime()  # System time, assumed to be UTC
+hour_utc = t[3] + t[4]/60 + t[5]/3600  # Hour with fractional part
+hour = (t[3] + d.time_offset(hour_utc)) % 24
+print(f"Local time {hour:02d}:{t[4]:02d}:{t[5]:02d}")
 print(d)  # Pretty print
 x = d.wday_n(1)  # Get day of week of 1st day of month
 sundays = d.mday_list(6)  # List Sundays for the month.
 wday_last = d.wday_n(d.month_length)  # Weekday of last day of month
 ```
+## DST
+
+Common microcontroller practice is for system time to be UTC or local winter
+time. This avoids sudden changes which can disrupt continuously running
+applications. Where local time is required the `time_offset` method accepts the
+current UTC hours value (with fractional part) and returns an offset measured in
+hours. This may be used to correct the displayed time value.
