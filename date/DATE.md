@@ -87,6 +87,7 @@ This takes a single optional arg:
 
 # Example usage
 
+The following code fragments illustrate typical usage:
 ```python
 from date import Date
 d = Date()
@@ -96,7 +97,7 @@ d.mday = 25  # Set absolute day of month
 d.day += 7  # Advance date by one week. Month/year rollover is handled.
 today = Date()
 if d == today:  # Date comparisons
-    print("Today")# do something
+    print("Today")  # do something
 new_date = Date()
 new_date.day = d.day  # Assign d to new_date: now new_date == d.
 print(d)  # Basic numeric print.
@@ -118,11 +119,11 @@ wday_last = d.wday_n(d.month_length)  # Weekday of last day of month
 ```
 ## DST
 
-Common microcontroller practice is for system time to be UTC or local winter
-time. This avoids sudden changes which can disrupt continuously running
-applications. Where local time is required the `time_offset` method accepts the
-current UTC hours value (with fractional part) and returns an offset measured in
-hours. This may be used to facilitate a displayed local time value.
+Common microcontroller practice is for system time to be permanently set to UTC
+or local winter time. This avoids sudden changes in system time which can
+disrupt continuously running applications. Where local time is required the
+`time_offset` method accepts the current UTC hours value (with fractional part)
+and returns an offset measured in hours. This may be used to display local time.
 
 The principal purpose of this module is to provide a lightweight `Date` class.
 Time support is rudimentary, with the `time_offset` method illustrating a
