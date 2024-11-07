@@ -1,9 +1,12 @@
 # date.py Minimal Date class for micropython
 
 # Released under the MIT License (MIT). See LICENSE.
-# Copyright (c) 2023 Peter Hinch
+# Copyright (c) 2023-2024 Peter Hinch
 
 from time import mktime, localtime
+from sys import implementation
+if implementation.name != "micropython":
+    const = lambda x : x
 
 _SECS_PER_DAY = const(86400)
 def leap(year):
@@ -22,7 +25,7 @@ class Date:
     def _update(self, ltmod=True):  # If ltmod is False ._cur has been changed
         if ltmod:  # Otherwise ._lt has been modified
             self._lt[3] = 6
-            self._cur = mktime(self._lt) // _SECS_PER_DAY
+            self._cur = mktime(tuple(self._lt)) // _SECS_PER_DAY
         self._lt = list(localtime(self._cur * _SECS_PER_DAY))
         self.callback()
 
