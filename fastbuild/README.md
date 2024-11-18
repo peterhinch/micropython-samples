@@ -1,5 +1,8 @@
 # fastbuild - Pull and build Pyboard firmware under Linux
 
+The following is largely obsolete. Please see [mpbuild](https://github.com/mattytrentini/mpbuild)
+for a modern solution using containers.
+
 These scripts are intended to speed and simplify rebuilding firmware from
 source notably where pyboards of different types are in use, or when
 frozen bytecode necessitates repeated compilation and deployment. In
@@ -142,4 +145,3 @@ also erases the ESP8266 flash.
 
 You will need to change the `MANIFEST` variable which is the directory
 specifier for my esp8266 manifest file.
-
