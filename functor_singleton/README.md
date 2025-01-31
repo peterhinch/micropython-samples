@@ -78,10 +78,13 @@ class MyFunctor:
 
     def __call__(self, arg):
         print('In __call__', arg + self.state)
+        return self
 
 MyFunctor(42)  # prints 'In __init__ 42'
 MyFunctor(5)  # 'In __call__ 47'
 ```
+In both test cases the object returned is the functor instance.
+
 A use case is in asynchronous programming. The constructor launches a
 continuously running task. Subsequent calls alter the behaviour of that task.
 The following simple example has the task waiting for a period which can be

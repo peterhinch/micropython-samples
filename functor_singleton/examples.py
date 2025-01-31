@@ -39,6 +39,7 @@ class MyFunctor:
 
     def __call__(self, arg):
         print('In __call__', arg + self.state)
+        return self
 
 MyFunctor(42)  # prints 'In __init__ 42'
 MyFunctor(5)  # 'In __call__ 47'
