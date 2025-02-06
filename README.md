@@ -47,8 +47,8 @@ Please also see the [official examples](https://github.com/micropython/micropyth
   4.15 [Date](./README.md#415-date) Small and simple classes for handling dates.  
   4.16 [Greatest common divisor](./README.md#416-greatest-common-divisor) Neat algorithm.  
   4.17 [2D array indexing](./README.md#417-2d-array-indexing) Use `[1:3, 20]` syntax to address a 2D array.  
-  4.18 [Astronomy](./README.md#418-astronomy) Derive Sun and Moon rise and set times, moon phase.
-  4.19 [Tone detection](./README.md#419-tone-detection) Goertzel algorithm.
+  4.18 [Astronomy](./README.md#418-astronomy) Derive Sun and Moon rise and set times, moon phase.  
+  4.19 [Tone detection](./README.md#419-tone-detection) Goertzel algorithm.  
  5. [Module Index](./README.md#5-module-index) Supported code. Device drivers, GUI's, utilities.  
   5.1 [asyncio](./README.md#51-asyncio) Tutorial and drivers for asynchronous coding.  
   5.2 [Memory Device Drivers](./README.md#52-memory-device-drivers) Drivers for nonvolatile memory devices.  
@@ -399,7 +399,7 @@ work at global locations and timezones. See [docs](./astronomy/README.md).
 
 This module may be used for detection of audio tones. It uses the Goertzel
 algorithm which is effectively a single-bin Fourier transform. See
-[docs](./goertzel/README.md)
+[docs](./goertzel/README.md).
 
 # 5. Module index
 
