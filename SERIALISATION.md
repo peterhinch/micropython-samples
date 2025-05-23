@@ -27,7 +27,7 @@ Self-describing:
  1. json [ASCII, official](http://docs.micropython.org/en/latest/library/json.html).
  2. pickle (ASCII, official)
  3. MessagePack [binary, unofficial](https://github.com/peterhinch/micropython-msgpack)
- 4. CBOR [binary, unofficial](https://github.com/alexmrqt/micropython-cbor/tree/master)
+ 4. CBOR [binary, unofficial](https://github.com/alexmrqt/micropython-cbor/tree/master)  
  Requiring a schema:  
  5. struct [binary, official](http://docs.micropython.org/en/latest/library/struct.html)
  6. protobuf [binary, unofficial](https://github.com/dogtopus/minipb)
