@@ -16,20 +16,23 @@ I2C or SPI. All these require the data to be presented as linear sequences of
 bytes. The problem is how to convert an arbitrary Python object to such a
 sequence, and how subsequently to restore the object.
 
-There are numerous standards for achieving this, five of which are readily
+There are numerous standards for achieving this, six of which are readily
 available to MicroPython. Each has its own advantages and drawbacks. In two
 cases the encoded strings aim to be human readable and comprise ASCII
 characters. In the others they comprise binary `bytes` objects where bytes can
-take all possible values. The following are the formats with MicroPython
+take all possible values. The following are the formats with known MicroPython
 support:
 
- 1. ujson (ASCII, official)
+Self-describing:  
+ 1. json [ASCII, official](http://docs.micropython.org/en/latest/library/json.html).
  2. pickle (ASCII, official)
- 3. ustruct (binary, official)
- 4. MessagePack [binary, unofficial](https://github.com/peterhinch/micropython-msgpack)
- 5. protobuf [binary, unofficial](https://github.com/dogtopus/minipb)
+ 3. MessagePack [binary, unofficial](https://github.com/peterhinch/micropython-msgpack)
+ 4. CBOR [binary, unofficial](https://github.com/alexmrqt/micropython-cbor/tree/master)
+ Requiring a schema:  
+ 5. struct [binary, official](http://docs.micropython.org/en/latest/library/struct.html)
+ 6. protobuf [binary, unofficial](https://github.com/dogtopus/minipb)
 
-The `ujson` and `pickle` formats produce human-readable byte sequences. These
+The `json` and `pickle` formats produce human-readable byte sequences. These
 aid debugging. The use of ASCII data means that a delimiter can be used to
 identify the end of a message. This is because it is possible to guarantee that
 the delimiter will never occur within a message. A delimiter cannot be used
@@ -37,36 +40,45 @@ with binary formats because a message byte can take all possible values
 including that of the delimiter. The drawback of ASCII formats is inefficiency:
 the byte sequences are relatively long.
 
-Numbers 1, 2 and 4 are self-describing: the format includes a definition of its
-structure. This means that the decoding process can re-create the object in the
-absence of information on its structure, which may therefore change at runtime.
-Self describing formats inevitably are variable length. This is no problem
-where data is being saved to file, but if it is being communicated across a
-link the receiving process needs a means to determine when a complete message
-has been received. In the case of ASCII formats a delimiter may be used but in
-the case of `MessagePack` this presents something of a challenge.
+All bar 5 and 6 are are self-describing: the format includes a definition of
+its structure. This means that the decoding process can re-create the object in
+the absence of information on its structure, which may therefore change at
+runtime. Self describing formats inevitably are variable length. This is no
+problem where data is being saved to file, but if it is being communicated
+across a link the receiving process needs a means to determine when a complete
+message has been received. In the case of ASCII formats a delimiter may be used
+but in the cases of `MessagePack` and `CBOR` this presents something of a
+challenge.
 
-The `ustruct` format is binary: the byte sequence comprises binary data which
+The `struct` format is binary: the byte sequence comprises binary data which
 is neither human readable nor self-describing. The problem of message framing
 is solved by hard coding a fixed message structure and length which is known to
-transmitter and receiver. In simple cases of fixed format data, `ustruct`
+transmitter and receiver. In simple cases of fixed format data, `struct`
 provides a simple, efficient solution.
 
-In `protobuf` and `MessagePack` messages are variable length; both can handle
-data whose length varies at runtime. `MessagePack` also allows the message
-structure to change at runtime. It is also extensible to enable the efficient
-coding of additional Python types or instances of user defined classes.
+In `protobuf`, `CBOR` and `MessagePack` messages are variable length; all can
+handle data whose length varies at runtime. `MessagePack` and `CBOR` allow the
+message structure to change at runtime. They are also extensible to enable the
+efficient coding of additional Python types or instances of user defined classes.
 
 The `protobuf` standard requires transmitter and receiver to share a schema
 which defines the message structure. Message length may change at runtime, but
 structure may not.
 
-There has been some discussion of supporting [CBOR](https://cbor.io/). There is a
-MicroPython library [here](https://github.com/onetonfoot/micropython-cbor). This
-is a binary format with a focus on minimising message length. I have not yet had
-time to study this.
+Uniquely `CBOR` has an ability to accept data objects whose size is initially
+unknown. An encoder can receive a declaration that an array is to follow, then a
+sequence of elements. A terminator signals the end of the array. This
+functionality is not provided in the
+[MicroPython implementation](https://github.com/alexmrqt/micropython-cbor/tree/master).
+Implementing such support would require a Python API to be defined.
 
-## 1.1 Transmission over unreliable links
+## 1.1 Protocol References
+
+[MessagePack](https://github.com/msgpack/msgpack/tree/master)  
+[CBOR](https://cbor.io/)  
+[CBOR spec](https://www.rfc-editor.org/rfc/rfc8949.html)  
+
+## 1.2 Transmission over unreliable links
 
 Consider a system where a transmitter periodically sends messages to a receiver
 over a communication link. An aspect of the message framing problem arises if
@@ -80,7 +92,7 @@ continuous stream of data. In the case of regular bursts of data a timeout can
 be used. Otherwise "out of band" signalling is required where the receiver
 signals the transmitter to request retransmission.
 
-## 1.2 Concurrency
+## 1.3 Concurrency
 
 In `asyncio` systems the transmitter presents no problem. A message is created
 using synchronous code, then transmitted using asynchronous code typically with
@@ -90,19 +102,19 @@ is appended.
 In the case of ASCII protocols the receiver can use `StreamReader.readline()`
 to await a complete message.
 
-`ustruct` also presents a simple case in that the number of expected bytes is
+`struct` also presents a simple case in that the number of expected bytes is
 known to the receiver which simply awaits that number.
 
 The variable length binary protocols present a difficulty in that the message
 length is unknown in advance. A solution is available for `MessagePack`.
 
-# 2. ujson and pickle
+# 2. json and pickle
 
-These are very similar. `ujson` is documented
-[here](http://docs.micropython.org/en/latest/library/ujson.html). `pickle` has
+These are very similar. `json` is documented
+[here](http://docs.micropython.org/en/latest/library/json.html). `pickle` has
 identical methods so this doc may be used for both.
 
-The advantage of `ujson` is that JSON strings can be accepted by CPython and by
+The advantage of `json` is that JSON strings can be accepted by CPython and by
 other languages. The drawback is that only a subset of Python object types can
 be converted to legal JSON strings; this is a limitation of the
 [JSON specification](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
@@ -114,7 +126,9 @@ The strings produced are incompatible with CPython's `pickle`, but can be
 decoded in CPython by using the MicroPython decoder. There is a
 [bug](https://github.com/micropython/micropython/issues/2280) in the
 MicroPython implementation when running under MicroPython. A workround consists
-of never encoding short strings which change repeatedly.
+of never encoding short strings which change repeatedly. The official MicroPython
+library achieves its simplicity by invoking the compiler at runtime. This is
+costly in RAM.
 
 ## 2.1 Usage examples
 
@@ -130,11 +144,11 @@ print('Decoded data (partial):', v[3])
 ```
 JSON. Note that dictionary keys must be strings:  
 ```python
-import ujson
+import json
 data = {'1':'test', '2':1.414, '3': [11, 12, 13]}
-s = ujson.dumps(data)
+s = json.dumps(data)
 print('Human readable data:', s)
-v = ujson.loads(s)
+v = json.loads(s)
 print('Decoded data (partial):', v['3'])
 ```
 
@@ -142,15 +156,15 @@ print('Decoded data (partial):', v['3'])
 
 In real applications the data, and hence the string length, vary at runtime.
 The receiving process needs to know when a complete string has been received or
-read from a file. In practice `ujson` and `pickle` do not include newline
+read from a file. In practice `json` and `pickle` do not include newline
 characters in encoded strings. If the data being encoded includes a newline, it
 is escaped in the string:
 ```python
-import ujson
+import json
 data = {'1':b'test\nmore', '2':1.414, '3': [11, 12, 13]}
-s = ujson.dumps(data)
+s = json.dumps(data)
 print('Human readable data:', s)
-v = ujson.loads(s)
+v = json.loads(s)
 print('Decoded data (partial):', v['1'])
 ```
 If this is pasted at the REPL you will observe that the human readable data
@@ -165,9 +179,9 @@ reading may be done using `readline` methods as in this code fragment where
 `u` is a UART instance:
 
 ```python
-s = ujson.dumps(data)
-# pickle produces a bytes object whereas ujson produces a string
-# In the case of ujson it is probably wise to convert to bytes
+s = json.dumps(data)
+# pickle produces a bytes object whereas json produces a string
+# In the case of json it is probably wise to convert to bytes
 u.write(s.encode())
 # Pickle:
 # u.write(s)
@@ -175,14 +189,14 @@ u.write(b'\n')
 
 # receiver
 s = u.readline()
-v = ujson.loads(s)  # ujson can cope with bytes object
-# ujson and pickle can cope with trailing newline.
+v = json.loads(s)  # json can cope with bytes object
+# json and pickle can cope with trailing newline.
 ```
 
-# 3. ustruct
+# 3. struct
 
 This is documented
-[here](http://docs.micropython.org/en/latest/library/ustruct.html). The binary
+[here](http://docs.micropython.org/en/latest/library/struct.html). The binary
 format is efficient, but the format of a sequence cannot change at runtime and
 must be "known" to the decoding process. Records are of fixed length. If data
 is to be stored in a binary random access file, the fixed record size means
@@ -190,59 +204,59 @@ that the offset of a given record may readily be calculated.
 
 Write a 100 record file. Each record comprises three 32-bit integers:  
 ```python
-import ustruct
+import struct
 fmt = 'iii'  # Record format: 3 signed ints
-rlen = ustruct.calcsize(fmt)  # Record length
+rlen = struct.calcsize(fmt)  # Record length
 buf = bytearray(rlen)
 with open('myfile', 'wb') as f:
     for x in range(100):
         y = x * x
         z = x * 10
-        ustruct.pack_into(fmt, buf, 0, x, y, z)
+        struct.pack_into(fmt, buf, 0, x, y, z)
         f.write(buf)
 ```
 Read record no. 10 from that file:  
 ```python
-import ustruct
+import struct
 fmt = 'iii'
-rlen = ustruct.calcsize(fmt)  # Record length
+rlen = struct.calcsize(fmt)  # Record length
 buf = bytearray(rlen)
 rnum = 10  # Record no.
 with open('myfile', 'rb') as f:
     f.seek(rnum * rlen)
     f.readinto(buf)
-    result = ustruct.unpack_from(fmt, buf)
+    result = struct.unpack_from(fmt, buf)
 print(result)
 ```
 Owing to the fixed record length, integers must be constrained to fit the
 length declared in the format string.
 
 Binary formats cannot use delimiters as any delimiter character may be present
-in the data - however the fixed length of `ustruct` records means that this is
+in the data - however the fixed length of `struct` records means that this is
 not a problem.
 
-For performance oriented applications, `ustruct` is the only serialisation
+For performance oriented applications, `struct` is the only serialisation
 approach which can be used in a non-allocating fashion, by using pre-allocated
 buffers as in the above example.
 
 ## 3.1 Strings
 
-In `ustruct` the `s` data type is normally prefixed by a length (defaulting to
+In `struct` the `s` data type is normally prefixed by a length (defaulting to
 1). This ensures that records are of fixed size, but is potentially inefficient
 as shorter strings will still occupy the same amount of space. Longer strings
 will silently be truncated. Short strings are packed with zeros.
 
 ```python
-import ustruct
+import struct
 fmt = 'ii30s'
-rlen = ustruct.calcsize(fmt)  # Record length
+rlen = struct.calcsize(fmt)  # Record length
 buf = bytearray(rlen)
-ustruct.pack_into(fmt, buf, 0, 11, 22, 'the quick brown fox')
-ustruct.unpack_from(fmt, buf)
-ustruct.pack_into(fmt, buf, 0, 11, 22, 'rats')
-ustruct.unpack_from(fmt, buf)  # Packed with zeros
-ustruct.pack_into(fmt, buf, 0, 11, 22, 'the quick brown fox jumps over the lazy dog')
-ustruct.unpack_from(fmt, buf)  # Truncation
+struct.pack_into(fmt, buf, 0, 11, 22, 'the quick brown fox')
+struct.unpack_from(fmt, buf)
+struct.pack_into(fmt, buf, 0, 11, 22, 'rats')
+struct.unpack_from(fmt, buf)  # Packed with zeros
+struct.pack_into(fmt, buf, 0, 11, 22, 'the quick brown fox jumps over the lazy dog')
+struct.unpack_from(fmt, buf)  # Truncation
 ```
 Output:
 ```python
@@ -254,8 +268,8 @@ Output:
 # 4. MessagePack
 
 Of the binary formats this is the easiest to use and can be a "drop in"
-replacement for `ujson` as it supports the same four methods `dump`, `dumps`,
-`load` and `loads`. An application might initially be developed with `ujson`,
+replacement for `json` as it supports the same four methods `dump`, `dumps`,
+`load` and `loads`. An application might initially be developed with `json`,
 the protocol being changed to `MessagePack` later. Creation of a `MessagePack`
 string can be done with:
 ```python
