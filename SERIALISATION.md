@@ -20,35 +20,39 @@ There are numerous standards for achieving this, six of which are readily
 available to MicroPython. Each has its own advantages and drawbacks. In two
 cases the encoded strings aim to be human readable and comprise ASCII
 characters. In the others they comprise binary `bytes` objects where bytes can
-take all possible values. The following are the formats with known MicroPython
-support:
+take all possible values.
 
-Self-describing:  
- 1. json [ASCII, official](http://docs.micropython.org/en/latest/library/json.html).
- 2. pickle (ASCII, official)
- 3. MessagePack [binary, unofficial](https://github.com/peterhinch/micropython-msgpack)
- 4. CBOR [binary, unofficial](https://github.com/alexmrqt/micropython-cbor/tree/master)  
- Requiring a schema:  
- 5. struct [binary, official](http://docs.micropython.org/en/latest/library/struct.html)
- 6. protobuf [binary, unofficial](https://github.com/dogtopus/minipb)
+Standards are also distinguished by whether a `schema` is required. This is a
+file, shared by sender and receiver, defining the data format. Self-describing
+protocols need no schema: the unpacking process can deduce the data type of the
+encoded data from the data itself.
+
+The following are the formats with known MicroPython support (`SD` signifies self
+describing):
+
+1. json [ASCII, SD, official](http://docs.micropython.org/en/latest/library/json.html).
+2. pickle [ASCII, SD, official](https://github.com/micropython/micropython-lib/tree/master/python-stdlib/pickle).
+3. MessagePack [binary, SD, unofficial](https://github.com/peterhinch/micropython-msgpack).
+4. CBOR [binary, SD, unofficial](https://github.com/alexmrqt/micropython-cbor/tree/master) and [official](https://github.com/micropython/micropython-lib/tree/master/python-ecosys/cbor2).
+5. struct [binary, schema, official](http://docs.micropython.org/en/latest/library/struct.html).  
+6. protobuf [binary, schema, unofficial](https://github.com/dogtopus/minipb).
 
 The `json` and `pickle` formats produce human-readable byte sequences. These
 aid debugging. The use of ASCII data means that a delimiter can be used to
 identify the end of a message. This is because it is possible to guarantee that
 the delimiter will never occur within a message. A delimiter cannot be used
 with binary formats because a message byte can take all possible values
-including that of the delimiter. The drawback of ASCII formats is inefficiency:
+including that of any delimiter. The drawback of ASCII formats is inefficiency:
 the byte sequences are relatively long.
 
-All bar 5 and 6 are are self-describing: the format includes a definition of
-its structure. This means that the decoding process can re-create the object in
-the absence of information on its structure, which may therefore change at
-runtime. Self describing formats inevitably are variable length. This is no
-problem where data is being saved to file, but if it is being communicated
-across a link the receiving process needs a means to determine when a complete
-message has been received. In the case of ASCII formats a delimiter may be used
-but in the cases of `MessagePack` and `CBOR` this presents something of a
-challenge.
+As discussed above a self-describing protocol means that the decoding process
+can re-create objects in the absence of prior information on their structure,
+which may therefore change at runtime. This adds great flexibility but implies a
+variable length message. This is no problem where a message is saved to file,
+but if it is communicated across a link the receiving process needs a means to
+determine when a complete message has been received. In the case of ASCII
+formats a delimiter may be used but in the cases of `MessagePack` and `CBOR`
+this presents something of a challenge.
 
 The `struct` format is binary: the byte sequence comprises binary data which
 is neither human readable nor self-describing. The problem of message framing
@@ -68,17 +72,27 @@ structure may not.
 Uniquely `CBOR` has an ability to accept data objects whose size is initially
 unknown. An encoder can receive a declaration that an array is to follow, then a
 sequence of elements. A terminator signals the end of the array. This
-functionality is not provided in the
-[MicroPython implementation](https://github.com/alexmrqt/micropython-cbor/tree/master).
-Implementing such support would require a Python API to be defined.
+functionality is not provided in the MicroPython implementations.
 
-## 1.1 Protocol References
+## 1.1 Which to use
+
+A common use case involves exchanging data with an existing system: here the
+protocol is pre-ordained. In other cases the main criteria are the needs for data
+compression and extensibility. If compression is not needed and a limited set of
+data types is acceptable, `json` benefits from being built-in to MicroPython
+firmware. The range of data types can be extended with `pickle` but it is
+inefficient, invoking the compiler at runtime. For an extensible protocol with
+compression the [MessagePack](https://github.com/peterhinch/micropython-msgpack)
+implementation is optimised for MicroPython and for decoding data streams using
+`asyncio`.
+
+## 1.2 Protocol Document References
 
 [MessagePack](https://github.com/msgpack/msgpack/tree/master)  
 [CBOR](https://cbor.io/)  
 [CBOR spec](https://www.rfc-editor.org/rfc/rfc8949.html)  
 
-## 1.2 Transmission over unreliable links
+## 1.3 Transmission over unreliable links
 
 Consider a system where a transmitter periodically sends messages to a receiver
 over a communication link. An aspect of the message framing problem arises if
@@ -92,7 +106,7 @@ continuous stream of data. In the case of regular bursts of data a timeout can
 be used. Otherwise "out of band" signalling is required where the receiver
 signals the transmitter to request retransmission.
 
-## 1.3 Concurrency
+## 1.4 Concurrency
 
 In `asyncio` systems the transmitter presents no problem. A message is created
 using synchronous code, then transmitted using asynchronous code typically with
