@@ -31,7 +31,7 @@ The following are the formats with known MicroPython support (`SD` signifies sel
 describing):
 
 1. json [ASCII, SD, official](http://docs.micropython.org/en/latest/library/json.html).
-2. pickle [ASCII, SD, official](https://github.com/micropython/micropython-lib/tree/master/python-stdlib/pickle).
+2. pickle [ASCII, SD, official](https://github.com/micropython/micropython-lib/tree/master/python-stdlib/pickle). Note that CPython pickle is a binary format.
 3. MessagePack [binary, SD, unofficial](https://github.com/peterhinch/micropython-msgpack).
 4. CBOR [binary, SD, unofficial](https://github.com/alexmrqt/micropython-cbor/tree/master) and [official](https://github.com/micropython/micropython-lib/tree/master/python-ecosys/cbor2).
 5. struct [binary, schema, official](http://docs.micropython.org/en/latest/library/struct.html).  
@@ -88,9 +88,11 @@ implementation is optimised for MicroPython and for decoding data streams using
 
 ## 1.2 Protocol Document References
 
-[MessagePack](https://github.com/msgpack/msgpack/tree/master)  
-[CBOR](https://cbor.io/)  
-[CBOR spec](https://www.rfc-editor.org/rfc/rfc8949.html)  
+[JSON](https://www.json.org/json-en.html).  
+[CPython Pickle](https://docs.python.org/3/library/pickle.html).  
+[MessagePack](https://github.com/msgpack/msgpack/tree/master).  
+[CBOR](https://cbor.io/) Website.  
+[CBOR spec](https://www.rfc-editor.org/rfc/rfc8949.html) Spec.  
 
 ## 1.3 Transmission over unreliable links
 
