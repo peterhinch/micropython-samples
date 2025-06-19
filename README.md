@@ -29,6 +29,7 @@ Please also see the [official examples](https://github.com/micropython/micropyth
   3.2 [Serialisation](./README.md#32-serialisation) Review of MicroPython's five serialisation libraries  
   3.3 [Measurement of relative timing and phase of fast analog signals](./README.md#33-measurement-of-relative-timing-and-phase-of-fast-analog-signals) For Pyboard.  
   3.4 [Import subtleties](./README.md#34-import-subtleties) Ways to save RAM with import statements.  
+  3.5 [SSL/TLS tutorial](https://github.com/shariltumin/ssl-tls-examples-micropython) (This excellent resource is not my work.)  
  4. [Code samples](./README.md#4-code-samples) Samples prefixed Pyboard are Pyboard specific  
   4.1 [Pyboard Mutex](./README.md#41-pyboard-mutex) Share data between threads and ISR's.  
   4.2 [Pyboard watchdog](./README.md#42-pyboard-watchdog) Access a Pyboard hardware WDT.  
