@@ -50,7 +50,8 @@ Please also see the [official examples](https://github.com/micropython/micropyth
   4.17 [2D array indexing](./README.md#417-2d-array-indexing) Use `[1:3, 20]` syntax to address a 2D array.  
   4.18 [Astronomy](./README.md#418-astronomy) Derive Sun and Moon rise and set times, moon phase.  
   4.19 [Tone detection](./README.md#419-tone-detection) Goertzel algorithm.  
- 5. [Module Index](./README.md#5-module-index) Supported code. Device drivers, GUI's, utilities.  
+  4.20 [Using RP2XXX hardware](./README.md#420-using-rp2xxx-hardware) Introduction to PIO, DMA and dual-core code.  
+ 5. [Module Index](./README.md#5-module-index) Index to my fully supported modules. Device drivers, GUI's, utilities.  
   5.1 [asyncio](./README.md#51-asyncio) Tutorial and drivers for asynchronous coding.  
   5.2 [Memory Device Drivers](./README.md#52-memory-device-drivers) Drivers for nonvolatile memory devices.  
   5.3 [Inertial Measurement Units](./README.md#53-inertial-measurement-units) Gravity, gyro and magnetic sensors.  
@@ -401,6 +402,21 @@ work at global locations and timezones. See [docs](./astronomy/README.md).
 This module may be used for detection of audio tones. It uses the Goertzel
 algorithm which is effectively a single-bin Fourier transform. See
 [docs](./goertzel/README.md).
+
+## 4.20 Using RP2XXX hardware
+
+The RP2040 (Pico) and RP2350 (Pico 2) have some powerful hardware:
+* The PIO comprising a set of programmable, high speed, state machines.
+* Python-programmable DMA that can be linked to the SM's.
+* A second core.
+
+The following samples are provided to illustrate the use of these facilities:
+* A nonblocking SPI master capable of very high throughput.
+* A nonblocking SPI slave.
+* A means of measuring the characteristics of an incoming pulse train.
+* An analog of the ESP32 RMT module: nonblocking output of complex pulse trains.
+
+See [the docs](./rp2/RP2.md).
 
 # 5. Module index
 

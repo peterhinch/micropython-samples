@@ -1,4 +1,4 @@
-# spi_dma.py A nonblocking SPI master for RP2040/RP2350
+# spi_mater.py A nonblocking SPI master for RP2040/RP2350
 # Inspired by
 # https://github.com/raspberrypi/pico-micropython-examples/blob/master/pio/pio_spi.py
 

@@ -1,10 +1,13 @@
-# spi_dma_test.py Test script for spi_dma.py
+# master_test.py Test script for spi_dma.py
+
 # Released under the MIT License (MIT). See LICENSE.
 # Copyright (c) 2025 Peter Hinch
 
+# Performs SPI output: check on scope or LA.
+
 from machine import Pin
 import asyncio
-from spi_dma import RP2_SPI_DMA_MASTER
+from .spi_master import RP2_SPI_DMA_MASTER
 
 pin_cs = Pin(20, Pin.OUT, value=1)
 pin_sck = Pin(18, Pin.OUT, value=0)
@@ -18,6 +21,7 @@ def callback(dma):  # Hard ISR
 
 
 spi = RP2_SPI_DMA_MASTER(6, 1_000_000, pin_sck, pin_mosi, callback)
+
 
 async def send(data):
     pin_cs(0)  # Assert CS/
