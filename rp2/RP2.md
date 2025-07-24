@@ -2,27 +2,27 @@
 
 These are intended to demonstrate the use of Pico-specific hardware.
 
-1. [Nonblocking SPI master](./RP2#1-nonblocking-spi-master) High speed bulk data output.  
- 1.1 [Class RP2_SPI_DMA_MASTER](./RP2#11-rp2_spi_dma_master)  
- 1.2 [Constructor](./RP2#12-constructor)  
- 1.3 [Methods](./RP2#13-methods)  
- 1.4 [CS](./RP2#14-cs) How to control the CS/ pin.  
-2. [Nonblocking SPI slave](./RP2#2-nonblocking-spi-slave) High speed bulk data input.  
- 2.1 [Introduction](./RP2#21-introduction)  
- 2.2 [SpiSlave class](./RP2#22-spislave-class)  
- 2.3 [Constructor](./RP2#23-constructor)  
- 2.4 [Synchronous Interface](./RP2#24-synchronous-interface)  
- 2.5 [Asynchronous Interface](./RP2#25-asynchronous-interface)  
- 2.6 [Test Scripts](./RP2#26-test-scripts)  
-3. [Pulse Measurement](./RP2#3-pulse-Measurement) Measure incoming pulses.  
-4. [Pulse train output](./RP2#4-pulse-train-output) Output arbitrary pulse trains as per ESP32 RMT.  
- 4.1 [The RP2_RMT class](./RP2#41-the-rp2_rmt-class)  
- 4.2 [Constructor](./RP2#42-constructor)  
- 4.3 [Methods](./RP2#43-methods)  
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;4.3.1 [send](./RP2#431-send)  
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;4.3.2 [busy](./RP2#432-busy)  
- 4.4 [Design](./RP2#44-design)  
- 4.5 [Limitations](./RP2#45-limitations)  
+1. [Nonblocking SPI master](./RP2.md.md#1-nonblocking-spi-master) High speed bulk data output.  
+ 1.1 [Class RP2_SPI_DMA_MASTER](./RP2.md#11-rp2_spi_dma_master)  
+ 1.2 [Constructor](./RP2.md#12-constructor)  
+ 1.3 [Methods](./RP2.md#13-methods)  
+ 1.4 [CS](./RP2.md#14-cs) How to control the CS/ pin.  
+2. [Nonblocking SPI slave](./RP2.md#2-nonblocking-spi-slave) High speed bulk data input.  
+ 2.1 [Introduction](./RP2.md#21-introduction)  
+ 2.2 [SpiSlave class](./RP2.md#22-spislave-class)  
+ 2.3 [Constructor](./RP2.md#23-constructor)  
+ 2.4 [Synchronous Interface](./RP2.md#24-synchronous-interface)  
+ 2.5 [Asynchronous Interface](./RP2.md#25-asynchronous-interface)  
+ 2.6 [Test Scripts](./RP2.md#26-test-scripts)  
+3. [Pulse Measurement](./RP2.md#3-pulse-Measurement) Measure incoming pulses.  
+4. [Pulse train output](./RP2.md#4-pulse-train-output) Output arbitrary pulse trains as per ESP32 RMT.  
+ 4.1 [The RP2_RMT class](./RP2.md#41-the-rp2_rmt-class)  
+ 4.2 [Constructor](./RP2.md#42-constructor)  
+ 4.3 [Methods](./RP2.md#43-methods)  
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;4.3.1 [send](./RP2.md#431-send)  
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;4.3.2 [busy](./RP2.md#432-busy)  
+ 4.4 [Design](./RP2.md#44-design)  
+ 4.5 [Limitations](./RP2.md#45-limitations)  
 
 # 1. Nonblocking SPI master
 
