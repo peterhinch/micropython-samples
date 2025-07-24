@@ -2,7 +2,7 @@
 
 These are intended to demonstrate the use of Pico-specific hardware.
 
-1. [Nonblocking SPI master](./RP2.md.md#1-nonblocking-spi-master) High speed bulk data output.  
+1. [Nonblocking SPI master](./RP2.md#1-nonblocking-spi-master) High speed bulk data output.  
  1.1 [Class RP2_SPI_DMA_MASTER](./RP2.md#11-rp2_spi_dma_master)  
  1.2 [Constructor](./RP2.md#12-constructor)  
  1.3 [Methods](./RP2.md#13-methods)  
@@ -13,7 +13,7 @@ These are intended to demonstrate the use of Pico-specific hardware.
  2.3 [Constructor](./RP2.md#23-constructor)  
  2.4 [Synchronous Interface](./RP2.md#24-synchronous-interface)  
  2.5 [Asynchronous Interface](./RP2.md#25-asynchronous-interface)  
- 2.6 [Test Scripts](./RP2.md#26-test-scripts)  
+ 2.6 [operation](./RP2.md#26-operation)  
 3. [Pulse Measurement](./RP2.md#3-pulse-Measurement) Measure incoming pulses.  
 4. [Pulse train output](./RP2.md#4-pulse-train-output) Output arbitrary pulse trains as per ESP32 RMT.  
  4.1 [The RP2_RMT class](./RP2.md#41-the-rp2_rmt-class)  
