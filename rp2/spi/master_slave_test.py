@@ -11,7 +11,7 @@
 from machine import Pin
 import asyncio
 from .spi_slave import SpiSlave
-from .spi_master import RP2_SPI_DMA_MASTER
+from .spi_master import SpiMaster
 
 
 tsf = asyncio.ThreadSafeFlag()
@@ -50,7 +50,7 @@ async def test():
     # Pins for Master
     pin_sck = Pin(18, Pin.OUT, value=0)
     pin_mosi = Pin(19, Pin.OUT, value=0)
-    spi = RP2_SPI_DMA_MASTER(4, 10_000_000, pin_sck, pin_mosi, callback)
+    spi = SpiMaster(4, 10_000_000, pin_sck, pin_mosi, callback)
     print("\nBasic test\n")
     await send(cs, spi, obuf[:256])
     await send(cs, spi, obuf[:20])

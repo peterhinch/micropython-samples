@@ -1,0 +1,14 @@
+{
+  "urls": [
+    ["measure_pulse/measure_pulse.py", "github:peterhinch/micropython-samples/rp2/measure_pulse/measure_pulse.py"],
+    ["rmt/rp2_rmt_test.py", "github:peterhinch/micropython-samples/rp2/rmt/rp2_rmt_test.py"],
+    ["rmt/rp2_rmt.py", "github:peterhinch/micropython-samples/rp2/rmt/rp2_rmt.py"],
+    ["spi/master_slave_test.py", "github:peterhinch/micropython-samples/rp2/spi/master_slave_test.py"],
+    ["spi/master_test.py", "github:peterhinch/micropython-samples/rp2/spi/master_test.py"],
+    ["spi/slave_async_test.py", "github:peterhinch/micropython-samples/rp2/spi/slave_async_test.py"],
+    ["spi/slave_sync_test.py", "github:peterhinch/micropython-samples/rp2/spi/slave_sync_test.py"],
+    ["spi/spi_master.py", "github:peterhinch/micropython-samples/rp2/spi/spi_master.py"],
+    ["spi/spi_slave.py", "github:peterhinch/micropython-samples/rp2/spi/spi_slave.py"]
+  ],
+  "version": "0.1"
+}

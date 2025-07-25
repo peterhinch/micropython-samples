@@ -26,7 +26,7 @@ def dreq(sm, rx=False):
 
 # The callback runs when DMA is complete. This may be up to four byte times prior to
 # the SM running out of data (FIFO depth).
-class RP2_SPI_DMA_MASTER:
+class SpiMaster:
     def __init__(self, sm_num, freq, sck, mosi, callback):
         self._sm_num = sm_num
         self._dma = rp2.DMA()

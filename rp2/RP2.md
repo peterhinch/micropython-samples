@@ -3,7 +3,7 @@
 These are intended to demonstrate the use of Pico-specific hardware.
 
 1. [Nonblocking SPI master](./RP2.md#1-nonblocking-spi-master) High speed bulk data output.  
- 1.1 [Class RP2_SPI_DMA_MASTER](./RP2.md#11-rp2_spi_dma_master)  
+ 1.1 [Class SpiMaster](./RP2.md#11-class-spimaster)  
  1.2 [Constructor](./RP2.md#12-constructor)  
  1.3 [Methods](./RP2.md#13-methods)  
  1.4 [CS](./RP2.md#14-cs) How to control the CS/ pin.  
@@ -24,12 +24,21 @@ These are intended to demonstrate the use of Pico-specific hardware.
  4.4 [Design](./RP2.md#44-design)  
  4.5 [Limitations](./RP2.md#45-limitations)  
 
+To install the demos issue:
+```bash
+$ mpremote mip install "github:peterhinch/micropython-samples/rp2"
+```
+They will be installed in directories:
+* `spi` SPI modules and demos.
+* `measure_pulse` Pulse measurement.
+* `rmt` Pulse train output.
+
 # 1. Nonblocking SPI master
 
-The module `spi_master` provides a class `RP2_SPI_DMA_MASTER` which uses DMA to
-perform fast SPI output. A typical use case is to transfer the contents of a
-frame buffer to a display as a background task. The following files are provided
-in the `spi` directory:
+The module `spi_master` provides a class `SpiMaster` which uses DMA to perform
+fast SPI output. A typical use case is to transfer the contents of a frame
+buffer to a display as a background task. The following files are provided in
+the `spi` directory:
 * `spi_master.py` The main module.
 * `master_test.py` Test script - requires a scope or LA to check SPI output.
 * `master_slave_test.py` Full test of master linked to slave, with the latter
@@ -52,7 +61,7 @@ To run a test issue (e.g.):
 >>> import spi.master_slave_test
 ```
 
-## 1.1 Class RP2_SPI_DMA_MASTER
+## 1.1 Class SpiMaster
 
 ## 1.2 Constructor
 

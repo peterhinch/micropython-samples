@@ -7,7 +7,7 @@
 
 from machine import Pin
 import asyncio
-from .spi_master import RP2_SPI_DMA_MASTER
+from .spi_master import SpiMaster
 
 pin_cs = Pin(20, Pin.OUT, value=1)
 pin_sck = Pin(18, Pin.OUT, value=0)
@@ -20,7 +20,7 @@ def callback(dma):  # Hard ISR
     tsf.set()  # Flag user code that transfer is complete
 
 
-spi = RP2_SPI_DMA_MASTER(6, 1_000_000, pin_sck, pin_mosi, callback)
+spi = SpiMaster(6, 1_000_000, pin_sck, pin_mosi, callback)
 
 
 async def send(data):
