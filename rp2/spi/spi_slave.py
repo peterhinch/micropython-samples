@@ -52,6 +52,7 @@ class SpiSlave:
             return 4 + d if rx else d
 
         self._callback = callback
+        self._docb = False  # By default CB des not run
         # Set up DMA
         self._dma = rp2.DMA()
         # Transfer bytes, rather than words, don't increment the read address and pace the transfer.
@@ -62,6 +63,7 @@ class SpiSlave:
         if buf is not None:
             self._mvb = memoryview(buf)
         self._tsf = asyncio.ThreadSafeFlag()
+        self._read_done = False  # Synchronisation for .read()
         csn.irq(self._done, trigger=Pin.IRQ_RISING, hard=True)  # IRQ occurs at end of transfer
         self._sm = rp2.StateMachine(
             sm_num,
@@ -76,15 +78,32 @@ class SpiSlave:
         return self
 
     async def __anext__(self):
-        if self._buf is None:
-            raise OSError("No buffer provided to constructor.")
-
-        self.read_into(self._buf)  # Initiate DMA and return.
+        self._bufcheck()  # Ensure there is a valid buffer
+        self._rinto(self._buf)  # Initiate DMA and return.
         await self._tsf.wait()  # Wait for CS/ high (master signals transfer complete)
         return self._mvb[: self._nbytes]
 
-    # Initiate a read into a buffer. Immediate return.
+    def _bufcheck(self):
+        if self._buf is None:
+            raise OSError("No buffer provided to constructor.")
+
+    def read(self):  # Blocking read, own buffer
+        self._bufcheck()
+        self._read_done = False
+        self._rinto(self._buf)
+        while not self._read_done:
+            pass
+        return self._buf[: self._nbytes]
+
+    # Initiate a nonblocking read into a buffer. Immediate return.
     def read_into(self, buf):
+        if self._callback is not None:
+            self._docb = True
+            self._rinto(buf)
+        else:
+            raise ValueError("Missing callback function.")
+
+    def _rinto(self, buf):  # .read_into() without callback
         buflen = len(buf)
         self._buflen = buflen  # Save for ISR
         self._dma.active(0)  # De-activate befor re-configuring
@@ -100,18 +119,21 @@ class SpiSlave:
     def _done(self, _):  # Get no. of bytes received.
         self._dma.active(0)
         self._sm.put(0)  # Request no. of received bits
-        if not self._sm.rx_fifo():  # Occurs if .read_into() never called while CSN is low:
+        if not self._sm.rx_fifo():  # Occurs if ._rinto() never called while CSN is low:
+            # print("GH")
             return  # ISR runs on trailing edge but SM is not running. Nothing to do.
         sp = self._sm.get() >> 3  # Bits->bytes: space left in buffer or 7ffffff on overflow
         self._nbytes = self._buflen - sp if sp != 0x7FFFFFF else self._buflen
         self._dma.active(0)
         self._sm.active(0)
         self._tsf.set()
-        if self._callback is not None:
+        self._read_done = True
+        if self._docb:  # Only run CB if user has called .read_into()
+            self._docb = False
             schedule(self._callback, self._nbytes)  # Soft ISR
 
     # Await a read into a user-supplied buffer. Return no. of bytes read.
     async def as_read_into(self, buf):
-        self.read_into(buf)  # Start the read
+        self._rinto(buf)  # Start the read
         await self._tsf.wait()  # Wait for CS/ high (master signals transfer complete)
         return self._nbytes

@@ -116,9 +116,9 @@ Tests are run by issuing (e.g.):
 # 2.1 Introduction
 
 This uses a PIO state machine (SM) with DMA to enable an RP2 to receive SPI
-transfers from a host. Reception is non-blocking, enabling code to run while a
-transfer is in progress. The principal application area is for fast transfer of
-large messages.
+transfers from a host. Non blocking reception is offered, enabling code to run
+while awaiting a message and while a transfer is in progress. The principal
+application area is for fast transfer of large messages.
 
 # 2.2 SpiSlave class
 
@@ -130,9 +130,11 @@ high, terminating the transfer.
 
 This takes the following positional args:
 * `buf=None` Optional `bytearray` for incoming data. This is required if using
-the asynchronous iterator interface, otherwise it is unused.
-* `callback=None` Optional callback for use with the synchronous API. It takes
-a single arg, being the number of bytes received.
+the asynchronous iterator interface or the blocking `.read()` method, otherwise
+it is unused.
+* `callback=None` Callback for use with the nonblocking synchronous API. It takes
+a single arg, being the number of bytes received. It runs as a soft interrupt
+service routine (ISR). The callback will only run in response to `.read_into()`.
 * `sm_num=0` State machine number.
 
 Keyword args: Pin instances, initialised as input. GPIO nos. must be consecutive
@@ -143,13 +145,51 @@ starting from `mosi`.
 
 # 2.4 Synchronous Interface
 
-This is via `SpiSlave.read_into(buffer)` where `buffer` is a user supplied
-`bytearray`. This must be large enough for the expected message. The method
-returns immediately. When a message arrives and reception is complete, the
-callback runs. Its integer arg is the number of bytes received.
+Methods:
+* `read()` Blocking read. Blocks until a message is received. Returns a
+`memoryview` into the buffer passed to the constructor. This slice contains the
+message. If a message is too long to fit the buffer excess bytes are lost.
+* `read_into(buffer)` Nonblocking read into the passed buffer. This must be
+large enough for the expected message. The method returns immediately. When a
+message arrives and reception is complete, the callback runs. Its integer arg is
+the number of bytes received. If a message is too long to fit the buffer, excess
+bytes are lost.
 
-If a message is too long to fit the buffer, when the buffer fills, subsequent
-characters are lost.
+The nonblocking `.read_into()` method enables processing to be done while
+awaiting a complete message. The drawback (compared to `.read()`) is that
+synchronisation is required. This is to ensure that, when a message is received,
+the slave is set up to receive the next. The following illustrates this:
+```python
+from machine import Pin
+from .spi_slave import SpiSlave
+
+nbytes = 0  # Synchronisation
+# Callback runs when transfer complete (soft ISR context)
+def receive(num_bytes):
+    global nbytes
+    nbytes = num_bytes
+
+mosi = Pin(0, Pin.IN)  # Consecutive GPIO nos.
+sck = Pin(1, Pin.IN)
+csn = Pin(2, Pin.IN)
+piospi = SpiSlave(callback=receive, sm_num=4, mosi=mosi, sck=sck, csn=csn)
+
+
+def test():
+    global nbytes
+    buf = bytearray(300)  # Read buffer
+    while True:
+        nbytes = 0
+        piospi.read_into(buf)  # Initiate a read
+        while nbytes == 0:  # Wait for message arrival
+            pass  # Can do something useful while waiting
+        print(bytes(buf[:nbytes]))  # Message received. Process it.
+
+test()
+```
+Note that if the master sends a message before the slave has finished processing
+its predecessor, data will be lost. This illustration is inefficient: allocation
+free slicing could be achieved via a `memoryview` of `buf`.
 
 # 2.5 Asynchronous Interface
 
