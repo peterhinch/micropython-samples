@@ -1,3 +1,8 @@
+# spi.rx.py Demo of nonblocking SPI reception
+
+# Released under the MIT License (MIT). See LICENSE.
+# Copyright (c) 2025 Peter Hinch
+
 from machine import Pin, reset
 from .spi_slave import SpiSlave
 from time import sleep_ms
@@ -32,4 +37,4 @@ def test():
 try:
     test()
 finally:
-    reset()
+    piospi.deinit()

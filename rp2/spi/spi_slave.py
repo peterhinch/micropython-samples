@@ -93,7 +93,7 @@ class SpiSlave:
         self._rinto(self._buf)
         while not self._read_done:
             pass
-        return self._buf[: self._nbytes]
+        return self._mvb[: self._nbytes]
 
     # Initiate a nonblocking read into a buffer. Immediate return.
     def read_into(self, buf):
@@ -120,6 +120,7 @@ class SpiSlave:
         self._dma.active(0)
         self._sm.put(0)  # Request no. of received bits
         if not self._sm.rx_fifo():  # Occurs if ._rinto() never called while CSN is low:
+            # a transmission was missed.
             # print("GH")
             return  # ISR runs on trailing edge but SM is not running. Nothing to do.
         sp = self._sm.get() >> 3  # Bits->bytes: space left in buffer or 7ffffff on overflow
@@ -137,3 +138,7 @@ class SpiSlave:
         self._rinto(buf)  # Start the read
         await self._tsf.wait()  # Wait for CS/ high (master signals transfer complete)
         return self._nbytes
+
+    def deinit(self):
+        self._dma.active(0)
+        self._sm.active(0)

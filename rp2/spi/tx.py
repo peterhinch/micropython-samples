@@ -1,3 +1,8 @@
+# spi.tx.py Send data to SPI slave
+
+# Released under the MIT License (MIT). See LICENSE.
+# Copyright (c) 2025 Peter Hinch
+
 from machine import Pin, SPI
 from time import sleep_ms
 
@@ -13,9 +18,7 @@ spi = SPI(0, baudrate=10_000_000, sck=pin_sck, mosi=pin_mosi, miso=pin_miso)
 def send(obuf):
     cs(0)
     spi.write(obuf)
-    # sleep_ms(10)
     cs(1)
-    # print("sent", obuf)
     sleep_ms(1000)
 
 

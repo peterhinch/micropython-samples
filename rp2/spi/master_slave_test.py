@@ -21,7 +21,19 @@ def callback(dma):  # Hard ISR
     tsf.set()  # Flag user code that transfer is complete
 
 
-async def send(cs, spi, data):
+# Sender uses nonblocking master
+cs = Pin(17, Pin.OUT, value=1)  # Ensure CS/ is False before we try to receive.
+pin_sck = Pin(18, Pin.OUT, value=0)
+pin_mosi = Pin(19, Pin.OUT, value=0)
+spi = SpiMaster(4, 10_000_000, pin_sck, pin_mosi, callback)
+# Pins for slave
+mosi = Pin(0, Pin.IN)
+sck = Pin(1, Pin.IN)
+csn = Pin(2, Pin.IN)
+piospi = SpiSlave(buf=bytearray(300), sm_num=0, mosi=mosi, sck=sck, csn=csn)
+
+
+async def send(data):
     cs(0)  # Assert CS/
     spi.write(data)  # "Immediate" return: minimal blocking.
     await tsf.wait()  # Wait for transfer complete (other tasks run)
@@ -38,24 +50,18 @@ async def receive(piospi):
 
 async def test():
     obuf = bytearray(range(512))  # Test data
-    # Master CS/
-    cs = Pin(17, Pin.OUT, value=1)  # Ensure CS/ is False before we try to receive.
-    # Pins for slave
-    mosi = Pin(0, Pin.IN)
-    sck = Pin(1, Pin.IN)
-    csn = Pin(2, Pin.IN)
-    piospi = SpiSlave(buf=bytearray(300), sm_num=0, mosi=mosi, sck=sck, csn=csn)
     rt = asyncio.create_task(receive(piospi))
     await asyncio.sleep_ms(0)  # Ensure receive task is running
-    # Pins for Master
-    pin_sck = Pin(18, Pin.OUT, value=0)
-    pin_mosi = Pin(19, Pin.OUT, value=0)
-    spi = SpiMaster(4, 10_000_000, pin_sck, pin_mosi, callback)
     print("\nBasic test\n")
-    await send(cs, spi, obuf[:256])
-    await send(cs, spi, obuf[:20])
-    await send(cs, spi, b"The quick brown fox jumps over the lazy dog")
+    await send(obuf[:256])
+    await send(obuf[:20])
+    await send(b"The quick brown fox jumps over the lazy dog")
     print("\nDone")
 
 
-asyncio.run(test())
+try:
+    asyncio.run(test())
+finally:
+    piospi.deinit()
+    spi.deinit()
+    asyncio.new_event_loop()

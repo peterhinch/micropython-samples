@@ -96,6 +96,17 @@ It has been tested at a clock rate of 24MHz on an RP2040 running at 250MHz.
 
 The following files may be found in the `spi` directory:
 * `spi_slave.py` Main module.
+* `tx.py` Transmitter script: provides SPI data for receiver demos below.
+These demos use two linked boards, one supplying data, the other receiving.
+* `rx.py` Demo of nonblocking receiver.
+* `rxb.py` Blocking read demo.
+* `arx.py` Asynchronous read demo.
+Demos are run from the `rp2` directory by issuing (e.g.):
+```python
+>>> import spi.rx
+```
+Tests. These run on a single board and test special cases such as recovery from
+overruns.
 * `slave_sync_test` Test using synchronous code.
 * `slave_async_test` Test using asynchronous code.
 * `master_slave_test.py` Full test of master linked to slave, with the latter
@@ -108,7 +119,7 @@ the following pins should be linked:
 * 1-18 SCK
 * 2-17 CSN
 
-Tests are run by issuing (e.g.):
+Tests are run from the `rp2` directory by issuing (e.g.):
 ```py
 >>> import spi.master_slave_test
 ```
@@ -154,6 +165,8 @@ large enough for the expected message. The method returns immediately. When a
 message arrives and reception is complete, the callback runs. Its integer arg is
 the number of bytes received. If a message is too long to fit the buffer, excess
 bytes are lost.
+* `deinit()` Close the interface. This should be done on exit to avoid hanging
+at the REPL.
 
 The nonblocking `.read_into()` method enables processing to be done while
 awaiting a complete message. The drawback (compared to `.read()`) is that
@@ -212,6 +225,9 @@ phase "ping pong" buffering). Reception is via an asynchronous method
     print(bytes(rbuf[:nbytes]))
 ```
 As with all asynchronous code, this task pauses while others continue to run.
+
+On application exit `SpiSlave.deinit()` should be called to avoid hanging at the
+REPL.
 
 # 2.6 Operation
 
