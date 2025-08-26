@@ -85,7 +85,9 @@ is rapid with transmission running in the background. Returns `None`.
 ## 1.4 CS/
 
 The application should assert CS/ (set to 0) prior to transmission and deassert
-it after transmission is complete.
+it after transmission is complete. An external pullup resistor to 3.3V should be
+provided to ensure that the receiving device sees CS/ `False` in the interval
+between power-up and application start-up. A value of a few KΩ is suggested.
 
 # 2. Nonblocking SPI slave
 
