@@ -12,15 +12,18 @@ from .spi_master import SpiMaster
 pin_cs = Pin(20, Pin.OUT, value=1)
 pin_sck = Pin(18, Pin.OUT, value=0)
 pin_mosi = Pin(19, Pin.OUT, value=0)
+pin_miso = Pin(16, Pin.IN)
 
 tsf = asyncio.ThreadSafeFlag()
 
 
-def callback(dma):  # Hard ISR
+def callback():  # Hard ISR
     tsf.set()  # Flag user code that transfer is complete
+    print("cb")
 
 
-spi = SpiMaster(6, 1_000_000, pin_sck, pin_mosi, callback)
+buf = bytearray(100)
+spi = SpiMaster(6, 1_000_000, pin_sck, pin_mosi, callback, miso=pin_miso, ibuf=buf)
 
 
 async def send(data):
@@ -31,13 +34,15 @@ async def send(data):
 
 
 async def main():
-    src_data = b"\xFF\x55\xAA\x00the quick brown fox jumps over the lazy dog"
+    src_data = bytearray(b"\xFF\x55\xAA\x00the quick brown fox jumps over the lazy dog")
     n = 0
     while True:
         asyncio.create_task(send(src_data))  # Send as a background task
         await asyncio.sleep(1)
-        print(n)
+        print(n, buf[: len(src_data)])
         n += 1
+        n &= 0xFF
+        src_data[0] = n
 
 
 try:

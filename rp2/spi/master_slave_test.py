@@ -17,7 +17,7 @@ from .spi_master import SpiMaster
 tsf = asyncio.ThreadSafeFlag()
 
 
-def callback(dma):  # Hard ISR
+def callback():  # Hard ISR
     tsf.set()  # Flag user code that transfer is complete
 
 

@@ -7,6 +7,7 @@ These are intended to demonstrate the use of Pico-specific hardware.
  1.2 [Constructor](./RP2.md#12-constructor)  
  1.3 [Methods](./RP2.md#13-methods)  
  1.4 [CS](./RP2.md#14-cs) How to control the CS/ pin.  
+ 1.5 [Callback](./RP2.md#15-callback) Notification of transfer complete.  
 2. [Nonblocking SPI slave](./RP2.md#2-nonblocking-spi-slave) High speed bulk data input.  
  2.1 [Introduction](./RP2.md#21-introduction)  
  2.2 [SpiSlave class](./RP2.md#22-spislave-class)  
@@ -36,11 +37,12 @@ They will be installed in directories:
 # 1. Nonblocking SPI master
 
 The module `spi_master` provides a class `SpiMaster` which uses DMA to perform
-fast SPI output. A typical use case is to transfer the contents of a frame
-buffer to a display as a background task. The following files are provided in
-the `spi` directory:
+fast SPI I/O. A typical use case is to transfer the contents of a frame buffer
+to a display as a background task. The following files are provided in the `spi`
+directory:
 * `spi_master.py` The main module.
-* `master_test.py` Test script - requires a scope or LA to check SPI output.
+* `master_test.py` Test script - uses a loopback (MOSI linked to MISO) to verify
+the master.
 * `master_slave_test.py` Full test of master linked to slave, with the latter
 printing results.
 
@@ -51,10 +53,11 @@ those on the official class are highly quantised, with (for example) 20MHz
 manifesting as 12MHz. The module has been tested to 30MHz, but higher rates
 should be possible.
 
-To run the full test, the following pins should be linked:
-* 0-19 MOSI
+To run the tests, the following pins should be linked:
+* 0-19 MOSI (master-slave links).
 * 1-18 SCK
 * 2-17 CSN
+* 16-19 MOSI-MISO (only needed for master_test.py).
 
 To run a test issue (e.g.):
 ```py
@@ -68,13 +71,15 @@ To run a test issue (e.g.):
 This takes the following positional args:
 * `sm_num` State machine no. (0..7 on RP2040, 0..11 on RP2350)
 * `freq` SPI clock frequency in Hz.
-* `sck` A `Pin` instance for `sck`. Pins are arbitrary.
-* `mosi` A `Pin` instance for `mosi`.
-* `callback` A callback to run when DMA is complete. This is run in a hard IRQ
-context. Typical use is to set a `ThreadSafeFlag`. Note that the DMA completes
-before transmission ends due to bytes stored in the SM FIFO. This is unlikely to
-have practical consequences because of MicroPython latency: in particular
-response to a `ThreadSafeFlag` typically takes >200μs.
+* `sck` An output `Pin` instance for `sck`. Pins are arbitrary.
+* `mosi` An output `Pin` instance for `mosi`.
+* `callback` A callback to run when DMA is complete. See [below](./RP2.md#15-callback).
+
+Optional keyword args, for the case where data coming from the slave must be
+acquired (MISO):
+* `miso` A `Pin` instance for MISO (defined as input).
+* `ibuf` A `bytearray` for MISO data. If the quantity of data exceeds the length
+of the buffer it will be truncated.
 
 ## 1.3 Methods
 
@@ -88,6 +93,16 @@ The application should assert CS/ (set to 0) prior to transmission and deassert
 it after transmission is complete. An external pullup resistor to 3.3V should be
 provided to ensure that the receiving device sees CS/ `False` in the interval
 between power-up and application start-up. A value of a few KΩ is suggested.
+
+## 1.5 Callback
+
+This runs when the DMA is complete. It takes no args and runs in a hard IRQ
+context. Typical use is to set a `ThreadSafeFlag`, allowing a pending task to
+resume. Typically this will deassert `CS/` and initiate processing of received
+data. Note that the DMA completes before transmission ends due to bytes stored
+in the SM FIFO. This is unlikely to have practical consequences because of
+MicroPython latency: the master executes several MP instructions before the
+callback runs, and the response to a `ThreadSafeFlag` typically takes >200μs.
 
 # 2. Nonblocking SPI slave
 
