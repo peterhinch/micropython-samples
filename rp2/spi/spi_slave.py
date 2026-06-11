@@ -4,7 +4,7 @@
 # Copyright (c) 2025 Peter Hinch
 
 import rp2
-from machine import Pin, mem32
+from machine import Pin
 import asyncio
 from micropython import schedule, alloc_emergency_exception_buf
 
